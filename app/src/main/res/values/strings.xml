@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Board Game Nation</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_collection">Collection</string>
+    <string name="nav_sessions">Sessions</string>
+    <string name="nav_timer">Timer</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_more">More</string>
+
+    <!-- Common actions -->
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_add">Add</string>
+    <string name="action_done">Done</string>
+    <string name="action_close">Close</string>
+    <string name="action_back">Back</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_discard">Discard</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_search">Search</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_more_options">More options</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_increase">Increase</string>
+    <string name="action_decrease">Decrease</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Board Game Nation</string>
+    <string name="dashboard_recent_sessions">Recent plays</string>
+    <string name="dashboard_no_sessions">No plays logged yet. Tap the button below to log your first.</string>
+    <string name="dashboard_quick_log">Quick log</string>
+    <string name="dashboard_start_timer">Start timer</string>
+    <string name="dashboard_streak_title">Playing streak</string>
+    <string name="dashboard_streak_weeks">%1$d weeks in a row</string>
+    <string name="dashboard_streak_none">No active streak. Log a play this week to start one.</string>
+    <string name="dashboard_streak_longest">Longest: %1$d weeks</string>
+    <string name="dashboard_recent_achievement">Recently unlocked</string>
+    <string name="dashboard_collection_summary">%1$d games · %2$d plays</string>
+    <string name="dashboard_view_all">View all</string>
+    <string name="dashboard_draft_title">Unfinished session</string>
+    <string name="dashboard_draft_body">A timed session for %1$s was left open. What would you like to do with it?</string>
+    <string name="dashboard_draft_resume">Resume</string>
+    <string name="dashboard_draft_save">Save it</string>
+    <string name="dashboard_draft_discard">Discard</string>
+    <string name="dashboard_overdue_loans">%1$d game lent out for over %2$d days</string>
+    <string name="dashboard_overdue_loans_plural">%1$d games lent out for over %2$d days</string>
+
+    <!-- Collection -->
+    <string name="collection_title">Collection</string>
+    <string name="collection_search_hint">Search titles</string>
+    <string name="collection_empty">Nothing here yet</string>
+    <string name="collection_empty_body">Add a game by hand, or import your collection from BoardGameGeek.</string>
+    <string name="collection_empty_filtered">No games match these filters.</string>
+    <string name="collection_add_game">Add game</string>
+    <string name="collection_layout_grid">Grid view</string>
+    <string name="collection_layout_list">List view</string>
+    <string name="collection_count">%1$d games</string>
+    <string name="collection_selected">%1$d selected</string>
+    <string name="collection_filter_status">Status</string>
+    <string name="collection_filter_players">Plays with</string>
+    <string name="collection_filter_players_value">%1$d players</string>
+    <string name="collection_filter_playtime">Playtime</string>
+    <string name="collection_filter_mechanic">Mechanic</string>
+    <string name="collection_filter_category">Category</string>
+    <string name="collection_filter_rated">Rated</string>
+    <string name="collection_filter_unrated">Unrated</string>
+    <string name="collection_filter_in_possession">On the shelf</string>
+    <string name="collection_filter_hide_expansions">Hide expansions</string>
+    <string name="collection_filter_clear">Clear filters (%1$d)</string>
+    <string name="collection_sort_title">Title</string>
+    <string name="collection_sort_date_added">Date added</string>
+    <string name="collection_sort_play_count">Play count</string>
+    <string name="collection_sort_rating">Rating</string>
+    <string name="collection_sort_price">Price</string>
+    <string name="collection_sort_cost_per_play">Cost per play</string>
+    <string name="collection_sort_last_played">Last played</string>
+    <string name="collection_sort_weight">Weight</string>
+    <string name="collection_bulk_status">Change status</string>
+    <string name="collection_bulk_tag">Add tag</string>
+    <string name="collection_bulk_delete">Delete selected</string>
+    <string name="collection_bulk_delete_body">This deletes %1$d games and every play recorded against them. This cannot be undone.</string>
+    <string name="collection_playtime_under_30">Under 30 min</string>
+    <string name="collection_playtime_30_60">30–60 min</string>
+    <string name="collection_playtime_60_120">1–2 hours</string>
+    <string name="collection_playtime_over_120">Over 2 hours</string>
+
+    <!-- Game statuses -->
+    <string name="status_owned">Owned</string>
+    <string name="status_wishlist">Wishlist</string>
+    <string name="status_preordered">Preordered</string>
+    <string name="status_sold">Sold</string>
+    <string name="status_lent_out">Lent out</string>
+
+    <!-- Game detail -->
+    <string name="game_detail_plays">Plays</string>
+    <string name="game_detail_hours">Hours</string>
+    <string name="game_detail_win_rate">Win rate</string>
+    <string name="game_detail_avg_duration">Average length</string>
+    <string name="game_detail_stated_duration">BGG says</string>
+    <string name="game_detail_cost_per_play">Cost per play</string>
+    <string name="game_detail_never_played">Never played</string>
+    <string name="game_detail_play_history">Play history</string>
+    <string name="game_detail_expansions">Expansions</string>
+    <string name="game_detail_no_expansions">No expansions recorded.</string>
+    <string name="game_detail_rating">Rating</string>
+    <string name="game_detail_rate">Rate this game</string>
+    <string name="game_detail_no_rating">Not rated yet.</string>
+    <string name="game_detail_rating_history">Rating history</string>
+    <string name="game_detail_tags">Tags</string>
+    <string name="game_detail_notes">Notes</string>
+    <string name="game_detail_purchase">Purchase</string>
+    <string name="game_detail_log_play">Log a play</string>
+    <string name="game_detail_start_timer">Start timer</string>
+    <string name="game_detail_lend">Lend out</string>
+    <string name="game_detail_return">Mark returned</string>
+    <string name="game_detail_lent_to">Lent to %1$s</string>
+    <string name="game_detail_lent_since">Out for %1$d days</string>
+    <string name="game_detail_weight">Weight</string>
+    <string name="game_detail_players">Players</string>
+    <string name="game_detail_best_at">Best at %1$s</string>
+    <string name="game_detail_year">Year</string>
+    <string name="game_detail_designers">Designers</string>
+    <string name="game_detail_publisher">Publisher</string>
+    <string name="game_detail_bgg_rating">BGG rating</string>
+    <string name="game_detail_delete_title">Delete this game?</string>
+    <string name="game_detail_delete_with_sessions">This will also delete %1$d recorded play. This cannot be undone.</string>
+    <string name="game_detail_delete_with_sessions_plural">This will also delete %1$d recorded plays. This cannot be undone.</string>
+    <string name="game_detail_delete_with_expansions">%1$d expansion will be unlinked but kept.</string>
+    <string name="game_detail_delete_with_expansions_plural">%1$d expansions will be unlinked but kept.</string>
+    <string name="game_detail_delete_simple">This cannot be undone.</string>
+
+    <!-- Add / edit game -->
+    <string name="game_edit_new_title">Add game</string>
+    <string name="game_edit_edit_title">Edit game</string>
+    <string name="game_edit_title_label">Title</string>
+    <string name="game_edit_title_required">A title is required</string>
+    <string name="game_edit_year">Year published</string>
+    <string name="game_edit_min_players">Min players</string>
+    <string name="game_edit_max_players">Max players</string>
+    <string name="game_edit_best_players">Best with</string>
+    <string name="game_edit_min_playtime">Min minutes</string>
+    <string name="game_edit_max_playtime">Max minutes</string>
+    <string name="game_edit_weight">Weight (1–5)</string>
+    <string name="game_edit_bgg_rating">BGG rating</string>
+    <string name="game_edit_designers">Designers</string>
+    <string name="game_edit_publisher">Publisher</string>
+    <string name="game_edit_date_added">Date added</string>
+    <string name="game_edit_price">Price</string>
+    <string name="game_edit_currency">Currency</string>
+    <string name="game_edit_purchase_note">Purchase note</string>
+    <string name="game_edit_status">Status</string>
+    <string name="game_edit_wishlist_priority">Wishlist priority</string>
+    <string name="game_edit_is_expansion">This is an expansion</string>
+    <string name="game_edit_base_game">Expansion of</string>
+    <string name="game_edit_base_game_none">No base game</string>
+    <string name="game_edit_notes">Notes</string>
+    <string name="game_edit_tags">Mechanics and categories</string>
+    <string name="game_edit_tag_hint">Type a tag and press add</string>
+    <string name="game_edit_search_bgg">Search BoardGameGeek</string>
+    <string name="game_edit_scoring_mode">Scoring</string>
+    <string name="game_edit_high_score_wins">Highest score wins</string>
+    <string name="game_edit_low_score_wins">Lowest score wins</string>
+
+    <!-- Scoring modes -->
+    <string name="scoring_ranked">Scores</string>
+    <string name="scoring_manual">Placement</string>
+    <string name="scoring_coop">Co-operative</string>
+    <string name="scoring_none">No scoring</string>
+
+    <!-- Sessions -->
+    <string name="sessions_title">Sessions</string>
+    <string name="sessions_empty">No plays logged yet.</string>
+    <string name="sessions_empty_filtered">No plays match these filters.</string>
+    <string name="session_players_count">%1$d players</string>
+    <string name="session_winner">Won by %1$s</string>
+    <string name="session_coop_win">Table won</string>
+    <string name="session_coop_loss">Table lost</string>
+    <string name="session_incomplete">Unfinished</string>
+    <string name="session_teaching">Teaching game</string>
+    <string name="session_filter_game">Game</string>
+    <string name="session_filter_player">Player</string>
+    <string name="session_filter_from">From</string>
+    <string name="session_filter_to">To</string>
+    <string name="session_filter_any_game">Any game</string>
+    <string name="session_filter_any_player">Anyone</string>
+
+    <!-- Session edit -->
+    <string name="session_edit_new">Log a play</string>
+    <string name="session_edit_existing">Edit play</string>
+    <string name="session_edit_game">Game</string>
+    <string name="session_edit_choose_game">Choose a game</string>
+    <string name="session_edit_date">Date</string>
+    <string name="session_edit_duration">Duration (minutes)</string>
+    <string name="session_edit_location">Location</string>
+    <string name="session_edit_players">Players</string>
+    <string name="session_edit_add_player">Add player</string>
+    <string name="session_edit_new_player_hint">New player name</string>
+    <string name="session_edit_score">Score</string>
+    <string name="session_edit_faction">Faction or role</string>
+    <string name="session_edit_winner">Winner</string>
+    <string name="session_edit_first_time">First time playing</string>
+    <string name="session_edit_incomplete">Abandoned before finishing</string>
+    <string name="session_edit_teaching">Someone was learning</string>
+    <string name="session_edit_coop_result">Result</string>
+    <string name="session_edit_coop_win">We won</string>
+    <string name="session_edit_coop_loss">We lost</string>
+    <string name="session_edit_notes">Notes</string>
+    <string name="session_edit_expansions">Expansions used</string>
+    <string name="session_edit_photo">Attach a photo</string>
+    <string name="session_edit_photo_attached">Photo attached</string>
+    <string name="session_edit_remove_photo">Remove photo</string>
+    <string name="session_edit_needs_game">Choose a game first</string>
+    <string name="session_edit_needs_players">Add at least one player</string>
+    <string name="session_edit_delete_title">Delete this play?</string>
+    <string name="session_edit_delete_body">This cannot be undone.</string>
+    <string name="session_edit_move_up">Move up</string>
+    <string name="session_edit_move_down">Move down</string>
+    <string name="session_edit_remove_player">Remove from this play</string>
+    <string name="session_edit_full_form">More options</string>
+    <string name="session_saved">Play saved</string>
+
+    <!-- Quick log -->
+    <string name="quick_log_title">Quick log</string>
+    <string name="quick_log_who_won">Who won?</string>
+    <string name="quick_log_nobody">Nobody</string>
+
+    <!-- Timer -->
+    <string name="timer_title">Timer</string>
+    <string name="timer_setup_title">Timer setup</string>
+    <string name="timer_setup_game">Game</string>
+    <string name="timer_setup_players">Turn order</string>
+    <string name="timer_seat_position">%1$d.</string>
+    <string name="timer_setup_preset">Preset</string>
+    <string name="timer_setup_turn_seconds">Turn seconds</string>
+    <string name="timer_setup_bank_seconds">Bank seconds</string>
+    <string name="timer_setup_warning_seconds">Warning at (seconds)</string>
+    <string name="timer_setup_sound">Sound</string>
+    <string name="timer_setup_haptics">Vibration</string>
+    <string name="timer_setup_auto_pass">Pass automatically when the bank runs out</string>
+    <string name="timer_setup_auto_pass_help">Off by default: the timer flags the player and keeps counting into overtime instead.</string>
+    <string name="timer_setup_start">Start timer</string>
+    <string name="timer_setup_needs_players">Pick at least two players</string>
+    <string name="timer_setup_save_preset">Save as preset</string>
+    <string name="timer_setup_preset_name">Preset name</string>
+    <string name="timer_running_title">Timer</string>
+    <string name="timer_action_pass">Pass</string>
+    <string name="timer_action_pause">Pause</string>
+    <string name="timer_action_resume">Resume</string>
+    <string name="timer_action_undo">Undo pass</string>
+    <string name="timer_action_stop">End</string>
+    <string name="timer_action_reverse">Reverse order</string>
+    <string name="timer_action_skip">Skip</string>
+    <string name="timer_action_unskip">Rejoin</string>
+    <string name="timer_clock_turn">Turn</string>
+    <string name="timer_clock_bank">Bank</string>
+    <string name="timer_clock_overtime">Overtime</string>
+    <string name="timer_bank_label">Bank %1$s</string>
+    <string name="timer_turns_taken">%1$d turns</string>
+    <string name="timer_paused">Paused</string>
+    <string name="timer_timed_out">Out of time</string>
+    <string name="timer_skipped">Skipped</string>
+    <string name="timer_notification_title">%1$s is up</string>
+    <string name="timer_notification_body">%1$s %2$s</string>
+    <string name="timer_notification_idle">Timer</string>
+    <string name="timer_channel_name">Turn timer</string>
+    <string name="timer_channel_description">Keeps the turn timer running accurately while the screen is off.</string>
+    <string name="timer_stop_title">End the timer?</string>
+    <string name="timer_stop_body">You played for %1$s. Save this as a session?</string>
+    <string name="timer_stop_save">Save session</string>
+    <string name="timer_stop_discard">Discard</string>
+    <string name="timer_keep_screen_on">Keep the screen on</string>
+    <string name="timer_no_game">Pick a game to time</string>
+    <string name="timer_restored">Timer restored, paused where it left off</string>
+    <string name="timer_elapsed">Elapsed %1$s</string>
+
+    <!-- Stats -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_tab_collection">Collection</string>
+    <string name="stats_tab_plays">Plays</string>
+    <string name="stats_tab_value">Value</string>
+    <string name="stats_tab_players">Players</string>
+    <string name="stats_total_games">Games owned</string>
+    <string name="stats_total_expansions">Expansions</string>
+    <string name="stats_collection_value">Collection value</string>
+    <string name="stats_by_mechanic">By mechanic</string>
+    <string name="stats_by_category">By category</string>
+    <string name="stats_weight_distribution">Weight spread</string>
+    <string name="stats_player_coverage">Player count coverage</string>
+    <string name="stats_shelf_of_shame">Shelf of shame</string>
+    <string name="stats_shelf_of_shame_body">%1$d owned games have never been played.</string>
+    <string name="stats_shelf_of_shame_empty">Every game you own has been played. Impressive.</string>
+    <string name="stats_unrated">Owned but unrated</string>
+    <string name="stats_total_plays">Total plays</string>
+    <string name="stats_total_hours">Total hours</string>
+    <string name="stats_distinct_games">Different games</string>
+    <string name="stats_plays_over_time">Plays by month</string>
+    <string name="stats_most_played">Most played</string>
+    <string name="stats_longest_sessions">Longest sessions</string>
+    <string name="stats_shortest_sessions">Shortest sessions</string>
+    <string name="stats_duration_vs_bgg">Actual length vs BGG</string>
+    <string name="stats_duration_vs_bgg_body">How long games really take at your table.</string>
+    <string name="stats_duration_over">%1$s longer than stated</string>
+    <string name="stats_duration_under">%1$s shorter than stated</string>
+    <string name="stats_by_day_of_week">Plays by day</string>
+    <string name="stats_streak">Week streak</string>
+    <string name="stats_h_index">H-index</string>
+    <string name="stats_h_index_body">%1$d games played at least %1$d times each.</string>
+    <string name="stats_cost_per_play">Cost per play</string>
+    <string name="stats_overall_cost_per_play">Overall cost per play</string>
+    <string name="stats_most_economical">Best value</string>
+    <string name="stats_least_economical">Worst value</string>
+    <string name="stats_spend_by_year">Spend by year</string>
+    <string name="stats_dead_weight">Paid for, never played</string>
+    <string name="stats_head_to_head">Head to head</string>
+    <string name="stats_head_to_head_record">%1$d – %2$d</string>
+    <string name="stats_shared_plays">(%1$d)</string>
+    <string name="stats_unrated_count">Owned but unrated: %1$d</string>
+    <string name="stats_unplayed_row">%1$s · %2$d days</string>
+    <string name="stats_nemesis">Nemesis</string>
+    <string name="stats_nemesis_body">%1$s beats you %2$d%% of the time.</string>
+    <string name="stats_frequent_opponents">Most frequent opponents</string>
+    <string name="stats_win_rate_by_game">Win rate by game</string>
+    <string name="stats_average_score">Average score</string>
+    <string name="stats_no_data">Not enough data yet.</string>
+    <string name="stats_plays_value">%1$d plays</string>
+    <string name="stats_win_rate_value">%1$d%% wins</string>
+
+    <!-- Achievements -->
+    <string name="achievements_title">Achievements</string>
+    <string name="achievements_progress">%1$d of %2$d unlocked</string>
+    <string name="achievements_locked">Locked</string>
+    <string name="achievements_unlocked_on">Unlocked %1$s</string>
+    <string name="achievements_progress_value">%1$s / %2$s</string>
+    <string name="achievements_hidden_name">"???"</string>
+    <string name="achievements_hidden_description">Keep playing to find out.</string>
+    <string name="achievements_unlocked_toast">Achievement unlocked: %1$s</string>
+    <string name="achievements_unlocked_multiple">%1$d achievements unlocked</string>
+    <string name="achievements_view">View</string>
+
+    <!-- Players -->
+    <string name="players_title">Players</string>
+    <string name="players_add">Add player</string>
+    <string name="players_name">Name</string>
+    <string name="players_colour">Colour</string>
+    <string name="players_colour_hint">#2A78D6</string>
+    <string name="players_notes">Notes</string>
+    <string name="players_is_self">This is me</string>
+    <string name="players_name_self">%1$s · you</string>
+    <string name="players_archived">Archived</string>
+    <string name="players_archive">Archive</string>
+    <string name="players_unarchive">Unarchive</string>
+    <string name="players_empty">No players yet.</string>
+    <string name="players_stats">%1$d plays · %2$d wins</string>
+    <string name="players_cannot_delete">%1$s appears in %2$d recorded plays and cannot be deleted. Archive them instead.</string>
+    <string name="players_name_taken">There is already a player with that name.</string>
+
+    <!-- Rubrics -->
+    <string name="rubrics_title">Rating rubrics</string>
+    <string name="rubrics_add">New rubric</string>
+    <string name="rubrics_name">Rubric name</string>
+    <string name="rubrics_description">Description</string>
+    <string name="rubrics_criteria">Criteria</string>
+    <string name="rubrics_add_criterion">Add criterion</string>
+    <string name="rubrics_criterion_name">Criterion</string>
+    <string name="rubrics_criterion_weight">Weight</string>
+    <string name="rubrics_criterion_max">Max score</string>
+    <string name="rubrics_empty">No rubrics yet. Create one to start rating games.</string>
+    <string name="rubrics_archive">Archive rubric</string>
+    <string name="rate_title">Rate %1$s</string>
+    <string name="rate_choose_rubric">Rubric</string>
+    <string name="rate_computed">Score: %1$s / 10</string>
+    <string name="rate_notes">Notes</string>
+    <string name="rate_save">Save rating</string>
+    <string name="rate_needs_rubric">Choose a rubric first</string>
+
+    <!-- BGG -->
+    <string name="bgg_title">BoardGameGeek</string>
+    <string name="bgg_search_title">Search BoardGameGeek</string>
+    <string name="bgg_search_hint">Game title</string>
+    <string name="bgg_import_title">Import collection</string>
+    <string name="bgg_username">BGG username</string>
+    <string name="bgg_fetch">Fetch collection</string>
+    <string name="bgg_fetching">Fetching…</string>
+    <string name="bgg_queued">BoardGameGeek is preparing your collection. Retrying in %1$d seconds…</string>
+    <string name="bgg_import_selected">Import %1$d selected</string>
+    <string name="bgg_import_done">Imported %1$d games</string>
+    <string name="bgg_already_owned">Already in your collection</string>
+    <string name="bgg_no_results">No matches.</string>
+    <string name="bgg_disabled_title">BoardGameGeek is not configured</string>
+    <string name="bgg_disabled_body">The XML API needs a bearer token. Register an application at boardgamegeek.com/applications, then add BGG_API_TOKEN to local.properties and rebuild. Everything else in the app works without it: games can be added by hand or imported from CSV.</string>
+    <string name="bgg_error_network">Could not reach BoardGameGeek. Check your connection and try again.</string>
+    <string name="bgg_error_unauthorized">BoardGameGeek rejected the token. Check that it is current and approved.</string>
+    <string name="bgg_error_rate_limited">BoardGameGeek is rate limiting requests. Try again shortly.</string>
+    <string name="bgg_error_generic">BoardGameGeek returned an error: %1$s</string>
+    <string name="bgg_attribution">Powered by BoardGameGeek</string>
+    <string name="bgg_refresh">Refresh from BGG</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_system">Follow system</string>
+    <string name="settings_dynamic_color">Use wallpaper colours</string>
+    <string name="settings_dynamic_color_unavailable">Requires Android 12 or later</string>
+    <string name="settings_general">General</string>
+    <string name="settings_currency">Default currency</string>
+    <string name="settings_self_player">This is me</string>
+    <string name="settings_self_player_none">Not set</string>
+    <string name="settings_lending_days">Remind me about loans after</string>
+    <string name="settings_lending_days_value">%1$d days</string>
+    <string name="settings_timer">Timer</string>
+    <string name="settings_default_preset">Default preset</string>
+    <string name="settings_achievements">Achievements</string>
+    <string name="settings_achievement_notifications">Notify me when one unlocks</string>
+    <string name="settings_data">Data</string>
+    <string name="settings_export_csv">Export CSV</string>
+    <string name="settings_export_zip">Export CSV as ZIP</string>
+    <string name="settings_import_csv">Import CSV</string>
+    <string name="settings_backup_db">Back up database</string>
+    <string name="settings_restore_db">Restore database</string>
+    <string name="settings_backup_directory">Backup folder</string>
+    <string name="settings_backup_directory_none">Not chosen</string>
+    <string name="settings_scheduled_backup">Weekly automatic backup</string>
+    <string name="settings_backups_to_keep">Backups to keep</string>
+    <string name="settings_last_backup">Last backup: %1$s</string>
+    <string name="settings_last_backup_never">Never backed up</string>
+    <string name="settings_generate_fixtures">Generate sample data</string>
+    <string name="settings_generate_fixtures_help">Debug builds only: 40 games, 8 players and two years of plays.</string>
+    <string name="settings_wipe">Erase all data</string>
+    <string name="settings_wipe_title">Erase everything?</string>
+    <string name="settings_wipe_body">This deletes every game, play, player and rating on this device. Type ERASE to confirm.</string>
+    <string name="settings_wipe_confirm_word">ERASE</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_bgg_status">BoardGameGeek API</string>
+    <string name="settings_bgg_configured">Token configured</string>
+    <string name="settings_bgg_not_configured">No token — BGG features are off</string>
+    <string name="settings_manage_players">Players</string>
+    <string name="settings_manage_rubrics">Rating rubrics</string>
+    <string name="settings_achievements_link">Achievements</string>
+
+    <!-- Import / export -->
+    <string name="import_title">Import CSV</string>
+    <string name="import_mode">Mode</string>
+    <string name="import_mode_merge">Merge</string>
+    <string name="import_mode_merge_help">Match existing games and players, update them, and add anything new.</string>
+    <string name="import_mode_replace">Replace</string>
+    <string name="import_mode_replace_help">Erase everything first, then load the file. Restores an export exactly.</string>
+    <string name="import_choose_file">Choose folder or ZIP</string>
+    <string name="import_preview_title">Ready to import</string>
+    <string name="import_preview_errors">%1$d rows had problems and will be skipped</string>
+    <string name="import_preview_missing">Missing files: %1$s</string>
+    <string name="import_confirm_replace">Type REPLACE to confirm</string>
+    <string name="import_confirm_word">REPLACE</string>
+    <string name="import_run">Import</string>
+    <string name="import_done">Imported %1$d rows</string>
+    <string name="import_failed">Import failed: %1$s</string>
+    <string name="export_done">Exported %1$d rows to %2$s</string>
+    <string name="export_failed">Export failed: %1$s</string>
+    <string name="backup_done">Backed up %1$s</string>
+    <string name="restore_done">Restored. The app will now restart.</string>
+    <string name="restore_title">Restore from backup?</string>
+    <string name="restore_body">This replaces everything currently on this device with the contents of the backup file.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Welcome</string>
+    <string name="onboarding_body">Board Game Nation keeps your collection, plays and statistics on this device. Nothing is uploaded anywhere.</string>
+    <string name="onboarding_name_prompt">What should we call you?</string>
+    <string name="onboarding_name_hint">Your name</string>
+    <string name="onboarding_name_help">This is used to work out your win rates and head-to-head records.</string>
+    <string name="onboarding_start">Get started</string>
+
+    <!-- Errors and empty states -->
+    <string name="error_generic">Something went wrong.</string>
+    <string name="error_not_found">That is no longer here.</string>
+    <string name="loading">Loading…</string>
+    <string name="empty_nothing_here">Nothing here yet</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_game_thumbnail">Cover of %1$s</string>
+    <string name="cd_no_thumbnail">No cover image</string>
+    <string name="cd_expand">Expand</string>
+    <string name="cd_collapse">Collapse</string>
+    <string name="cd_player_colour">Player colour</string>
+    <string name="cd_achievement_locked">Locked achievement</string>
+    <string name="cd_achievement_unlocked">Unlocked achievement</string>
+    <string name="cd_chart">Chart</string>
+    <string name="cd_active_player">Active player</string>
+
+    <!-- Units -->
+    <string name="unit_minutes">%1$d min</string>
+    <string name="unit_hours">%1$s h</string>
+    <string name="unit_players_range">%1$d–%2$d players</string>
+    <string name="unit_players_single">%1$d players</string>
+    <string name="unit_weight">Weight %1$s</string>
+    <string name="unit_money">%1$s %2$s</string>
+</resources>

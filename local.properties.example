@@ -1,0 +1,8 @@
+# Copy to local.properties and fill in. local.properties is NOT committed.
+# Forward slashes work on Windows and avoid Java Properties escape pitfalls.
+sdk.dir=C:/Users/You/AppData/Local/Android/Sdk
+
+# BoardGameGeek XML API2 bearer token, obtained by registering an application at
+# https://boardgamegeek.com/applications  (a free non-commercial licence is fine).
+# Leave blank or omit entirely: the app builds and runs with BGG features disabled.
+BGG_API_TOKEN=

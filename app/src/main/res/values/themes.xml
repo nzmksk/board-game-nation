@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The launch theme is the splash screen; it hands over to Theme.BoardGameNation.Main
+      as soon as the activity draws, so the window background never flashes the wrong
+      colour before Compose paints.
+    -->
+    <style name="Theme.BoardGameNation" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.BoardGameNation.Main</item>
+    </style>
+
+    <style name="Theme.BoardGameNation.Main" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+</resources>

@@ -1,0 +1,405 @@
+[
+  {
+    "code": "first_play",
+    "name": "First Blood",
+    "description": "Log your first play.",
+    "icon": "Casino",
+    "category": "Milestones",
+    "sortOrder": 10,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "TOTAL_PLAYS", "target": 1 }
+  },
+  {
+    "code": "plays_10",
+    "name": "Getting Warmed Up",
+    "description": "Log 10 plays.",
+    "icon": "Casino",
+    "category": "Milestones",
+    "sortOrder": 20,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "TOTAL_PLAYS", "target": 10 }
+  },
+  {
+    "code": "plays_50",
+    "name": "Regular Fixture",
+    "description": "Log 50 plays.",
+    "icon": "Casino",
+    "category": "Milestones",
+    "sortOrder": 30,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "TOTAL_PLAYS", "target": 50 }
+  },
+  {
+    "code": "plays_100",
+    "name": "Century",
+    "description": "Log 100 plays.",
+    "icon": "MilitaryTech",
+    "category": "Milestones",
+    "sortOrder": 40,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "TOTAL_PLAYS", "target": 100 }
+  },
+  {
+    "code": "plays_500",
+    "name": "Table Legend",
+    "description": "Log 500 plays.",
+    "icon": "WorkspacePremium",
+    "category": "Milestones",
+    "sortOrder": 50,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "TOTAL_PLAYS", "target": 500 }
+  },
+  {
+    "code": "hours_24",
+    "name": "A Full Day",
+    "description": "Spend 24 hours at the table in total.",
+    "icon": "HourglassBottom",
+    "category": "Milestones",
+    "sortOrder": 60,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "TOTAL_HOURS", "target": 24 }
+  },
+  {
+    "code": "hours_100",
+    "name": "Time Well Spent",
+    "description": "Spend 100 hours at the table in total.",
+    "icon": "HourglassBottom",
+    "category": "Milestones",
+    "sortOrder": 70,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "TOTAL_HOURS", "target": 100 }
+  },
+  {
+    "code": "hours_500",
+    "name": "Where Did The Year Go",
+    "description": "Spend 500 hours at the table in total.",
+    "icon": "HourglassBottom",
+    "category": "Milestones",
+    "hidden": true,
+    "sortOrder": 80,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "TOTAL_HOURS", "target": 500 }
+  },
+
+  {
+    "code": "same_game_10",
+    "name": "Creature of Habit",
+    "description": "Play one game 10 times.",
+    "icon": "Repeat",
+    "category": "Dedication",
+    "sortOrder": 100,
+    "rule": { "type": "PER_GAME_THRESHOLD", "target": 10 }
+  },
+  {
+    "code": "same_game_25",
+    "name": "House Favourite",
+    "description": "Play one game 25 times.",
+    "icon": "Repeat",
+    "category": "Dedication",
+    "sortOrder": 110,
+    "rule": { "type": "PER_GAME_THRESHOLD", "target": 25 }
+  },
+  {
+    "code": "same_game_50",
+    "name": "Committed",
+    "description": "Play one game 50 times.",
+    "icon": "Repeat",
+    "category": "Dedication",
+    "sortOrder": 120,
+    "rule": { "type": "PER_GAME_THRESHOLD", "target": 50 }
+  },
+  {
+    "code": "streak_days_7",
+    "name": "Seven Day Streak",
+    "description": "Play on 7 consecutive days.",
+    "icon": "LocalFireDepartment",
+    "category": "Dedication",
+    "sortOrder": 130,
+    "rule": { "type": "STREAK", "period": "DAY", "target": 7 }
+  },
+  {
+    "code": "streak_days_30",
+    "name": "Unstoppable",
+    "description": "Play on 30 consecutive days.",
+    "icon": "LocalFireDepartment",
+    "category": "Dedication",
+    "hidden": true,
+    "sortOrder": 140,
+    "rule": { "type": "STREAK", "period": "DAY", "target": 30 }
+  },
+  {
+    "code": "streak_weeks_12",
+    "name": "Quarterly Ritual",
+    "description": "Play in 12 consecutive weeks.",
+    "icon": "EventRepeat",
+    "category": "Dedication",
+    "sortOrder": 150,
+    "rule": { "type": "STREAK", "period": "WEEK", "target": 12 }
+  },
+  {
+    "code": "streak_months_12",
+    "name": "A Year at the Table",
+    "description": "Log a play in 12 consecutive months.",
+    "icon": "CalendarMonth",
+    "category": "Dedication",
+    "sortOrder": 160,
+    "rule": { "type": "STREAK", "period": "MONTH", "target": 12 }
+  },
+
+  {
+    "code": "day_5_games",
+    "name": "Marathon Day",
+    "description": "Play 5 games in a single day.",
+    "icon": "Bolt",
+    "category": "Endurance",
+    "sortOrder": 200,
+    "rule": { "type": "TIME_WINDOW", "period": "DAY", "target": 5 }
+  },
+  {
+    "code": "day_10_games",
+    "name": "Convention Mode",
+    "description": "Play 10 games in a single day.",
+    "icon": "Bolt",
+    "category": "Endurance",
+    "hidden": true,
+    "sortOrder": 210,
+    "rule": { "type": "TIME_WINDOW", "period": "DAY", "target": 10 }
+  },
+  {
+    "code": "week_15_games",
+    "name": "Big Week",
+    "description": "Play 15 games in a single week.",
+    "icon": "DateRange",
+    "category": "Endurance",
+    "sortOrder": 220,
+    "rule": { "type": "TIME_WINDOW", "period": "WEEK", "target": 15 }
+  },
+  {
+    "code": "month_30_games",
+    "name": "Thirty in Thirty",
+    "description": "Play 30 games in a single month.",
+    "icon": "DateRange",
+    "category": "Endurance",
+    "sortOrder": 230,
+    "rule": { "type": "TIME_WINDOW", "period": "MONTH", "target": 30 }
+  },
+  {
+    "code": "session_3_hours",
+    "name": "The Long Game",
+    "description": "Play a single session lasting over 3 hours.",
+    "icon": "Timelapse",
+    "category": "Endurance",
+    "sortOrder": 240,
+    "rule": { "type": "ATTRIBUTE", "attribute": "SESSION_DURATION_HOURS", "target": 3 }
+  },
+  {
+    "code": "session_6_hours",
+    "name": "Epic",
+    "description": "Play a single session lasting over 6 hours.",
+    "icon": "Timelapse",
+    "category": "Endurance",
+    "hidden": true,
+    "sortOrder": 250,
+    "rule": { "type": "ATTRIBUTE", "attribute": "SESSION_DURATION_HOURS", "target": 6 }
+  },
+
+  {
+    "code": "distinct_games_25",
+    "name": "Broad Tastes",
+    "description": "Play 25 different games.",
+    "icon": "Diversity3",
+    "category": "Variety",
+    "sortOrder": 300,
+    "rule": { "type": "BREADTH", "metric": "DISTINCT_GAMES_PLAYED", "target": 25 }
+  },
+  {
+    "code": "distinct_games_100",
+    "name": "Omnivore",
+    "description": "Play 100 different games.",
+    "icon": "Diversity3",
+    "category": "Variety",
+    "sortOrder": 310,
+    "rule": { "type": "BREADTH", "metric": "DISTINCT_GAMES_PLAYED", "target": 100 }
+  },
+  {
+    "code": "mechanics_10",
+    "name": "Mechanically Minded",
+    "description": "Play games spanning 10 different mechanics.",
+    "icon": "Settings",
+    "category": "Variety",
+    "sortOrder": 320,
+    "rule": { "type": "BREADTH", "metric": "DISTINCT_MECHANICS_PLAYED", "target": 10 }
+  },
+  {
+    "code": "mechanics_25",
+    "name": "Systems Analyst",
+    "description": "Play games spanning 25 different mechanics.",
+    "icon": "Settings",
+    "category": "Variety",
+    "sortOrder": 330,
+    "rule": { "type": "BREADTH", "metric": "DISTINCT_MECHANICS_PLAYED", "target": 25 }
+  },
+  {
+    "code": "heavy_game",
+    "name": "Brain Burner",
+    "description": "Play a game with a BGG weight of 4.0 or higher.",
+    "icon": "Psychology",
+    "category": "Variety",
+    "sortOrder": 340,
+    "rule": { "type": "ATTRIBUTE", "attribute": "GAME_WEIGHT", "target": 4.0 }
+  },
+  {
+    "code": "mechanic_completed",
+    "name": "Completionist",
+    "description": "Play every owned game carrying one mechanic at least once.",
+    "icon": "PlaylistAddCheck",
+    "category": "Variety",
+    "sortOrder": 350,
+    "rule": { "type": "COLLECTION", "scope": "MECHANIC_COMPLETED", "target": 1 }
+  },
+
+  {
+    "code": "players_6",
+    "name": "Full Table",
+    "description": "Play a session with 6 or more players.",
+    "icon": "Groups",
+    "category": "Social",
+    "sortOrder": 400,
+    "rule": { "type": "ATTRIBUTE", "attribute": "SESSION_PLAYER_COUNT", "target": 6 }
+  },
+  {
+    "code": "players_10",
+    "name": "Party Host",
+    "description": "Play a session with 10 or more players.",
+    "icon": "Groups",
+    "category": "Social",
+    "hidden": true,
+    "sortOrder": 410,
+    "rule": { "type": "ATTRIBUTE", "attribute": "SESSION_PLAYER_COUNT", "target": 10 }
+  },
+  {
+    "code": "distinct_players_15",
+    "name": "Well Connected",
+    "description": "Play with 15 different people.",
+    "icon": "PersonAdd",
+    "category": "Social",
+    "sortOrder": 420,
+    "rule": { "type": "BREADTH", "metric": "DISTINCT_PLAYERS", "target": 15 }
+  },
+  {
+    "code": "taught_5",
+    "name": "The Explainer",
+    "description": "Teach 5 different games to new players.",
+    "icon": "School",
+    "category": "Social",
+    "sortOrder": 430,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "GAMES_TAUGHT", "target": 5 }
+  },
+  {
+    "code": "taught_20",
+    "name": "Rules Ambassador",
+    "description": "Teach 20 different games to new players.",
+    "icon": "School",
+    "category": "Social",
+    "sortOrder": 440,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "GAMES_TAUGHT", "target": 20 }
+  },
+
+  {
+    "code": "own_50",
+    "name": "Shelf Presence",
+    "description": "Own 50 games.",
+    "icon": "Inventory2",
+    "category": "Collection",
+    "sortOrder": 500,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "GAMES_OWNED", "target": 50 }
+  },
+  {
+    "code": "own_150",
+    "name": "It Is A Problem Now",
+    "description": "Own 150 games.",
+    "icon": "Inventory2",
+    "category": "Collection",
+    "sortOrder": 510,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "GAMES_OWNED", "target": 150 }
+  },
+  {
+    "code": "rated_25",
+    "name": "Critic",
+    "description": "Rate 25 games against a rubric.",
+    "icon": "Star",
+    "category": "Collection",
+    "sortOrder": 520,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "GAMES_RATED", "target": 25 }
+  },
+  {
+    "code": "no_shelf_of_shame",
+    "name": "No Shelf of Shame",
+    "description": "Play every game in your collection at least once.",
+    "icon": "CleaningServices",
+    "category": "Collection",
+    "sortOrder": 530,
+    "rule": { "type": "COLLECTION", "scope": "NO_UNPLAYED_GAMES", "target": 1 }
+  },
+
+  {
+    "code": "cpp_under_10",
+    "name": "Earning Its Keep",
+    "description": "Drive one game's cost per play under 10.",
+    "icon": "Savings",
+    "category": "Value",
+    "sortOrder": 600,
+    "rule": {
+      "type": "COLLECTION",
+      "scope": "COST_PER_PLAY_UNDER",
+      "target": 10,
+      "comparison": "AT_MOST"
+    }
+  },
+  {
+    "code": "cpp_under_2",
+    "name": "Practically Free",
+    "description": "Drive one game's cost per play under 2.",
+    "icon": "Savings",
+    "category": "Value",
+    "hidden": true,
+    "sortOrder": 610,
+    "rule": {
+      "type": "COLLECTION",
+      "scope": "COST_PER_PLAY_UNDER",
+      "target": 2,
+      "comparison": "AT_MOST"
+    }
+  },
+
+  {
+    "code": "win_streak_10",
+    "name": "On A Roll",
+    "description": "Win 10 competitive games in a row.",
+    "icon": "TrendingUp",
+    "category": "Skill",
+    "sortOrder": 700,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "WIN_STREAK", "target": 10 }
+  },
+  {
+    "code": "loss_streak_10",
+    "name": "Character Building",
+    "description": "Lose 10 competitive games in a row.",
+    "icon": "TrendingDown",
+    "category": "Skill",
+    "hidden": true,
+    "sortOrder": 710,
+    "rule": { "type": "COUNT_THRESHOLD", "metric": "LOSS_STREAK", "target": 10 }
+  },
+  {
+    "code": "win_rate_70",
+    "name": "Local Champion",
+    "description": "Hold a 70% win rate in a game over at least 10 plays.",
+    "icon": "EmojiEvents",
+    "category": "Skill",
+    "sortOrder": 720,
+    "rule": { "type": "RATIO", "target": 70, "minPlays": 10 }
+  },
+  {
+    "code": "win_rate_90",
+    "name": "Please Play Something Else",
+    "description": "Hold a 90% win rate in a game over at least 20 plays.",
+    "icon": "EmojiEvents",
+    "category": "Skill",
+    "hidden": true,
+    "sortOrder": 730,
+    "rule": { "type": "RATIO", "target": 90, "minPlays": 20 }
+  }
+]

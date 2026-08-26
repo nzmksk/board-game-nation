@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A meeple silhouette on the adaptive-icon safe zone. -->
+    <group android:translateX="0" android:translateY="0">
+        <path
+            android:fillColor="#F7BD48"
+            android:pathData="M54,28m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0" />
+        <path
+            android:fillColor="#F7BD48"
+            android:pathData="M54,38c-6,0 -9,4 -11,8l-13,5c-2,0.8 -3,3 -2.2,5c0.8,2 3,3 5,2.2l8,-3l-4,10c-1,2.5 -1,4 0.5,5.5l0,7c0,2.2 1.8,4 4,4l4,0c2.2,0 4,-1.8 4,-4l0,-6l10,0l0,6c0,2.2 1.8,4 4,4l4,0c2.2,0 4,-1.8 4,-4l0,-7c1.5,-1.5 1.5,-3 0.5,-5.5l-4,-10l8,3c2,0.8 4.2,-0.2 5,-2.2c0.8,-2 -0.2,-4.2 -2.2,-5l-13,-5C63,42 60,38 54,38z" />
+    </group>
+</vector>
