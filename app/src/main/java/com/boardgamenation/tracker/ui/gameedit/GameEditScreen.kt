@@ -51,6 +51,7 @@ import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.ui.collection.labelRes
+import com.boardgamenation.tracker.ui.components.IsoDateField
 import com.boardgamenation.tracker.ui.components.SectionHeader
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -205,11 +206,10 @@ fun GameEditScreen(
 
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
+                    IsoDateField(
                         value = state.dateAdded,
-                        onValueChange = { v -> viewModel.update { it.copy(dateAdded = v) } },
-                        label = { Text(stringResource(R.string.game_edit_date_added)) },
-                        singleLine = true,
+                        label = stringResource(R.string.game_edit_date_added),
+                        onChange = { v -> viewModel.update { it.copy(dateAdded = v) } },
                         modifier = Modifier.weight(1.4f),
                     )
                     NumberField(

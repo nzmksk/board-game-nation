@@ -53,6 +53,7 @@ import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.usecase.SaveSessionUseCase
+import com.boardgamenation.tracker.ui.components.IsoDateField
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -231,13 +232,12 @@ fun QuickLogSheet(
 
             if (state.form.gameId != 0L) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
+                    IsoDateField(
                         value = DateUtils.toIso(state.form.playedOn),
-                        onValueChange = { value ->
+                        label = stringResource(R.string.session_edit_date),
+                        onChange = { value ->
                             DateUtils.parseIsoOrNull(value)?.let(viewModel::setDate)
                         },
-                        label = { Text(stringResource(R.string.session_edit_date)) },
-                        singleLine = true,
                         modifier = Modifier.weight(1.3f),
                     )
                     OutlinedTextField(
