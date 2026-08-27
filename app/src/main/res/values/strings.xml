@@ -163,7 +163,7 @@
     <string name="game_edit_base_game">Expansion of</string>
     <string name="game_edit_base_game_none">No base game</string>
     <string name="game_edit_notes">Notes</string>
-    <string name="game_edit_tags">Mechanics and categories</string>
+    <string name="game_edit_tags">Mechanics, categories and designers</string>
     <string name="game_edit_tag_hint">Type a tag and press add</string>
     <string name="game_edit_search_bgg">Search BoardGameGeek</string>
     <string name="game_edit_scoring_mode">Scoring</string>

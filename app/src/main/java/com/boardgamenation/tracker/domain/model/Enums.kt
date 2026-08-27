@@ -15,11 +15,11 @@ enum class GameStatus {
 }
 
 /**
- * Mechanics and categories are the same table, split by kind, so BGG's open-ended
- * mechanic lists never force a schema migration.
+ * Mechanics, categories and designers are the same table, split by kind, so BGG's
+ * open-ended lists never force a schema migration.
  */
 enum class TagKind {
-    MECHANIC, CATEGORY, CUSTOM;
+    MECHANIC, CATEGORY, DESIGNER, CUSTOM;
 
     companion object {
         fun fromStorage(value: String?): TagKind =

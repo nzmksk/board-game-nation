@@ -50,6 +50,7 @@ import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.core.time.DurationFormat
 import com.boardgamenation.tracker.data.db.entity.GameEntity
 import com.boardgamenation.tracker.data.db.projection.GameAggregates
+import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.ui.collection.labelRes
 import com.boardgamenation.tracker.ui.components.GameThumbnail
 import com.boardgamenation.tracker.ui.components.KeyValueRow
@@ -173,7 +174,14 @@ fun GameDetailScreen(
             item { RatingSection(state, onRate = { onRate(game.id) }) }
 
             item { SectionHeader(stringResource(R.string.settings_general)) }
-            item { MetadataSection(game) }
+            item {
+                MetadataSection(
+                    game = game,
+                    designers = state.tags
+                        .filter { it.kind == TagKind.DESIGNER }
+                        .map { it.name },
+                )
+            }
 
             item { SectionHeader(stringResource(R.string.game_detail_expansions)) }
             if (state.expansions.isEmpty()) {
@@ -465,7 +473,7 @@ private fun RatingSection(state: GameDetailUiState, onRate: () -> Unit) {
 }
 
 @Composable
-private fun MetadataSection(game: GameEntity) {
+private fun MetadataSection(game: GameEntity, designers: List<String>) {
     Column {
         game.weight?.let {
             KeyValueRow(
@@ -479,7 +487,9 @@ private fun MetadataSection(game: GameEntity) {
                 String.format(Locale.getDefault(), "%.1f", it),
             )
         }
-        game.designers?.let { KeyValueRow(stringResource(R.string.game_detail_designers), it) }
+        designers.takeIf { it.isNotEmpty() }?.let {
+            KeyValueRow(stringResource(R.string.game_detail_designers), it.joinToString(", "))
+        }
         game.publisher?.let { KeyValueRow(stringResource(R.string.game_detail_publisher), it) }
         game.price?.let {
             KeyValueRow(

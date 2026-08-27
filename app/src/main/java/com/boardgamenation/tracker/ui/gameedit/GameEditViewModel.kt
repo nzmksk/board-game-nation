@@ -39,7 +39,6 @@ data class GameEditState(
     val maxPlaytime: String = "",
     val weight: String = "",
     val bggRating: String = "",
-    val designers: String = "",
     val publisher: String = "",
     val dateAdded: String = "",
     val price: String = "",
@@ -55,6 +54,7 @@ data class GameEditState(
     val notes: String = "",
     val mechanics: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
+    val designers: List<String> = emptyList(),
     val baseGameOptions: List<GameEntity> = emptyList(),
     val isNew: Boolean = true,
     val isSaving: Boolean = false,
@@ -106,7 +106,6 @@ class GameEditViewModel @Inject constructor(
                         maxPlaytime = game.maxPlaytimeMinutes?.toString().orEmpty(),
                         weight = game.weight?.toString().orEmpty(),
                         bggRating = game.bggRating?.toString().orEmpty(),
-                        designers = game.designers.orEmpty(),
                         publisher = game.publisher.orEmpty(),
                         dateAdded = game.dateAdded,
                         price = game.price?.toString().orEmpty(),
@@ -122,6 +121,7 @@ class GameEditViewModel @Inject constructor(
                         notes = game.notes.orEmpty(),
                         mechanics = tags.filter { it.kind == TagKind.MECHANIC }.map { it.name },
                         categories = tags.filter { it.kind == TagKind.CATEGORY }.map { it.name },
+                        designers = tags.filter { it.kind == TagKind.DESIGNER }.map { it.name },
                         // A game cannot be its own base game.
                         baseGameOptions = bases.filter { it.id != game.id },
                         isNew = false,
@@ -135,28 +135,28 @@ class GameEditViewModel @Inject constructor(
         _state.value = block(_state.value)
     }
 
-    fun addMechanic(name: String) {
+    /**
+     * Add and remove are written once over the kind rather than once per list. Three
+     * kinds would otherwise mean six near-identical methods.
+     */
+    fun addTag(kind: TagKind, name: String) {
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return
-        _state.value = _state.value.let {
-            it.copy(mechanics = (it.mechanics + trimmed).distinct())
-        }
+        _state.value = _state.value.mapTags(kind) { (it + trimmed).distinct() }
     }
 
-    fun removeMechanic(name: String) {
-        _state.value = _state.value.let { it.copy(mechanics = it.mechanics - name) }
+    fun removeTag(kind: TagKind, name: String) {
+        _state.value = _state.value.mapTags(kind) { it - name }
     }
 
-    fun addCategory(name: String) {
-        val trimmed = name.trim()
-        if (trimmed.isEmpty()) return
-        _state.value = _state.value.let {
-            it.copy(categories = (it.categories + trimmed).distinct())
-        }
-    }
-
-    fun removeCategory(name: String) {
-        _state.value = _state.value.let { it.copy(categories = it.categories - name) }
+    private fun GameEditState.mapTags(
+        kind: TagKind,
+        block: (List<String>) -> List<String>,
+    ): GameEditState = when (kind) {
+        TagKind.MECHANIC -> copy(mechanics = block(mechanics))
+        TagKind.CATEGORY -> copy(categories = block(categories))
+        TagKind.DESIGNER -> copy(designers = block(designers))
+        TagKind.CUSTOM -> this
     }
 
     fun save() {
@@ -184,7 +184,6 @@ class GameEditViewModel @Inject constructor(
                 maxPlaytimeMinutes = current.maxPlaytime.toIntOrNull(),
                 weight = current.weight.toDoubleOrNull(),
                 bggRating = current.bggRating.toDoubleOrNull(),
-                designers = current.designers.trim().ifBlank { null },
                 publisher = current.publisher.trim().ifBlank { null },
                 thumbnailPath = existing?.thumbnailPath,
                 dateAdded = current.dateAdded.ifBlank { DateUtils.toIso(clock.today()) },
@@ -207,7 +206,8 @@ class GameEditViewModel @Inject constructor(
 
             val mechanicIds = gameRepository.resolveTags(current.mechanics, TagKind.MECHANIC)
             val categoryIds = gameRepository.resolveTags(current.categories, TagKind.CATEGORY)
-            val tagIds = mechanicIds + categoryIds
+            val designerIds = gameRepository.resolveTags(current.designers, TagKind.DESIGNER)
+            val tagIds = mechanicIds + categoryIds + designerIds
 
             val id = if (current.isNew) {
                 gameRepository.addGame(entity, tagIds)

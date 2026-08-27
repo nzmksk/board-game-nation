@@ -47,7 +47,6 @@ data class GameEntity(
     @ColumnInfo(name = "max_playtime_minutes") val maxPlaytimeMinutes: Int? = null,
     @ColumnInfo(name = "weight") val weight: Double? = null,
     @ColumnInfo(name = "bgg_rating") val bggRating: Double? = null,
-    @ColumnInfo(name = "designers") val designers: String? = null,
     @ColumnInfo(name = "publisher") val publisher: String? = null,
 
     /** Local file path in app-private storage. Never a remote URL. */

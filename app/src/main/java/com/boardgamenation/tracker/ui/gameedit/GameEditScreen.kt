@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.ui.collection.labelRes
 import com.boardgamenation.tracker.ui.components.IsoDateField
 import com.boardgamenation.tracker.ui.components.SectionHeader
@@ -181,15 +182,6 @@ fun GameEditScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
-            }
-
-            item {
-                OutlinedTextField(
-                    value = state.designers,
-                    onValueChange = { v -> viewModel.update { it.copy(designers = v) } },
-                    label = { Text(stringResource(R.string.game_edit_designers)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
 
             item {
@@ -345,8 +337,8 @@ fun GameEditScreen(
                 TagEditor(
                     label = stringResource(R.string.collection_filter_mechanic),
                     tags = state.mechanics,
-                    onAdd = viewModel::addMechanic,
-                    onRemove = viewModel::removeMechanic,
+                    onAdd = { viewModel.addTag(TagKind.MECHANIC, it) },
+                    onRemove = { viewModel.removeTag(TagKind.MECHANIC, it) },
                 )
             }
 
@@ -354,8 +346,17 @@ fun GameEditScreen(
                 TagEditor(
                     label = stringResource(R.string.collection_filter_category),
                     tags = state.categories,
-                    onAdd = viewModel::addCategory,
-                    onRemove = viewModel::removeCategory,
+                    onAdd = { viewModel.addTag(TagKind.CATEGORY, it) },
+                    onRemove = { viewModel.removeTag(TagKind.CATEGORY, it) },
+                )
+            }
+
+            item {
+                TagEditor(
+                    label = stringResource(R.string.game_edit_designers),
+                    tags = state.designers,
+                    onAdd = { viewModel.addTag(TagKind.DESIGNER, it) },
+                    onRemove = { viewModel.removeTag(TagKind.DESIGNER, it) },
                 )
             }
 

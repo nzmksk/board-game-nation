@@ -81,7 +81,6 @@ The core collection table.
 | `max_playtime_minutes` | INTEGER NULL | |
 | `weight` | REAL NULL | BGG complexity 1.0–5.0 |
 | `bgg_rating` | REAL NULL | Geek rating at import time |
-| `designers` | TEXT NULL | Comma-joined |
 | `publisher` | TEXT NULL | |
 | `thumbnail_path` | TEXT NULL | Local file path, not a URL |
 | `date_added` | TEXT NOT NULL | ISO date the game entered the collection |
@@ -103,10 +102,12 @@ Indexes: `bgg_id` (unique where not null), `title`, `status`, `base_game_id`.
 
 ### 3.2 `tags` and `game_tags`
 
-Mechanics and categories are both tags, distinguished by `kind`. Modelling them as
-a join rather than columns means BGG's long mechanic lists don't require schema changes.
+Mechanics, categories and designers are all tags, distinguished by `kind`. Modelling
+them as a join rather than columns means BGG's long mechanic lists don't require schema
+changes, and it makes every one of them filterable and groupable on equal terms.
 
-**`tags`:** `id`, `name` TEXT NOT NULL, `kind` TEXT NOT NULL (`MECHANIC` | `CATEGORY` | `CUSTOM`).
+**`tags`:** `id`, `name` TEXT NOT NULL, `kind` TEXT NOT NULL
+(`MECHANIC` | `CATEGORY` | `DESIGNER` | `CUSTOM`).
 Unique index on `(name, kind)`.
 
 **`game_tags`:** `game_id` FK, `tag_id` FK, composite PK, `ON DELETE CASCADE`.

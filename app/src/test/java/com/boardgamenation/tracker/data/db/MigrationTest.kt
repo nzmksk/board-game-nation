@@ -6,6 +6,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
+import com.boardgamenation.tracker.domain.model.TagKind
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
 import org.junit.After
@@ -48,27 +50,100 @@ class MigrationTest {
         context.deleteDatabase(DB_NAME)
     }
 
-    // --- sudden death ---------------------------------------------------------------
+    // --- designers ------------------------------------------------------------------
 
     @Test
-    fun `the new columns arrive and the games survive`() = runTest {
+    fun `a comma-joined designers column becomes DESIGNER tags`() = runTest {
         seedV1 { db ->
-            insertGame(db, id = 1, title = "Catan")
-            insertGame(db, id = 2, title = "Azul")
+            insertGame(db, id = 1, title = "7 Wonders Duel", designers = "'Antoine Bauza'")
+            insertGame(db, id = 2, title = "7 Wonders", designers = "'Antoine Bauza'")
+            insertGame(db, id = 3, title = "Cyclades", designers = "'Bruno Cathala, Ludovic Maublanc'")
+        }
+
+        val db = openMigrated()
+        val tags = db.tagDao().getAll().filter { it.kind == TagKind.DESIGNER }
+
+        assertEquals(
+            listOf("Antoine Bauza", "Bruno Cathala", "Ludovic Maublanc"),
+            tags.map { it.name }.sorted(),
+        )
+        // Two games by Antoine Bauza converge on one tag row rather than two.
+        assertEquals(1, tags.count { it.name == "Antoine Bauza" })
+
+        assertEquals(
+            listOf("Antoine Bauza"),
+            db.tagDao().observeForGame(1).first().map { it.name },
+        )
+        assertEquals(
+            listOf("Bruno Cathala", "Ludovic Maublanc"),
+            db.tagDao().observeForGame(3).first().map { it.name }.sorted(),
+        )
+    }
+
+    @Test
+    fun `awkward designer values do not produce empty or stray tags`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "Null", designers = "NULL")
+            insertGame(db, id = 2, title = "Empty", designers = "''")
+            insertGame(db, id = 3, title = "Whitespace only", designers = "'   '")
+            // Padding and an empty segment between two commas.
+            insertGame(db, id = 4, title = "Messy", designers = "'  Uwe Rosenberg ,, Reiner Knizia  '")
+        }
+
+        val db = openMigrated()
+        val designers = db.tagDao().getAll().filter { it.kind == TagKind.DESIGNER }
+
+        assertEquals(listOf("Reiner Knizia", "Uwe Rosenberg"), designers.map { it.name }.sorted())
+        assertTrue("no blank tag names", designers.none { it.name.isBlank() })
+        listOf(1L, 2L, 3L).forEach { gameId ->
+            assertTrue(
+                "game $gameId should have no tags",
+                db.tagDao().observeForGame(gameId).first().isEmpty(),
+            )
+        }
+        assertEquals(2, db.tagDao().observeForGame(4).first().size)
+    }
+
+    @Test
+    fun `the designers column is gone and the games survive`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "Catan", designers = "'Klaus Teuber'")
+            insertGame(db, id = 2, title = "Azul", designers = "NULL")
         }
 
         val db = openMigrated()
 
         assertEquals(2, db.gameDao().getAllGames().size)
         assertEquals("Catan", db.gameDao().getGame(1)!!.title)
+        assertFalse("designers column should be dropped", columnsOf(db, "games").contains("designers"))
         assertTrue(columnsOf(db, "games").contains("sudden_death_possible"))
-        assertFalse("existing games default to off", db.gameDao().getGame(1)!!.suddenDeathPossible)
     }
+
+    /**
+     * Dropping the table takes its `sqlite_sequence` row with it, and copying the rows
+     * back only raises the counter as far as MAX(id). A collection whose highest-numbered
+     * game had been deleted would otherwise start handing that id out a second time.
+     */
+    @Test
+    fun `the autoincrement counter is not rewound by the table rebuild`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "Kept", designers = "NULL")
+            insertGame(db, id = 7, title = "Deleted later", designers = "NULL")
+            db.execSQL("DELETE FROM games WHERE id = 7")
+        }
+
+        val db = openMigrated()
+        val newId = db.gameDao().insert(DatabaseTestFixture.game("Brand new"))
+
+        assertTrue("expected an id above 7 but got $newId", newId > 7)
+    }
+
+    // --- sudden death ---------------------------------------------------------------
 
     @Test
     fun `existing sessions come through as ordinary endings`() = runTest {
         seedV1 { db ->
-            insertGame(db, id = 1, title = "Catan")
+            insertGame(db, id = 1, title = "Catan", designers = "NULL")
             db.execSQL(
                 """
                 INSERT INTO sessions
@@ -91,8 +166,8 @@ class MigrationTest {
     @Test
     fun `rebuilding games leaves no dangling references`() = runTest {
         seedV1 { db ->
-            insertGame(db, id = 1, title = "Catan")
-            insertGame(db, id = 2, title = "Catan: Seafarers", baseGameId = 1)
+            insertGame(db, id = 1, title = "Catan", designers = "'Klaus Teuber'")
+            insertGame(db, id = 2, title = "Catan: Seafarers", designers = "NULL", baseGameId = 1)
             db.execSQL(
                 """
                 INSERT INTO sessions
@@ -156,12 +231,13 @@ class MigrationTest {
         db: SupportSQLiteDatabase,
         id: Long,
         title: String,
+        designers: String,
         baseGameId: Long? = null,
     ) = db.execSQL(
         """
-        INSERT INTO games (id, title, date_added, status, base_game_id,
+        INSERT INTO games (id, title, designers, date_added, status, base_game_id,
                            created_at, updated_at)
-        VALUES ($id, '$title', '2026-01-01', 'OWNED', ${baseGameId ?: "NULL"}, 0, 0)
+        VALUES ($id, '$title', $designers, '2026-01-01', 'OWNED', ${baseGameId ?: "NULL"}, 0, 0)
         """.trimIndent(),
     )
 
