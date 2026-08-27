@@ -133,6 +133,7 @@ class DevFixtures @Inject constructor(
                     currency = "MYR",
                     status = spec.status,
                     scoringMode = spec.scoring,
+                    suddenDeathPossible = spec.suddenDeath,
                     createdAt = now,
                     updatedAt = now,
                 ),
@@ -345,6 +346,7 @@ class DevFixtures @Inject constructor(
         val categories: List<String>,
         val status: GameStatus = GameStatus.OWNED,
         val scoring: ScoringMode = ScoringMode.RANKED_SCORES,
+        val suddenDeath: Boolean = false,
     )
 
     private companion object {
@@ -434,7 +436,8 @@ class DevFixtures @Inject constructor(
             GameSpec("Jaipur", 2009, 2, 2, "2", 30, 30, 1.5, 85.0, "Sebastien Pauchon", "Space Cowboys",
                 listOf("Set Collection", "Hand Management"), listOf("Card Game", "Economic")),
             GameSpec("7 Wonders Duel", 2015, 2, 2, "2", 30, 30, 2.2, 130.0, "Antoine Bauza", "Repos",
-                listOf("Card Drafting", "Set Collection"), listOf("Ancient", "Civilization")),
+                listOf("Card Drafting", "Set Collection"), listOf("Ancient", "Civilization"),
+                suddenDeath = true),
             GameSpec("Lost Ruins of Arnak", 2020, 1, 4, "2", 30, 120, 2.9, 260.0, "Elwen", "CGE",
                 listOf("Deck Building", "Worker Placement"), listOf("Adventure", "Exploration")),
             GameSpec("Viticulture Essential", 2015, 1, 6, "4", 45, 90, 2.9, 240.0, "Jamey Stegmaier", "Stonemaier",

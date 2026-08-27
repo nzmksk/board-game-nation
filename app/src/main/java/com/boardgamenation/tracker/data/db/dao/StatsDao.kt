@@ -338,11 +338,17 @@ interface StatsDao {
     )
     fun observeHeadToHead(): Flow<List<HeadToHeadRow>>
 
+    /**
+     * Sudden-death plays are excluded. A game that ended the moment a condition was met
+     * never reached final scoring, so any number recorded against it is a partial count
+     * and averaging it together with full scores understates the average.
+     */
     @Query(
         """
         SELECT g.title AS label, AVG(sp.score) AS value
         FROM session_players sp
         JOIN sessions s ON s.id = sp.session_id AND s.is_draft = 0
+            AND s.end_condition IS NULL
         JOIN games g ON g.id = s.game_id
         WHERE sp.player_id = :playerId AND sp.score IS NOT NULL
         GROUP BY g.id

@@ -158,7 +158,8 @@ class CsvExporter @Inject constructor(
                         g.status.name, Csv.formatInt(g.wishlistPriority),
                         Csv.formatBool(g.inPossession), g.lentTo, g.lentDate,
                         Csv.formatBool(g.isExpansion), Csv.formatLong(g.baseGameId),
-                        g.scoringMode.name, Csv.formatBool(g.highScoreWins), g.notes,
+                        g.scoringMode.name, Csv.formatBool(g.highScoreWins),
+                        Csv.formatBool(g.suddenDeathPossible), g.notes,
                         g.createdAt.toString(), g.updatedAt.toString(),
                     )
                 },
@@ -188,6 +189,7 @@ class CsvExporter @Inject constructor(
                         Csv.formatLong(s.startedAt), Csv.formatLong(s.endedAt),
                         s.durationMinutes.toString(), s.playerCount.toString(), s.location,
                         Csv.formatBool(s.isCooperative), s.coopOutcome?.name,
+                        s.endCondition?.name, s.endReason,
                         Csv.formatBool(s.isIncomplete), Csv.formatBool(s.isTeachingGame),
                         s.pausedMs.toString(), s.photoUri, s.notes,
                         s.createdAt.toString(), s.updatedAt.toString(),

@@ -126,6 +126,22 @@ untrustworthy.
 
 An unreadable or future-dated rule degrades to "never unlocks" instead of crashing.
 
+### A game that ends early still has a winner
+
+Some games stop the moment a condition is met. 7 Wonders Duel is the obvious one: military
+or scientific supremacy ends it before anyone counts a victory point, so there are no final
+scores to rank by, but the play unambiguously finished and unambiguously has a winner.
+
+That is a property of the play, not of the game, so it is a nullable `end_condition` on the
+session rather than another `ScoringMode`. The game keeps whatever scoring it normally uses
+and a flag saying it *can* end this way, which is all that decides whether the logging form
+offers the choice. A sudden-death play is ranked by the order the user puts the players in;
+any partial score they enter is kept but does not decide it, and those scores are excluded
+from average-score statistics because a count taken mid-game is not comparable to a final one.
+
+Deliberately not `is_incomplete`. That flag means abandoned, and it drops a session out of
+the win-rate and duration statistics — using it here would erase a legitimate win.
+
 ### Both kinds of backup, because they are for different things
 
 CSV is for portability and spreadsheet interop: RFC 4180, UTF-8 with a BOM so Excel does

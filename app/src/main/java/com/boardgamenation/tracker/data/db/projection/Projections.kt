@@ -63,6 +63,10 @@ data class SessionListItem(
     @ColumnInfo(name = "coop_won") val coopWon: Boolean,
     @ColumnInfo(name = "is_incomplete") val isIncomplete: Boolean,
     @ColumnInfo(name = "is_teaching_game") val isTeachingGame: Boolean,
+
+    /** Non-null only for a play that ended early; shown as a badge on the row. */
+    @ColumnInfo(name = "end_reason") val endReason: String?,
+
     @ColumnInfo(name = "winner_names") val winnerNames: String?,
 )
 

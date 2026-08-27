@@ -28,6 +28,7 @@ import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.ImportMode
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TagKind
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -267,6 +268,7 @@ class CsvImporter @Inject constructor(
                     baseGameId = null,
                     scoringMode = ScoringMode.fromStorage(row.string("scoring_mode")),
                     highScoreWins = row.boolean("high_score_wins", default = true),
+                    suddenDeathPossible = row.boolean("sudden_death_possible"),
                     notes = row.string("notes"),
                     createdAt = row.long("created_at") ?: 0L,
                     updatedAt = row.long("updated_at") ?: 0L,
@@ -451,6 +453,8 @@ class CsvImporter @Inject constructor(
                     location = row.string("location"),
                     isCooperative = row.boolean("is_cooperative"),
                     coopOutcome = CoopOutcome.fromStorage(row.string("coop_outcome")),
+                    endCondition = SessionEndCondition.fromStorage(row.string("end_condition")),
+                    endReason = row.string("end_reason"),
                     isIncomplete = row.boolean("is_incomplete"),
                     isTeachingGame = row.boolean("is_teaching_game"),
                     isDraft = false,

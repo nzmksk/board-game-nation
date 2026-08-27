@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.boardgamenation.tracker.domain.model.CoopOutcome
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 
 /**
  * One row per play. [playerCount] is denormalised off session_players because almost
@@ -49,6 +50,20 @@ data class SessionEntity(
 
     /** Abandoned before finishing: counted in play totals, excluded from duration averages. */
     @ColumnInfo(name = "is_incomplete", defaultValue = "0") val isIncomplete: Boolean = false,
+
+    /**
+     * How the play ended, when that was not by playing through to final scoring. Null is
+     * the ordinary case, which is what leaves every session written before this column
+     * existed correct without a backfill.
+     *
+     * A sudden-death ending is emphatically not [isIncomplete]: the game finished, it
+     * just finished early. Conflating the two would drop a legitimate win out of the
+     * win-rate and duration statistics.
+     */
+    @ColumnInfo(name = "end_condition") val endCondition: SessionEndCondition? = null,
+
+    /** Free text naming the condition that triggered it, e.g. "Military supremacy". */
+    @ColumnInfo(name = "end_reason") val endReason: String? = null,
 
     /** Someone was learning, which skews duration. Flagged separately in stats. */
     @ColumnInfo(name = "is_teaching_game", defaultValue = "0") val isTeachingGame: Boolean = false,

@@ -30,6 +30,13 @@ data class SessionForm(
     val scoringMode: ScoringMode = ScoringMode.RANKED_SCORES,
     val highScoreWins: Boolean = true,
     val coopOutcome: CoopOutcome? = null,
+
+    /** Null means the play ran to final scoring, which is the ordinary case. */
+    val endCondition: SessionEndCondition? = null,
+
+    /** Free text naming what triggered a sudden-death ending. */
+    val endReason: String? = null,
+
     val isIncomplete: Boolean = false,
     val isTeachingGame: Boolean = false,
     val notes: String? = null,
@@ -52,6 +59,9 @@ data class SessionForm(
     val derivePlacements: Boolean = true,
 ) {
     val isCooperative: Boolean get() = scoringMode == ScoringMode.COOPERATIVE
+
+    /** A play that ended the moment a condition was met, before any final scoring. */
+    val isSuddenDeath: Boolean get() = endCondition == SessionEndCondition.SUDDEN_DEATH
 
     /** The form is savable once it names a game and has at least one player. */
     val isValid: Boolean get() = gameId != 0L && participants.isNotEmpty()

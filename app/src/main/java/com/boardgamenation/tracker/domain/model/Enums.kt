@@ -38,6 +38,25 @@ enum class CoopOutcome {
 }
 
 /**
+ * How a play ended, when that differs from playing through to final scoring.
+ *
+ * Some games can end the moment a condition is met -- 7 Wonders Duel's military and
+ * scientific supremacy both stop the game before anyone counts a victory point. The
+ * ending is a property of one play rather than of the game, which is why this sits on
+ * the session and not beside [ScoringMode].
+ *
+ * A null column means the ordinary case: the table played to the end and scored it.
+ */
+enum class SessionEndCondition {
+    SUDDEN_DEATH;
+
+    companion object {
+        fun fromStorage(value: String?): SessionEndCondition? =
+            value?.let { v -> entries.firstOrNull { it.name == v } }
+    }
+}
+
+/**
  * How results are entered for a game. Remembered per game so the logging form opens
  * in the right shape without being re-picked every session.
  */

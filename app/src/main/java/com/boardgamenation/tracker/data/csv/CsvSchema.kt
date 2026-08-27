@@ -45,7 +45,7 @@ object CsvSchema {
         "bgg_rating", "designers", "publisher", "thumbnail_path", "date_added", "price",
         "currency", "purchase_note", "status", "wishlist_priority", "in_possession",
         "lent_to", "lent_date", "is_expansion", "base_game_id", "scoring_mode",
-        "high_score_wins", "notes", "created_at", "updated_at",
+        "high_score_wins", "sudden_death_possible", "notes", "created_at", "updated_at",
     )
 
     val tagColumns = listOf("id", "name", "kind")
@@ -56,8 +56,9 @@ object CsvSchema {
 
     val sessionColumns = listOf(
         "id", "game_id", "played_on", "started_at", "ended_at", "duration_minutes",
-        "player_count", "location", "is_cooperative", "coop_outcome", "is_incomplete",
-        "is_teaching_game", "paused_ms", "photo_uri", "notes", "created_at", "updated_at",
+        "player_count", "location", "is_cooperative", "coop_outcome", "end_condition",
+        "end_reason", "is_incomplete", "is_teaching_game", "paused_ms", "photo_uri",
+        "notes", "created_at", "updated_at",
     )
 
     val sessionPlayerColumns = listOf(

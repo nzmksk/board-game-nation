@@ -78,6 +78,14 @@ data class GameEntity(
     /** For RANKED_SCORES: false means lowest score wins (golf scoring). */
     @ColumnInfo(name = "high_score_wins", defaultValue = "1") val highScoreWins: Boolean = true,
 
+    /**
+     * True for games that can end the instant a condition is met, before any end-of-game
+     * scoring happens. Only gates whether the session form offers to record it; the
+     * ending itself belongs to the play, not to the game.
+     */
+    @ColumnInfo(name = "sudden_death_possible", defaultValue = "0")
+    val suddenDeathPossible: Boolean = false,
+
     @ColumnInfo(name = "notes") val notes: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,

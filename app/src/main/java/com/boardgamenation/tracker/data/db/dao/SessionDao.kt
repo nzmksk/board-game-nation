@@ -28,7 +28,7 @@ interface SessionDao {
             s.id, s.game_id, g.title AS game_title, g.thumbnail_path,
             s.played_on, s.duration_minutes, s.player_count, s.location,
             s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won,
-            s.is_incomplete, s.is_teaching_game,
+            s.is_incomplete, s.is_teaching_game, s.end_reason,
             (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
@@ -59,7 +59,7 @@ interface SessionDao {
             s.id, s.game_id, g.title AS game_title, g.thumbnail_path,
             s.played_on, s.duration_minutes, s.player_count, s.location,
             s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won,
-            s.is_incomplete, s.is_teaching_game,
+            s.is_incomplete, s.is_teaching_game, s.end_reason,
             (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
@@ -154,6 +154,22 @@ interface SessionDao {
         """,
     )
     suspend fun timesPlayerPlayedGame(playerId: Long, gameId: Long): Int
+
+    /**
+     * Sudden-death reasons already recorded for this game, newest first, so the form can
+     * offer "Military supremacy" as a chip on the second play rather than asking the
+     * user to type it again.
+     */
+    @Query(
+        """
+        SELECT end_reason FROM sessions
+        WHERE game_id = :gameId AND is_draft = 0 AND end_reason IS NOT NULL
+        GROUP BY end_reason COLLATE NOCASE
+        ORDER BY MAX(played_on) DESC
+        LIMIT :limit
+        """,
+    )
+    fun observeEndReasonsFor(gameId: Long, limit: Int = 6): Flow<List<String>>
 
     // --- drafts -------------------------------------------------------------------
 

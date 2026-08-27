@@ -301,6 +301,27 @@ fun GameEditScreen(
                 }
             }
 
+            if (state.scoringMode == ScoringMode.RANKED_SCORES ||
+                state.scoringMode == ScoringMode.MANUAL_PLACEMENT
+            ) {
+                item {
+                    Column {
+                        ToggleRow(
+                            label = stringResource(R.string.game_edit_sudden_death),
+                            checked = state.suddenDeathPossible,
+                            onChange = { v ->
+                                viewModel.update { it.copy(suddenDeathPossible = v) }
+                            },
+                        )
+                        Text(
+                            text = stringResource(R.string.game_edit_sudden_death_help),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
             item {
                 ToggleRow(
                     label = stringResource(R.string.game_edit_is_expansion),
