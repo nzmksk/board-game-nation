@@ -163,18 +163,25 @@ class QuickLogViewModel @Inject constructor(
         _state.value = current.copy(isSaving = true)
 
         viewModelScope.launch {
-            // Quick log records who won directly rather than asking for scores; the
-            // scoring mode is set to match so nothing derives placements from nothing.
+            // Quick log records who won directly rather than asking for scores, so
+            // nothing should derive placements from nothing. That is said with the
+            // transient flag rather than by changing the scoring mode: the mode is
+            // written back onto the game when a session saves, so forcing it to NONE
+            // here used to reset the game's remembered scoring after a single quick log.
+            //
+            // Co-op is the exception that still derives: the table has one outcome and
+            // applyCoop is what turns it into a flag on every player, including marking
+            // everybody a loser when the table lost.
             val coop = current.form.scoringMode == ScoringMode.COOPERATIVE
             val form = current.form.copy(
-                scoringMode = if (coop) ScoringMode.COOPERATIVE else ScoringMode.NONE,
+                derivePlacements = coop,
                 coopOutcome = if (coop) {
                     if (current.winnerIds.isNotEmpty()) CoopOutcome.WIN else CoopOutcome.LOSS
                 } else {
                     null
                 },
                 participants = current.form.participants.map {
-                    it.copy(isWinner = coop || it.playerId in current.winnerIds)
+                    it.copy(isWinner = it.playerId in current.winnerIds)
                 },
             )
             val result = saveSession(form)

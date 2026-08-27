@@ -177,12 +177,22 @@ class SessionRepository @Inject constructor(
 
     /** Applies the scoring mode's ranking rules and flags first-timers. */
     private suspend fun normalise(form: SessionForm): List<ParticipantForm> {
-        val ranked = when (form.scoringMode) {
-            ScoringMode.RANKED_SCORES ->
-                PlacementCalculator.derive(form.participants, form.highScoreWins)
-            ScoringMode.MANUAL_PLACEMENT -> PlacementCalculator.fromOrder(form.participants)
-            ScoringMode.COOPERATIVE -> PlacementCalculator.applyCoop(form.participants, form.coopOutcome)
-            ScoringMode.NONE -> form.participants.map { it.copy(placement = null) }
+        val ranked = when {
+            // The caller already knows who won and there is nothing to infer. Quick log
+            // works this way; it must not be expressed by changing the scoring mode,
+            // because the mode is written back onto the game further down.
+            !form.derivePlacements -> form.participants
+
+            // Kept exhaustive over the enum on purpose: a new ScoringMode should fail
+            // to compile here rather than quietly fall through to a default.
+            else -> when (form.scoringMode) {
+                ScoringMode.RANKED_SCORES ->
+                    PlacementCalculator.derive(form.participants, form.highScoreWins)
+                ScoringMode.MANUAL_PLACEMENT -> PlacementCalculator.fromOrder(form.participants)
+                ScoringMode.COOPERATIVE ->
+                    PlacementCalculator.applyCoop(form.participants, form.coopOutcome)
+                ScoringMode.NONE -> form.participants.map { it.copy(placement = null) }
+            }
         }
         return ranked.map { participant ->
             if (participant.isNewPlayer) {

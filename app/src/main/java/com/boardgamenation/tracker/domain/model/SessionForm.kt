@@ -39,6 +39,17 @@ data class SessionForm(
     val startedAt: Long? = null,
     val endedAt: Long? = null,
     val pausedMs: Long = 0,
+
+    /**
+     * False when the caller has already decided who won and no ranking should be
+     * inferred -- quick log works that way, asking for winners directly instead of
+     * scores.
+     *
+     * Deliberately transient and never persisted. Quick log used to express this by
+     * forcing [scoringMode] to NONE, but the mode is written back onto the game after a
+     * save, so one quick log silently reset the game's remembered scoring.
+     */
+    val derivePlacements: Boolean = true,
 ) {
     val isCooperative: Boolean get() = scoringMode == ScoringMode.COOPERATIVE
 
