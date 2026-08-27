@@ -447,8 +447,10 @@ private fun FilterChipRow(
 
         // Capped per kind rather than over one flat list. Designers moved into the same
         // table as mechanics and categories, and a single take(20) would let a collection
-        // with a lot of designers push every mechanic off the end of the row.
-        listOf(TagKind.MECHANIC, TagKind.CATEGORY, TagKind.DESIGNER).forEach { kind ->
+        // with a lot of designers push every mechanic off the end of the row. Every kind
+        // is walked, not just the curated three, so a CUSTOM tag -- which is what an
+        // unrecognised kind restored from CSV falls back to -- stays selectable here.
+        TagKind.entries.forEach { kind ->
             state.tags.filter { it.kind == kind }.take(TAG_CHIPS_PER_KIND).forEach { tag ->
                 FilterChip(
                     selected = tag.id in state.filter.tagIds,
