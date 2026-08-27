@@ -186,7 +186,7 @@ than a spinner that says nothing.
 ./gradlew :app:testDebugUnitTest
 ```
 
-157 tests, run on the JVM. The database tests use a real Room in-memory database through
+183 tests, run on the JVM. The database tests use a real Room in-memory database through
 Robolectric rather than mocks, so a query that compiles but returns the wrong rows still
 fails.
 
@@ -202,6 +202,10 @@ fails.
 | `CsvTest` | RFC 4180 quoting, embedded newlines, locale-independent numbers |
 | `GameQueryBuilderTest` | That values are bound and never interpolated |
 | `MigrationChainTest` | That a version bump without a migration fails the build |
+| `MigrationTest` | The chain run against a real v1 database: designers backfilled, ids not rewound |
+| `SuddenDeathTest` | Placement without scores, and that logging a play never rewrites the game |
+| `QuickLogViewModelTest` | That a quick log leaves the game's scoring mode alone |
+| `LegacyCsvImportTest` | An archive from before designers were tags still imports intact |
 
 ### Sample data
 
@@ -220,6 +224,7 @@ reproducible.
 | Works in airplane mode except BGG, which fails retryably | Met — errors carry a `retryable` flag and Retry is only offered when it could help |
 | A killed app loses at most one turn, never a saved session | Met — draft session plus per-transition and 10s checkpoints |
 | Export → wipe → import reproduces the database exactly | Met and tested (`CsvRoundTripTest`) |
+| A backup taken before an update still restores after it | Met and tested (`MigrationTest` for `.db`, `LegacyCsvImportTest` for CSV) |
 | No `SELECT *` over a full table on the main thread; all queries expose `Flow` | Met — `allowMainThreadQueries` is never enabled outside tests |
 | Migrations written and tested; `fallbackToDestructiveMigration` never called | Met and guarded by `MigrationChainTest` |
 | No hardcoded strings in composables | Met — every user-facing string is in `strings.xml` |
