@@ -153,6 +153,14 @@ class CsvRoundTripTest {
         db.sessionDao().insertSession(
             DatabaseTestFixture.session(wingspan, "2026-02-10", durationMinutes = 55),
         )
+        db.sessionDao().insertSession(
+            DatabaseTestFixture.session(
+                gameId = catan,
+                playedOn = "2026-02-14",
+                durationMinutes = 45,
+                isCooperative = true,
+            ).copy(mode = "5 epidemics + mutation"),
+        )
 
         val rubricId = db.rubricDao().insertRubric(
             RubricEntity(name = "Strategy", description = "Decisions, mostly"),
@@ -281,6 +289,18 @@ class CsvRoundTripTest {
         // likely to corrupt a naive CSV.
         assertNotNull(db.gameDao().getGameByTitle("Wingspan, Oceania"))
         assertNotNull(db.gameDao().getGameByTitle("Wanted \"badly\""))
+    }
+
+    @Test
+    fun `the configuration a co-op was played at survives the round trip`() = runTest {
+        populate()
+        val files = exporter.buildFiles()
+        maintenance.wipeUserData()
+
+        importer.import(files, ImportMode.REPLACE)
+
+        val modes = db.sessionDao().getAllSessions().mapNotNull { it.mode }
+        assertEquals(listOf("5 epidemics + mutation"), modes)
     }
 
     @Test

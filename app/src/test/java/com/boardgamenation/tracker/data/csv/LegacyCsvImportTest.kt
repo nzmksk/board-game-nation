@@ -179,5 +179,6 @@ class LegacyCsvImportTest {
         val session = db.sessionDao().getSession(1)!!
         assertNull("no end_condition column in the archive", session.endCondition)
         assertNull(session.endReason)
+        assertNull("no mode column in the archive", session.mode)
     }
 }

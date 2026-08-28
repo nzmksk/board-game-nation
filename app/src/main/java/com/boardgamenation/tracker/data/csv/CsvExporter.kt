@@ -188,7 +188,7 @@ class CsvExporter @Inject constructor(
                         s.id.toString(), s.gameId.toString(), s.playedOn,
                         Csv.formatLong(s.startedAt), Csv.formatLong(s.endedAt),
                         s.durationMinutes.toString(), s.playerCount.toString(), s.location,
-                        Csv.formatBool(s.isCooperative), s.coopOutcome?.name,
+                        Csv.formatBool(s.isCooperative), s.coopOutcome?.name, s.mode,
                         s.endCondition?.name, s.endReason,
                         Csv.formatBool(s.isIncomplete), Csv.formatBool(s.isTeachingGame),
                         s.pausedMs.toString(), s.photoUri, s.notes,
