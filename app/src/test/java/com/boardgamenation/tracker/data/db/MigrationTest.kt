@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
 import com.boardgamenation.tracker.domain.model.TagKind
+import com.boardgamenation.tracker.domain.model.TimerMode
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
@@ -159,6 +160,33 @@ class MigrationTest {
         assertNull("a pre-existing play was scored normally", session.endCondition)
         assertNull(session.endReason)
         assertEquals("2026-01-05", session.playedOn)
+    }
+
+    // --- timer mode -----------------------------------------------------------------
+
+    @Test
+    fun `a stored clock comes through as the turn-based one it was`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "Brass", designers = "NULL")
+            db.execSQL(
+                """
+                INSERT INTO timer_state
+                    (id, game_id, run_state, active_seat, active_clock,
+                     turn_seconds, bank_seconds, warning_threshold_seconds,
+                     bank_exhausted_behaviour)
+                VALUES (1, 1, 'PAUSED', 0, 'TURN', 60, 600, 10, 'FLAG_AND_OVERTIME')
+                """.trimIndent(),
+            )
+        }
+
+        val db = openMigrated()
+        val columns = columnsOf(db, "timer_state")
+        assertTrue("mode column added", "mode" in columns)
+        assertTrue("table_time_ms column added", "table_time_ms" in columns)
+
+        val state = db.timerDao().getState()!!
+        assertEquals(TimerMode.TURN_BASED, state.mode)
+        assertEquals("time belonged to a seat, never to the table", 0L, state.tableTimeMs)
     }
 
     // --- integrity ------------------------------------------------------------------

@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.boardgamenation.tracker.domain.model.ActiveClock
 import com.boardgamenation.tracker.domain.model.BankExhaustedBehaviour
+import com.boardgamenation.tracker.domain.model.TimerMode
 import com.boardgamenation.tracker.domain.model.TimerRunState
 
 /** A reusable clock configuration, optionally pinned to one game. */
@@ -78,6 +79,13 @@ data class TimerStateEntity(
     @ColumnInfo(name = "game_id") val gameId: Long,
 
     @ColumnInfo(name = "run_state") val runState: TimerRunState = TimerRunState.IDLE,
+
+    /** Whether this clock counts seats down or the whole table up. */
+    @ColumnInfo(name = "mode", defaultValue = "'TURN_BASED'")
+    val mode: TimerMode = TimerMode.TURN_BASED,
+
+    /** Accumulated play time for a count-up clock, which belongs to no seat. */
+    @ColumnInfo(name = "table_time_ms", defaultValue = "0") val tableTimeMs: Long = 0,
 
     /** Index into the seat order, not a player id: seats can be skipped or reversed. */
     @ColumnInfo(name = "active_seat") val activeSeat: Int = 0,
