@@ -94,14 +94,16 @@ fun AppNavigation(
                             selected = selected,
                             onClick = {
                                 navController.navigate(destination.route) {
-                                    // Standard bottom-bar behaviour: one entry per tab,
-                                    // and state preserved when switching between them.
-                                    popUpTo(Route.Collection) {
-                                        saveState = true
-                                        inclusive = destination.route == Route.Collection
-                                    }
+                                    // One entry per tab, on top of Collection, so back always
+                                    // walks tab -> Collection -> out.
+                                    //
+                                    // Deliberately no saveState/restoreState. In a flat graph
+                                    // popUpTo(Collection) { saveState = true } files the stack
+                                    // it just popped -- the tab being left -- under Collection's
+                                    // own key, so the next restoreState navigate to Collection
+                                    // put that tab straight back on screen.
+                                    popUpTo(Route.Collection)
                                     launchSingleTop = true
-                                    restoreState = true
                                 }
                             },
                             icon = {
