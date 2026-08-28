@@ -2,6 +2,7 @@ package com.boardgamenation.tracker.domain.timer
 
 import com.boardgamenation.tracker.domain.model.ActiveClock
 import com.boardgamenation.tracker.domain.model.BankExhaustedBehaviour
+import com.boardgamenation.tracker.domain.model.TimerMode
 import com.boardgamenation.tracker.domain.model.TimerRunState
 import kotlinx.serialization.Serializable
 
@@ -10,6 +11,7 @@ data class TimerPlayer(val id: Long, val name: String, val colorHex: String? = n
 
 @Serializable
 data class TimerConfig(
+    val mode: TimerMode = TimerMode.TURN_BASED,
     val turnMs: Long = 60_000,
     val bankMs: Long = 600_000,
     val warningMs: Long = 10_000,
@@ -64,6 +66,13 @@ data class TimerState(
     /** Wall clock at the start of play, used to fill in the session's started_at. */
     val startedAtWallMs: Long? = null,
 
+    /**
+     * Play time accrued by the table rather than by a seat, which is the whole of a
+     * count-up clock. Untouched in [TimerMode.TURN_BASED], where time belongs to
+     * whoever is up.
+     */
+    val tableTimeMs: Long = 0,
+
     /** Time the table spent globally paused. Accrues to nobody. */
     val accumulatedPausedMs: Long = 0,
 
@@ -75,6 +84,9 @@ data class TimerState(
 ) {
     val isRunning: Boolean get() = runState == TimerRunState.RUNNING
     val activeSeatOrNull: Seat? get() = seats.getOrNull(activeSeat)
+
+    /** One clock for the table: nobody is "up" and nothing counts down. */
+    val isCountUp: Boolean get() = config.mode == TimerMode.COUNT_UP
 }
 
 /** What the UI and the notification draw, computed fresh for a given instant. */
@@ -154,9 +166,18 @@ object TimerEngine {
      */
     fun commit(state: TimerState, nowElapsedMs: Long): TimerState {
         if (!state.isRunning) return state
-        val seat = state.activeSeatOrNull ?: return state
         val spent = (nowElapsedMs - state.anchorElapsedMs).coerceAtLeast(0)
         if (spent == 0L) return state
+
+        // A count-up clock has no active seat to spend from: the time is the table's.
+        if (state.isCountUp) {
+            return state.copy(
+                tableTimeMs = state.tableTimeMs + spent,
+                anchorElapsedMs = nowElapsedMs,
+            )
+        }
+
+        val seat = state.activeSeatOrNull ?: return state
 
         val (turnRemaining, bankRemaining) = spend(seat, spent)
         val updated = seat.copy(
@@ -197,6 +218,9 @@ object TimerEngine {
      * misclick that actually costs somebody time.
      */
     fun passTurn(state: TimerState, nowElapsedMs: Long): TimerState {
+        // Nothing to pass: a count-up clock is not divided into turns. The notification
+        // action can outlive a mode change, so this is guarded here and not only in UI.
+        if (state.isCountUp) return state
         val committed = commit(state, nowElapsedMs)
         val seat = committed.activeSeatOrNull ?: return committed
 
@@ -284,6 +308,8 @@ object TimerEngine {
      * thing that advances state.
      */
     fun project(state: TimerState, nowElapsedMs: Long): TimerProjection {
+        if (state.isCountUp) return projectCountUp(state, nowElapsedMs)
+
         val spent = if (state.isRunning) {
             (nowElapsedMs - state.anchorElapsedMs).coerceAtLeast(0)
         } else {
@@ -323,6 +349,33 @@ object TimerEngine {
         )
     }
 
+    /**
+     * The count-up reading: one number, going up, and no seat is active. Seats are still
+     * carried through so the summary knows who was at the table.
+     */
+    private fun projectCountUp(state: TimerState, nowElapsedMs: Long): TimerProjection {
+        val elapsed = elapsedPlayMs(state, nowElapsedMs)
+        return TimerProjection(
+            state = state,
+            seats = state.seats.map { seat ->
+                SeatDisplay(
+                    seat = seat,
+                    turnRemainingMs = seat.turnRemainingMs,
+                    bankRemainingMs = seat.bankRemainingMs,
+                    totalTurnTimeMs = seat.totalTurnTimeMs,
+                    isActive = false,
+                    clock = ActiveClock.TURN,
+                )
+            },
+            activeSeat = state.activeSeat,
+            activeClock = ActiveClock.TURN,
+            displayMs = elapsed,
+            // Nothing is running out, so there is nothing to warn about.
+            isWarning = false,
+            elapsedPlayMs = elapsed,
+        )
+    }
+
     private fun clockFor(turnRemaining: Long, bankRemaining: Long): ActiveClock = when {
         turnRemaining > 0 -> ActiveClock.TURN
         bankRemaining > 0 -> ActiveClock.BANK
@@ -331,7 +384,11 @@ object TimerEngine {
 
     /** Total play time so far, with globally paused time excluded. */
     fun elapsedPlayMs(state: TimerState, nowElapsedMs: Long): Long {
-        val played = state.seats.sumOf { it.totalTurnTimeMs }
+        val played = if (state.isCountUp) {
+            state.tableTimeMs
+        } else {
+            state.seats.sumOf { it.totalTurnTimeMs }
+        }
         val live = if (state.isRunning) {
             (nowElapsedMs - state.anchorElapsedMs).coerceAtLeast(0)
         } else {

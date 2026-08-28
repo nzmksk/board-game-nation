@@ -79,6 +79,27 @@ enum class ScoringMode {
     }
 }
 
+/**
+ * What the timer is counting.
+ *
+ * The dual countdown is a competitive tool: it only means something when players take
+ * turns worth policing. A co-op, a filler or a party game has one number worth
+ * recording -- how long the whole thing took -- so [COUNT_UP] times the table rather
+ * than the seats.
+ */
+enum class TimerMode {
+    /** Per-seat turn and bank clocks counting down. The original behaviour. */
+    TURN_BASED,
+
+    /** One clock for the table, counting up until somebody stops it. */
+    COUNT_UP;
+
+    companion object {
+        fun fromStorage(value: String?): TimerMode =
+            entries.firstOrNull { it.name == value } ?: TURN_BASED
+    }
+}
+
 /** What happens when a player's bank timer runs out. */
 enum class BankExhaustedBehaviour {
     /** Flag the player and count into negative overtime for the record. Default. */
