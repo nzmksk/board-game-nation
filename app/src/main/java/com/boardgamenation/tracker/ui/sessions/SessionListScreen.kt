@@ -235,9 +235,12 @@ fun SessionRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 val outcome = when {
+                    // A co-op result means little without what it was played at, so the
+                    // mode rides along with the win or loss rather than below it.
                     session.isCooperative && session.coopWon ->
-                        stringResource(R.string.session_coop_win)
-                    session.isCooperative -> stringResource(R.string.session_coop_loss)
+                        withMode(stringResource(R.string.session_coop_win), session.mode)
+                    session.isCooperative ->
+                        withMode(stringResource(R.string.session_coop_loss), session.mode)
                     !session.winnerNames.isNullOrBlank() ->
                         stringResource(R.string.session_winner, session.winnerNames)
                     else -> null
@@ -282,3 +285,7 @@ fun SessionRow(
         }
     }
 }
+
+/** "We won · Level 12", or just the result when no configuration was recorded. */
+private fun withMode(outcome: String, mode: String?): String =
+    if (mode.isNullOrBlank()) outcome else "$outcome · $mode"
