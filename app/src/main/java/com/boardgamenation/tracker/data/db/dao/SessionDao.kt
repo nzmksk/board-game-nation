@@ -171,6 +171,18 @@ interface SessionDao {
     )
     fun observeEndReasonsFor(gameId: Long, limit: Int = 6): Flow<List<String>>
 
+    /** Configurations this game has already been played at, newest first. */
+    @Query(
+        """
+        SELECT mode FROM sessions
+        WHERE game_id = :gameId AND is_draft = 0 AND mode IS NOT NULL AND trim(mode) <> ''
+        GROUP BY mode COLLATE NOCASE
+        ORDER BY MAX(played_on) DESC
+        LIMIT :limit
+        """,
+    )
+    fun observeModesFor(gameId: Long, limit: Int = 6): Flow<List<String>>
+
     // --- drafts -------------------------------------------------------------------
 
     @Query("SELECT * FROM sessions WHERE is_draft = 1 ORDER BY created_at DESC")
