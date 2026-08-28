@@ -15,6 +15,7 @@ import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.usecase.DeleteSessionUseCase
 import com.boardgamenation.tracker.domain.usecase.EditSessionUseCase
 import com.boardgamenation.tracker.domain.usecase.SaveSessionUseCase
@@ -36,6 +37,13 @@ data class SessionEditUiState(
     val games: List<GameEntity> = emptyList(),
     val players: List<PlayerEntity> = emptyList(),
     val availableExpansions: List<GameEntity> = emptyList(),
+
+    /** Whether this game can end early, which is what puts "Ended by" on the form. */
+    val suddenDeathPossible: Boolean = false,
+
+    /** Reasons already recorded for this game, offered as chips instead of retyping. */
+    val previousEndReasons: List<String> = emptyList(),
+
     val isNew: Boolean = true,
     val isSaving: Boolean = false,
     val validationError: Int? = null,
@@ -86,6 +94,13 @@ class SessionEditViewModel @Inject constructor(
                     .takeIf { it != 0L }
                     ?.let { gameRepository.observeExpansions(it).first() }
                     .orEmpty(),
+                suddenDeathPossible = form.gameId
+                    .takeIf { it != 0L }
+                    ?.let { gameRepository.getGame(it)?.suddenDeathPossible } == true,
+                previousEndReasons = form.gameId
+                    .takeIf { it != 0L }
+                    ?.let { sessionRepository.observeEndReasonsFor(it).first() }
+                    .orEmpty(),
                 isNew = route.sessionId == 0L,
             )
         }
@@ -109,6 +124,8 @@ class SessionEditViewModel @Inject constructor(
                     location = current.location,
                 ),
                 availableExpansions = gameRepository.observeExpansions(gameId).first(),
+                suddenDeathPossible = gameRepository.getGame(gameId)?.suddenDeathPossible == true,
+                previousEndReasons = sessionRepository.observeEndReasonsFor(gameId).first(),
                 validationError = null,
             )
         }
@@ -179,6 +196,19 @@ class SessionEditViewModel @Inject constructor(
 
     fun setCoopOutcome(outcome: CoopOutcome) {
         update { it.copy(coopOutcome = outcome) }
+    }
+
+    /**
+     * Switching back to an ordinary ending clears the reason too, so a stale
+     * "Military supremacy" cannot survive on a play that was scored normally.
+     */
+    fun setEndCondition(condition: SessionEndCondition?) {
+        update {
+            it.copy(
+                endCondition = condition,
+                endReason = if (condition == null) null else it.endReason,
+            )
+        }
     }
 
     fun toggleExpansion(gameId: Long) {

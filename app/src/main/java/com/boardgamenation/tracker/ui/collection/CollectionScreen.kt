@@ -68,6 +68,7 @@ import com.boardgamenation.tracker.domain.model.CollectionLayout
 import com.boardgamenation.tracker.domain.model.CollectionSort
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.PlaytimeBucket
+import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.ui.components.ConfirmDialog
 import com.boardgamenation.tracker.ui.components.EmptyState
 import com.boardgamenation.tracker.ui.components.GameThumbnail
@@ -444,12 +445,19 @@ private fun FilterChipRow(
             label = { Text(stringResource(R.string.collection_filter_hide_expansions)) },
         )
 
-        state.tags.take(20).forEach { tag ->
-            FilterChip(
-                selected = tag.id in state.filter.tagIds,
-                onClick = { onToggleTag(tag.id) },
-                label = { Text(tag.name) },
-            )
+        // Capped per kind rather than over one flat list. Designers moved into the same
+        // table as mechanics and categories, and a single take(20) would let a collection
+        // with a lot of designers push every mechanic off the end of the row. Every kind
+        // is walked, not just the curated three, so a CUSTOM tag -- which is what an
+        // unrecognised kind restored from CSV falls back to -- stays selectable here.
+        TagKind.entries.forEach { kind ->
+            state.tags.filter { it.kind == kind }.take(TAG_CHIPS_PER_KIND).forEach { tag ->
+                FilterChip(
+                    selected = tag.id in state.filter.tagIds,
+                    onClick = { onToggleTag(tag.id) },
+                    label = { Text(tag.name) },
+                )
+            }
         }
     }
 }
@@ -662,3 +670,6 @@ internal fun PlaytimeBucket.labelRes(): Int = when (this) {
     PlaytimeBucket.SIXTY_TO_120 -> R.string.collection_playtime_60_120
     PlaytimeBucket.OVER_120 -> R.string.collection_playtime_over_120
 }
+
+/** Per-kind cap on the filter row, so no one kind can crowd out the others. */
+private const val TAG_CHIPS_PER_KIND = 8

@@ -248,6 +248,46 @@ class GameDaoTest {
         assertEquals(1, tagDao.count())
     }
 
+    /**
+     * Designers were promoted out of a comma-joined column into this same table, which is
+     * what makes "everything by Uwe Rosenberg" a filter rather than a text search. The
+     * filter is deliberately kind-agnostic, so this needs no new SQL -- but it does need
+     * proving, because the whole point of the move was to gain this.
+     */
+    @Test
+    fun `a designer tag filters the collection like any other tag`() = runTest {
+        val rosenberg = gameDao.insert(DatabaseTestFixture.game("Agricola"))
+        gameDao.insert(DatabaseTestFixture.game("Azul"))
+        val tagId = tagDao.upsertByName("Uwe Rosenberg", TagKind.DESIGNER)
+        tagDao.insertLinks(listOf(GameTagCrossRef(rosenberg, tagId)))
+
+        assertEquals(
+            listOf("Agricola"),
+            collection(CollectionFilter(tagIds = setOf(tagId))).map { it.title },
+        )
+    }
+
+    @Test
+    fun `a designer left with no games is pruned like any other orphan tag`() = runTest {
+        val gameId = gameDao.insert(DatabaseTestFixture.game("Agricola"))
+        val designer = tagDao.upsertByName("Uwe Rosenberg", TagKind.DESIGNER)
+        val shared = tagDao.upsertByName("Reiner Knizia", TagKind.DESIGNER)
+        val other = gameDao.insert(DatabaseTestFixture.game("Ra"))
+        tagDao.insertLinks(
+            listOf(
+                GameTagCrossRef(gameId, designer),
+                GameTagCrossRef(gameId, shared),
+                GameTagCrossRef(other, shared),
+            ),
+        )
+
+        gameDao.delete(gameDao.getGame(gameId)!!)
+        tagDao.pruneOrphans()
+
+        val remaining = tagDao.getAll().map { it.name }
+        assertEquals(listOf("Reiner Knizia"), remaining)
+    }
+
     @Test
     fun `the same name under a different kind is a different tag`() = runTest {
         tagDao.upsertByName("Economic", TagKind.MECHANIC)

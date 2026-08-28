@@ -81,7 +81,6 @@ The core collection table.
 | `max_playtime_minutes` | INTEGER NULL | |
 | `weight` | REAL NULL | BGG complexity 1.0–5.0 |
 | `bgg_rating` | REAL NULL | Geek rating at import time |
-| `designers` | TEXT NULL | Comma-joined |
 | `publisher` | TEXT NULL | |
 | `thumbnail_path` | TEXT NULL | Local file path, not a URL |
 | `date_added` | TEXT NOT NULL | ISO date the game entered the collection |
@@ -95,6 +94,7 @@ The core collection table.
 | `lent_date` | TEXT NULL | |
 | `is_expansion` | INTEGER NOT NULL DEFAULT 0 | |
 | `base_game_id` | INTEGER NULL FK → games.id | Set when `is_expansion` = 1 |
+| `sudden_death_possible` | INTEGER NOT NULL DEFAULT 0 | Game can end before final scoring |
 | `notes` | TEXT NULL | |
 | `created_at` / `updated_at` | INTEGER NOT NULL | |
 
@@ -102,10 +102,12 @@ Indexes: `bgg_id` (unique where not null), `title`, `status`, `base_game_id`.
 
 ### 3.2 `tags` and `game_tags`
 
-Mechanics and categories are both tags, distinguished by `kind`. Modelling them as
-a join rather than columns means BGG's long mechanic lists don't require schema changes.
+Mechanics, categories and designers are all tags, distinguished by `kind`. Modelling
+them as a join rather than columns means BGG's long mechanic lists don't require schema
+changes, and it makes every one of them filterable and groupable on equal terms.
 
-**`tags`:** `id`, `name` TEXT NOT NULL, `kind` TEXT NOT NULL (`MECHANIC` | `CATEGORY` | `CUSTOM`).
+**`tags`:** `id`, `name` TEXT NOT NULL, `kind` TEXT NOT NULL
+(`MECHANIC` | `CATEGORY` | `DESIGNER` | `CUSTOM`).
 Unique index on `(name, kind)`.
 
 **`game_tags`:** `game_id` FK, `tag_id` FK, composite PK, `ON DELETE CASCADE`.
@@ -142,6 +144,8 @@ One row per play.
 | `location` | TEXT NULL | |
 | `is_cooperative` | INTEGER NOT NULL DEFAULT 0 | |
 | `coop_outcome` | TEXT NULL | `WIN` \| `LOSS` \| `NA` — for co-op games |
+| `end_condition` | TEXT NULL | `SUDDEN_DEATH`; null means played to final scoring |
+| `end_reason` | TEXT NULL | Free text, e.g. "Military supremacy" |
 | `is_incomplete` | INTEGER NOT NULL DEFAULT 0 | Game abandoned before finishing |
 | `is_teaching_game` | INTEGER NOT NULL DEFAULT 0 | Someone was learning; skews duration stats |
 | `notes` | TEXT NULL | |
@@ -285,6 +289,10 @@ Behaviour:
   derive automatically, highest or lowest wins configurable), **manual placement**
   (drag to order), or **co-op** (single win/loss for the table).
 - Ties are allowed: two players may share placement 1 and both be winners.
+- **Sudden-death endings.** A game flagged `sudden_death_possible` offers an "ended by"
+  choice per play. A play that ended that way is ranked by the order the user gives, since
+  no final scoring happened; any partial scores are kept but excluded from score averages.
+  This is separate from `is_incomplete`, which means abandoned and is excluded from stats.
 - **In-progress sessions.** Starting the timer creates a draft session immediately.
   If the app is killed, the draft is recoverable on next launch with a prompt to
   resume, save, or discard. Never lose a night's data to a process death.

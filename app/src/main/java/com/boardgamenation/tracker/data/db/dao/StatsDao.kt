@@ -161,7 +161,7 @@ interface StatsDao {
             s.id, s.game_id, g.title AS game_title, g.thumbnail_path,
             s.played_on, s.duration_minutes, s.player_count, s.location,
             s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won,
-            s.is_incomplete, s.is_teaching_game,
+            s.is_incomplete, s.is_teaching_game, s.end_reason,
             (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
@@ -338,11 +338,17 @@ interface StatsDao {
     )
     fun observeHeadToHead(): Flow<List<HeadToHeadRow>>
 
+    /**
+     * Sudden-death plays are excluded. A game that ended the moment a condition was met
+     * never reached final scoring, so any number recorded against it is a partial count
+     * and averaging it together with full scores understates the average.
+     */
     @Query(
         """
         SELECT g.title AS label, AVG(sp.score) AS value
         FROM session_players sp
         JOIN sessions s ON s.id = sp.session_id AND s.is_draft = 0
+            AND s.end_condition IS NULL
         JOIN games g ON g.id = s.game_id
         WHERE sp.player_id = :playerId AND sp.score IS NOT NULL
         GROUP BY g.id

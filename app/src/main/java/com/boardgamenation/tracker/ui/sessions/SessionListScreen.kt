@@ -252,6 +252,17 @@ fun SessionRow(
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Deliberately not styled like "Unfinished" next to it: the game did
+                    // finish, it just finished the moment a condition was met.
+                    session.endReason?.let { reason ->
+                        Text(
+                            text = reason,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                     if (session.isIncomplete) {
                         Text(
                             text = stringResource(R.string.session_incomplete),

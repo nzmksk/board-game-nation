@@ -28,6 +28,7 @@ import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.ImportMode
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TagKind
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -190,6 +191,7 @@ class CsvImporter @Inject constructor(
             val gameIds = importGames(files[CsvSchema.GAMES], mode, errors, written)
             val tagIds = importTags(files[CsvSchema.TAGS], mode, errors, written)
             importGameTags(files[CsvSchema.GAME_TAGS], gameIds, tagIds, errors, written)
+            importLegacyDesigners(files[CsvSchema.GAMES], gameIds, errors)
             val playerIds = importPlayers(files[CsvSchema.PLAYERS], mode, errors, written)
             val sessionIds =
                 importSessions(files[CsvSchema.SESSIONS], mode, gameIds, errors, written)
@@ -250,7 +252,6 @@ class CsvImporter @Inject constructor(
                     maxPlaytimeMinutes = row.int("max_playtime_minutes"),
                     weight = row.double("weight"),
                     bggRating = row.double("bgg_rating"),
-                    designers = row.string("designers"),
                     publisher = row.string("publisher"),
                     thumbnailPath = row.string("thumbnail_path"),
                     dateAdded = row.requireString("date_added"),
@@ -267,6 +268,7 @@ class CsvImporter @Inject constructor(
                     baseGameId = null,
                     scoringMode = ScoringMode.fromStorage(row.string("scoring_mode")),
                     highScoreWins = row.boolean("high_score_wins", default = true),
+                    suddenDeathPossible = row.boolean("sudden_death_possible"),
                     notes = row.string("notes"),
                     createdAt = row.long("created_at") ?: 0L,
                     updatedAt = row.long("updated_at") ?: 0L,
@@ -382,6 +384,48 @@ class CsvImporter @Inject constructor(
         written[CsvSchema.GAME_TAGS] = links.size
     }
 
+    /**
+     * Rescues designers from an export written before they became tags.
+     *
+     * Games used to carry a single comma-joined `designers` column. An archive from that
+     * era still has it, and dropping it silently would quietly lose a field from every
+     * game in somebody's backup, so the names are split and re-created as DESIGNER tags.
+     * A current export has no such column and this does nothing.
+     *
+     * Deliberately runs after `game_tags`: a replace-mode import restores tag ids from
+     * the file verbatim, and upserting new tags before that would hand out low
+     * autoincrement ids that collide with the ones still to be restored.
+     */
+    private suspend fun importLegacyDesigners(
+        text: String?,
+        gameIds: Map<Long, Long>,
+        errors: MutableList<CsvError>,
+    ) {
+        val table = text?.let { CsvParser.parse(it) } ?: return
+        if (LEGACY_DESIGNERS_COLUMN !in table.headers) return
+
+        val links = mutableListOf<GameTagCrossRef>()
+        table.rows.forEach { row ->
+            try {
+                val gameId = gameIds[row.long("id")] ?: return@forEach
+                row.string(LEGACY_DESIGNERS_COLUMN)
+                    ?.split(',')
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    ?.distinct()
+                    ?.forEach { name ->
+                        links += GameTagCrossRef(
+                            gameId = gameId,
+                            tagId = tagDao.upsertByName(name, TagKind.DESIGNER),
+                        )
+                    }
+            } catch (e: Exception) {
+                errors += CsvError(row.lineNumber, "designers: ${e.message}")
+            }
+        }
+        if (links.isNotEmpty()) tagDao.insertLinks(links)
+    }
+
     private suspend fun importPlayers(
         text: String?,
         mode: ImportMode,
@@ -451,6 +495,8 @@ class CsvImporter @Inject constructor(
                     location = row.string("location"),
                     isCooperative = row.boolean("is_cooperative"),
                     coopOutcome = CoopOutcome.fromStorage(row.string("coop_outcome")),
+                    endCondition = SessionEndCondition.fromStorage(row.string("end_condition")),
+                    endReason = row.string("end_reason"),
                     isIncomplete = row.boolean("is_incomplete"),
                     isTeachingGame = row.boolean("is_teaching_game"),
                     isDraft = false,
@@ -766,5 +812,10 @@ class CsvImporter @Inject constructor(
             }
         }
         return out
+    }
+
+    private companion object {
+        /** Only ever read, never written: the column no longer exists. */
+        const val LEGACY_DESIGNERS_COLUMN = "designers"
     }
 }

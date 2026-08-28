@@ -6,6 +6,7 @@ import com.boardgamenation.tracker.domain.model.BankExhaustedBehaviour
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.domain.model.TimerRunState
 
@@ -25,6 +26,10 @@ class Converters {
 
     @TypeConverter fun scoringModeToString(v: ScoringMode): String = v.name
     @TypeConverter fun stringToScoringMode(v: String): ScoringMode = ScoringMode.fromStorage(v)
+
+    @TypeConverter fun endConditionToString(v: SessionEndCondition?): String? = v?.name
+    @TypeConverter fun stringToEndCondition(v: String?): SessionEndCondition? =
+        SessionEndCondition.fromStorage(v)
 
     @TypeConverter fun runStateToString(v: TimerRunState): String = v.name
     @TypeConverter fun stringToRunState(v: String): TimerRunState = TimerRunState.fromStorage(v)

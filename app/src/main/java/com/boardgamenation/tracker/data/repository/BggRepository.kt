@@ -204,8 +204,6 @@ class BggRepository @Inject constructor(
                         maxPlaytimeMinutes = thing.maxPlaytimeMinutes ?: existing.maxPlaytimeMinutes,
                         weight = thing.weight ?: existing.weight,
                         bggRating = thing.rating ?: existing.bggRating,
-                        designers = thing.designers.takeIf { it.isNotEmpty() }?.joinToString(", ")
-                            ?: existing.designers,
                         publisher = thing.publishers.firstOrNull() ?: existing.publisher,
                         thumbnailPath = thumbnail,
                         isExpansion = thing.isExpansion,
@@ -226,7 +224,6 @@ class BggRepository @Inject constructor(
                         maxPlaytimeMinutes = thing.maxPlaytimeMinutes,
                         weight = thing.weight,
                         bggRating = thing.rating,
-                        designers = thing.designers.takeIf { it.isNotEmpty() }?.joinToString(", "),
                         publisher = thing.publishers.firstOrNull(),
                         thumbnailPath = thumbnail,
                         dateAdded = DateUtils.toIso(clock.today()),
@@ -238,9 +235,12 @@ class BggRepository @Inject constructor(
                 )
             }
 
+            // The parser already hands back a list; designers no longer get flattened
+            // into a string on the way into the database.
             val mechanicIds = gameRepository.resolveTags(thing.mechanics, TagKind.MECHANIC)
             val categoryIds = gameRepository.resolveTags(thing.categories, TagKind.CATEGORY)
-            gameDao.replaceTags(gameId, mechanicIds + categoryIds)
+            val designerIds = gameRepository.resolveTags(thing.designers, TagKind.DESIGNER)
+            gameDao.replaceTags(gameId, mechanicIds + categoryIds + designerIds)
             imported++
         }
 

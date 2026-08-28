@@ -16,15 +16,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +50,9 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.boardgamenation.tracker.R
+import com.boardgamenation.tracker.core.time.DateUtils
 import java.io.File
+import java.time.ZoneOffset
 
 /** The standard "there is nothing here, and here is what to do about it" panel. */
 @Composable
@@ -339,5 +347,78 @@ fun KeyValueRow(
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
+    }
+}
+
+/**
+ * A date field that can only be filled from a calendar.
+ *
+ * Dates are stored as ISO-8601 text throughout, which sorts correctly as a string and
+ * survives a CSV round trip regardless of locale, but it only holds if what reaches the
+ * database is actually a date. A free-text field accepted anything: "banana" would
+ * persist happily into a NOT NULL column and then break the substr-based year statistics
+ * and the ordering of every query that sorts on a date.
+ *
+ * So the field is read-only and the picker is the only way in. [value] and [onChange]
+ * both speak ISO text; an unparseable stored value simply opens the picker on today
+ * rather than refusing to open.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun IsoDateField(
+    value: String,
+    label: String,
+    onChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var open by remember { mutableStateOf(false) }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = {},
+        readOnly = true,
+        label = { Text(label) },
+        singleLine = true,
+        trailingIcon = {
+            IconButton(onClick = { open = true }) {
+                Icon(
+                    Icons.Filled.DateRange,
+                    contentDescription = stringResource(R.string.action_pick_date),
+                )
+            }
+        },
+        modifier = modifier,
+    )
+
+    if (open) {
+        // The picker works in UTC millis; the conversion back to a local ISO date has to
+        // go through UTC too, or a user east of Greenwich picking a date late in the day
+        // would get the one before it.
+        val state = rememberDatePickerState(
+            initialSelectedDateMillis = DateUtils.parseIsoOrNull(value)
+                ?.atStartOfDay(ZoneOffset.UTC)
+                ?.toInstant()
+                ?.toEpochMilli(),
+        )
+        DatePickerDialog(
+            onDismissRequest = { open = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        state.selectedDateMillis?.let {
+                            onChange(DateUtils.epochMillisToIso(it, ZoneOffset.UTC))
+                        }
+                        open = false
+                    },
+                ) { Text(stringResource(R.string.action_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { open = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        ) {
+            DatePicker(state = state)
+        }
     }
 }

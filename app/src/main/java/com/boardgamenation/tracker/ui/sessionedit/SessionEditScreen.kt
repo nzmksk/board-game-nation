@@ -61,8 +61,10 @@ import com.boardgamenation.tracker.core.time.DateUtils
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.ui.components.ConfirmDialog
 import com.boardgamenation.tracker.ui.components.PlayerDot
+import com.boardgamenation.tracker.ui.components.IsoDateField
 import com.boardgamenation.tracker.ui.components.SectionHeader
 import com.boardgamenation.tracker.ui.gameedit.labelRes
 import com.boardgamenation.tracker.ui.theme.LocalChartColors
@@ -156,15 +158,14 @@ fun SessionEditScreen(
 
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
+                    IsoDateField(
                         value = DateUtils.toIso(state.form.playedOn),
-                        onValueChange = { value ->
+                        label = stringResource(R.string.session_edit_date),
+                        onChange = { value ->
                             DateUtils.parseIsoOrNull(value)?.let { date ->
                                 viewModel.update { it.copy(playedOn = date) }
                             }
                         },
-                        label = { Text(stringResource(R.string.session_edit_date)) },
-                        singleLine = true,
                         modifier = Modifier.weight(1.3f),
                     )
                     OutlinedTextField(
@@ -221,6 +222,77 @@ fun SessionEditScreen(
                 }
             }
 
+            // Only for games that can actually end early. On everything else the choice
+            // would be noise, which is why it is a per-game flag rather than always on.
+            if (state.suddenDeathPossible &&
+                state.form.scoringMode != ScoringMode.COOPERATIVE
+            ) {
+                item { SectionHeader(stringResource(R.string.session_edit_ended_by)) }
+                item {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = !state.form.isSuddenDeath,
+                            onClick = { viewModel.setEndCondition(null) },
+                            label = { Text(stringResource(R.string.session_edit_ended_scoring)) },
+                        )
+                        FilterChip(
+                            selected = state.form.isSuddenDeath,
+                            onClick = {
+                                viewModel.setEndCondition(SessionEndCondition.SUDDEN_DEATH)
+                            },
+                            label = {
+                                Text(stringResource(R.string.session_edit_ended_sudden_death))
+                            },
+                        )
+                    }
+                }
+
+                if (state.form.isSuddenDeath) {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.session_edit_sudden_death_help),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            OutlinedTextField(
+                                value = state.form.endReason.orEmpty(),
+                                onValueChange = { value ->
+                                    viewModel.update { it.copy(endReason = value) }
+                                },
+                                label = {
+                                    Text(stringResource(R.string.session_edit_end_reason))
+                                },
+                                placeholder = {
+                                    Text(stringResource(R.string.session_edit_end_reason_hint))
+                                },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            if (state.previousEndReasons.isNotEmpty()) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.session_edit_end_reason_previous,
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    state.previousEndReasons.forEach { reason ->
+                                        FilterChip(
+                                            selected = state.form.endReason == reason,
+                                            onClick = {
+                                                viewModel.update { it.copy(endReason = reason) }
+                                            },
+                                            label = { Text(reason) },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             item { SectionHeader(stringResource(R.string.session_edit_players)) }
             item { PlayerPicker(state, viewModel) }
 
@@ -230,6 +302,11 @@ fun SessionEditScreen(
                     participant = participant,
                     index = index,
                     mode = state.form.scoringMode,
+                    // A sudden-death play is ranked by the order the user puts the
+                    // players in, but any partial score they enter is still kept.
+                    showOrdering = state.form.scoringMode == ScoringMode.MANUAL_PLACEMENT ||
+                        state.form.isSuddenDeath,
+                    showScore = state.form.scoringMode == ScoringMode.RANKED_SCORES,
                     onScore = { score ->
                         viewModel.updateParticipant(participant.playerId) { it.copy(score = score) }
                     },
@@ -412,6 +489,8 @@ private fun ParticipantCard(
     participant: ParticipantForm,
     index: Int,
     mode: ScoringMode,
+    showOrdering: Boolean,
+    showScore: Boolean,
     onScore: (Double?) -> Unit,
     onFaction: (String) -> Unit,
     onToggleWinner: () -> Unit,
@@ -435,7 +514,7 @@ private fun ParticipantCard(
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.weight(1f),
                 )
-                if (mode == ScoringMode.MANUAL_PLACEMENT) {
+                if (showOrdering) {
                     IconButton(onClick = { onMove(-1) }) {
                         Icon(
                             Icons.Filled.ArrowUpward,
@@ -471,7 +550,7 @@ private fun ParticipantCard(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (mode == ScoringMode.RANKED_SCORES) {
+                if (showScore) {
                     OutlinedTextField(
                         value = participant.score?.let {
                             if (it % 1.0 == 0.0) it.toInt().toString() else it.toString()

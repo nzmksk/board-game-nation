@@ -47,7 +47,6 @@ data class GameEntity(
     @ColumnInfo(name = "max_playtime_minutes") val maxPlaytimeMinutes: Int? = null,
     @ColumnInfo(name = "weight") val weight: Double? = null,
     @ColumnInfo(name = "bgg_rating") val bggRating: Double? = null,
-    @ColumnInfo(name = "designers") val designers: String? = null,
     @ColumnInfo(name = "publisher") val publisher: String? = null,
 
     /** Local file path in app-private storage. Never a remote URL. */
@@ -77,6 +76,14 @@ data class GameEntity(
 
     /** For RANKED_SCORES: false means lowest score wins (golf scoring). */
     @ColumnInfo(name = "high_score_wins", defaultValue = "1") val highScoreWins: Boolean = true,
+
+    /**
+     * True for games that can end the instant a condition is met, before any end-of-game
+     * scoring happens. Only gates whether the session form offers to record it; the
+     * ending itself belongs to the play, not to the game.
+     */
+    @ColumnInfo(name = "sudden_death_possible", defaultValue = "0")
+    val suddenDeathPossible: Boolean = false,
 
     @ColumnInfo(name = "notes") val notes: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long,

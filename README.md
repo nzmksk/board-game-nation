@@ -126,6 +126,22 @@ untrustworthy.
 
 An unreadable or future-dated rule degrades to "never unlocks" instead of crashing.
 
+### A game that ends early still has a winner
+
+Some games stop the moment a condition is met. 7 Wonders Duel is the obvious one: military
+or scientific supremacy ends it before anyone counts a victory point, so there are no final
+scores to rank by, but the play unambiguously finished and unambiguously has a winner.
+
+That is a property of the play, not of the game, so it is a nullable `end_condition` on the
+session rather than another `ScoringMode`. The game keeps whatever scoring it normally uses
+and a flag saying it *can* end this way, which is all that decides whether the logging form
+offers the choice. A sudden-death play is ranked by the order the user puts the players in;
+any partial score they enter is kept but does not decide it, and those scores are excluded
+from average-score statistics because a count taken mid-game is not comparable to a final one.
+
+Deliberately not `is_incomplete`. That flag means abandoned, and it drops a session out of
+the win-rate and duration statistics — using it here would erase a legitimate win.
+
 ### Both kinds of backup, because they are for different things
 
 CSV is for portability and spreadsheet interop: RFC 4180, UTF-8 with a BOM so Excel does
@@ -170,7 +186,7 @@ than a spinner that says nothing.
 ./gradlew :app:testDebugUnitTest
 ```
 
-157 tests, run on the JVM. The database tests use a real Room in-memory database through
+183 tests, run on the JVM. The database tests use a real Room in-memory database through
 Robolectric rather than mocks, so a query that compiles but returns the wrong rows still
 fails.
 
@@ -186,6 +202,10 @@ fails.
 | `CsvTest` | RFC 4180 quoting, embedded newlines, locale-independent numbers |
 | `GameQueryBuilderTest` | That values are bound and never interpolated |
 | `MigrationChainTest` | That a version bump without a migration fails the build |
+| `MigrationTest` | The chain run against a real v1 database: designers backfilled, ids not rewound |
+| `SuddenDeathTest` | Placement without scores, and that logging a play never rewrites the game |
+| `QuickLogViewModelTest` | That a quick log leaves the game's scoring mode alone |
+| `LegacyCsvImportTest` | An archive from before designers were tags still imports intact |
 
 ### Sample data
 
@@ -204,6 +224,7 @@ reproducible.
 | Works in airplane mode except BGG, which fails retryably | Met — errors carry a `retryable` flag and Retry is only offered when it could help |
 | A killed app loses at most one turn, never a saved session | Met — draft session plus per-transition and 10s checkpoints |
 | Export → wipe → import reproduces the database exactly | Met and tested (`CsvRoundTripTest`) |
+| A backup taken before an update still restores after it | Met and tested (`MigrationTest` for `.db`, `LegacyCsvImportTest` for CSV) |
 | No `SELECT *` over a full table on the main thread; all queries expose `Flow` | Met — `allowMainThreadQueries` is never enabled outside tests |
 | Migrations written and tested; `fallbackToDestructiveMigration` never called | Met and guarded by `MigrationChainTest` |
 | No hardcoded strings in composables | Met — every user-facing string is in `strings.xml` |

@@ -30,6 +30,8 @@
     <string name="action_continue">Continue</string>
     <string name="action_increase">Increase</string>
     <string name="action_decrease">Decrease</string>
+    <string name="action_ok">OK</string>
+    <string name="action_pick_date">Pick a date</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">Board Game Nation</string>
@@ -161,11 +163,13 @@
     <string name="game_edit_base_game">Expansion of</string>
     <string name="game_edit_base_game_none">No base game</string>
     <string name="game_edit_notes">Notes</string>
-    <string name="game_edit_tags">Mechanics and categories</string>
+    <string name="game_edit_tags">Mechanics, categories and designers</string>
     <string name="game_edit_tag_hint">Type a tag and press add</string>
     <string name="game_edit_search_bgg">Search BoardGameGeek</string>
     <string name="game_edit_scoring_mode">Scoring</string>
     <string name="game_edit_high_score_wins">Highest score wins</string>
+    <string name="game_edit_sudden_death">Can end in sudden death</string>
+    <string name="game_edit_sudden_death_help">For games that can end the moment a condition is met, before any final scoring.</string>
     <string name="game_edit_low_score_wins">Lowest score wins</string>
 
     <!-- Scoring modes -->
@@ -216,6 +220,13 @@
     <string name="session_edit_photo">Attach a photo</string>
     <string name="session_edit_photo_attached">Photo attached</string>
     <string name="session_edit_remove_photo">Remove photo</string>
+    <string name="session_edit_ended_by">Ended by</string>
+    <string name="session_edit_ended_scoring">Final scoring</string>
+    <string name="session_edit_ended_sudden_death">Sudden death</string>
+    <string name="session_edit_end_reason">Reason</string>
+    <string name="session_edit_end_reason_hint">What ended it, e.g. Military supremacy</string>
+    <string name="session_edit_end_reason_previous">Previously used</string>
+    <string name="session_edit_sudden_death_help">The game ended early, so scores are optional. The order below is the result.</string>
     <string name="session_edit_needs_game">Choose a game first</string>
     <string name="session_edit_needs_players">Add at least one player</string>
     <string name="session_edit_delete_title">Delete this play?</string>

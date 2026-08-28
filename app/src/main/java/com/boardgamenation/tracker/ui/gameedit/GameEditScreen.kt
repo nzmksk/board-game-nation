@@ -50,7 +50,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.ui.collection.labelRes
+import com.boardgamenation.tracker.ui.components.IsoDateField
 import com.boardgamenation.tracker.ui.components.SectionHeader
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -184,15 +186,6 @@ fun GameEditScreen(
 
             item {
                 OutlinedTextField(
-                    value = state.designers,
-                    onValueChange = { v -> viewModel.update { it.copy(designers = v) } },
-                    label = { Text(stringResource(R.string.game_edit_designers)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-
-            item {
-                OutlinedTextField(
                     value = state.publisher,
                     onValueChange = { v -> viewModel.update { it.copy(publisher = v) } },
                     label = { Text(stringResource(R.string.game_edit_publisher)) },
@@ -205,11 +198,10 @@ fun GameEditScreen(
 
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
+                    IsoDateField(
                         value = state.dateAdded,
-                        onValueChange = { v -> viewModel.update { it.copy(dateAdded = v) } },
-                        label = { Text(stringResource(R.string.game_edit_date_added)) },
-                        singleLine = true,
+                        label = stringResource(R.string.game_edit_date_added),
+                        onChange = { v -> viewModel.update { it.copy(dateAdded = v) } },
                         modifier = Modifier.weight(1.4f),
                     )
                     NumberField(
@@ -301,6 +293,27 @@ fun GameEditScreen(
                 }
             }
 
+            if (state.scoringMode == ScoringMode.RANKED_SCORES ||
+                state.scoringMode == ScoringMode.MANUAL_PLACEMENT
+            ) {
+                item {
+                    Column {
+                        ToggleRow(
+                            label = stringResource(R.string.game_edit_sudden_death),
+                            checked = state.suddenDeathPossible,
+                            onChange = { v ->
+                                viewModel.update { it.copy(suddenDeathPossible = v) }
+                            },
+                        )
+                        Text(
+                            text = stringResource(R.string.game_edit_sudden_death_help),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
             item {
                 ToggleRow(
                     label = stringResource(R.string.game_edit_is_expansion),
@@ -324,8 +337,8 @@ fun GameEditScreen(
                 TagEditor(
                     label = stringResource(R.string.collection_filter_mechanic),
                     tags = state.mechanics,
-                    onAdd = viewModel::addMechanic,
-                    onRemove = viewModel::removeMechanic,
+                    onAdd = { viewModel.addTag(TagKind.MECHANIC, it) },
+                    onRemove = { viewModel.removeTag(TagKind.MECHANIC, it) },
                 )
             }
 
@@ -333,8 +346,17 @@ fun GameEditScreen(
                 TagEditor(
                     label = stringResource(R.string.collection_filter_category),
                     tags = state.categories,
-                    onAdd = viewModel::addCategory,
-                    onRemove = viewModel::removeCategory,
+                    onAdd = { viewModel.addTag(TagKind.CATEGORY, it) },
+                    onRemove = { viewModel.removeTag(TagKind.CATEGORY, it) },
+                )
+            }
+
+            item {
+                TagEditor(
+                    label = stringResource(R.string.game_edit_designers),
+                    tags = state.designers,
+                    onAdd = { viewModel.addTag(TagKind.DESIGNER, it) },
+                    onRemove = { viewModel.removeTag(TagKind.DESIGNER, it) },
                 )
             }
 

@@ -15,11 +15,11 @@ enum class GameStatus {
 }
 
 /**
- * Mechanics and categories are the same table, split by kind, so BGG's open-ended
- * mechanic lists never force a schema migration.
+ * Mechanics, categories and designers are the same table, split by kind, so BGG's
+ * open-ended lists never force a schema migration.
  */
 enum class TagKind {
-    MECHANIC, CATEGORY, CUSTOM;
+    MECHANIC, CATEGORY, DESIGNER, CUSTOM;
 
     companion object {
         fun fromStorage(value: String?): TagKind =
@@ -33,6 +33,25 @@ enum class CoopOutcome {
 
     companion object {
         fun fromStorage(value: String?): CoopOutcome? =
+            value?.let { v -> entries.firstOrNull { it.name == v } }
+    }
+}
+
+/**
+ * How a play ended, when that differs from playing through to final scoring.
+ *
+ * Some games can end the moment a condition is met -- 7 Wonders Duel's military and
+ * scientific supremacy both stop the game before anyone counts a victory point. The
+ * ending is a property of one play rather than of the game, which is why this sits on
+ * the session and not beside [ScoringMode].
+ *
+ * A null column means the ordinary case: the table played to the end and scored it.
+ */
+enum class SessionEndCondition {
+    SUDDEN_DEATH;
+
+    companion object {
+        fun fromStorage(value: String?): SessionEndCondition? =
             value?.let { v -> entries.firstOrNull { it.name == v } }
     }
 }

@@ -52,6 +52,10 @@ class SessionRepository @Inject constructor(
 
     fun observeLatestDraft(): Flow<SessionEntity?> = sessionDao.observeLatestDraft()
 
+    /** Sudden-death reasons this game has already been given, newest first. */
+    fun observeEndReasonsFor(gameId: Long): Flow<List<String>> =
+        sessionDao.observeEndReasonsFor(gameId)
+
     suspend fun getDrafts(): List<SessionEntity> = sessionDao.getDrafts()
 
     suspend fun getSession(id: Long): SessionEntity? = sessionDao.getSession(id)
@@ -101,6 +105,8 @@ class SessionRepository @Inject constructor(
             },
             highScoreWins = game?.highScoreWins ?: true,
             coopOutcome = session.coopOutcome,
+            endCondition = session.endCondition,
+            endReason = session.endReason,
             isIncomplete = session.isIncomplete,
             isTeachingGame = session.isTeachingGame,
             notes = session.notes,
@@ -134,6 +140,8 @@ class SessionRepository @Inject constructor(
             location = form.location?.takeIf { it.isNotBlank() },
             isCooperative = form.isCooperative,
             coopOutcome = if (form.isCooperative) form.coopOutcome ?: CoopOutcome.NA else null,
+            endCondition = form.endCondition,
+            endReason = form.endReason?.takeIf { it.isNotBlank() && form.isSuddenDeath },
             isIncomplete = form.isIncomplete,
             isTeachingGame = form.isTeachingGame,
             isDraft = false,
@@ -177,12 +185,31 @@ class SessionRepository @Inject constructor(
 
     /** Applies the scoring mode's ranking rules and flags first-timers. */
     private suspend fun normalise(form: SessionForm): List<ParticipantForm> {
-        val ranked = when (form.scoringMode) {
-            ScoringMode.RANKED_SCORES ->
-                PlacementCalculator.derive(form.participants, form.highScoreWins)
-            ScoringMode.MANUAL_PLACEMENT -> PlacementCalculator.fromOrder(form.participants)
-            ScoringMode.COOPERATIVE -> PlacementCalculator.applyCoop(form.participants, form.coopOutcome)
-            ScoringMode.NONE -> form.participants.map { it.copy(placement = null) }
+        val ranked = when {
+            // The caller already knows who won and there is nothing to infer. Quick log
+            // works this way; it must not be expressed by changing the scoring mode,
+            // because the mode is written back onto the game further down.
+            !form.derivePlacements -> form.participants
+
+            // A sudden-death play ended the instant a condition was met, so there are no
+            // final scores to rank by -- 7 Wonders Duel's military and scientific
+            // supremacy both stop the game before anyone counts a victory point. The
+            // order the user put the players in is the result. Any scores they did enter
+            // are kept: a partial score is still worth remembering, it is just not what
+            // decides the winner.
+            form.isSuddenDeath && !form.isCooperative ->
+                PlacementCalculator.fromOrder(form.participants)
+
+            // Kept exhaustive over the enum on purpose: a new ScoringMode should fail
+            // to compile here rather than quietly fall through to a default.
+            else -> when (form.scoringMode) {
+                ScoringMode.RANKED_SCORES ->
+                    PlacementCalculator.derive(form.participants, form.highScoreWins)
+                ScoringMode.MANUAL_PLACEMENT -> PlacementCalculator.fromOrder(form.participants)
+                ScoringMode.COOPERATIVE ->
+                    PlacementCalculator.applyCoop(form.participants, form.coopOutcome)
+                ScoringMode.NONE -> form.participants.map { it.copy(placement = null) }
+            }
         }
         return ranked.map { participant ->
             if (participant.isNewPlayer) {
