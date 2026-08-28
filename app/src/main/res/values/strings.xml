@@ -280,6 +280,8 @@
     <string name="timer_notification_title">%1$s is up</string>
     <string name="timer_notification_body">%1$s %2$s</string>
     <string name="timer_notification_idle">Timer</string>
+    <string name="timer_notification_game">Game in progress</string>
+    <string name="timer_clock_elapsed">Elapsed</string>
     <string name="timer_channel_name">Turn timer</string>
     <string name="timer_channel_description">Keeps the turn timer running accurately while the screen is off.</string>
     <string name="timer_stop_title">End the timer?</string>
