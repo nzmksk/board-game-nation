@@ -44,6 +44,9 @@ data class SessionEditUiState(
     /** Reasons already recorded for this game, offered as chips instead of retyping. */
     val previousEndReasons: List<String> = emptyList(),
 
+    /** Configurations already recorded for this game, offered the same way. */
+    val previousModes: List<String> = emptyList(),
+
     val isNew: Boolean = true,
     val isSaving: Boolean = false,
     val validationError: Int? = null,
@@ -101,6 +104,10 @@ class SessionEditViewModel @Inject constructor(
                     .takeIf { it != 0L }
                     ?.let { sessionRepository.observeEndReasonsFor(it).first() }
                     .orEmpty(),
+                previousModes = form.gameId
+                    .takeIf { it != 0L }
+                    ?.let { sessionRepository.observeModesFor(it).first() }
+                    .orEmpty(),
                 isNew = route.sessionId == 0L,
             )
         }
@@ -126,6 +133,7 @@ class SessionEditViewModel @Inject constructor(
                 availableExpansions = gameRepository.observeExpansions(gameId).first(),
                 suddenDeathPossible = gameRepository.getGame(gameId)?.suddenDeathPossible == true,
                 previousEndReasons = sessionRepository.observeEndReasonsFor(gameId).first(),
+                previousModes = sessionRepository.observeModesFor(gameId).first(),
                 validationError = null,
             )
         }

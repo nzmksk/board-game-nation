@@ -220,6 +220,38 @@ fun SessionEditScreen(
                         )
                     }
                 }
+
+                // Co-ops are played at a difficulty the game itself defines -- modules,
+                // a level number, a scenario -- and a win means little without it.
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = state.form.mode.orEmpty(),
+                            onValueChange = { value ->
+                                viewModel.update { it.copy(mode = value) }
+                            },
+                            label = { Text(stringResource(R.string.session_edit_mode)) },
+                            placeholder = { Text(stringResource(R.string.session_edit_mode_hint)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        if (state.previousModes.isNotEmpty()) {
+                            Text(
+                                text = stringResource(R.string.session_edit_mode_previous),
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                state.previousModes.forEach { mode ->
+                                    FilterChip(
+                                        selected = state.form.mode == mode,
+                                        onClick = { viewModel.update { it.copy(mode = mode) } },
+                                        label = { Text(mode) },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Only for games that can actually end early. On everything else the choice

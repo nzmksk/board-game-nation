@@ -215,6 +215,9 @@
     <string name="session_edit_coop_result">Result</string>
     <string name="session_edit_coop_win">We won</string>
     <string name="session_edit_coop_loss">We lost</string>
+    <string name="session_edit_mode">Mode or configuration</string>
+    <string name="session_edit_mode_hint">e.g. 5 epidemics + mutation, Level 12, Tokyo</string>
+    <string name="session_edit_mode_previous">Previously played</string>
     <string name="session_edit_notes">Notes</string>
     <string name="session_edit_expansions">Expansions used</string>
     <string name="session_edit_photo">Attach a photo</string>
