@@ -64,6 +64,7 @@ import com.boardgamenation.tracker.domain.model.ActiveClock
 import com.boardgamenation.tracker.domain.timer.SeatDisplay
 import com.boardgamenation.tracker.domain.timer.TimerProjection
 import com.boardgamenation.tracker.timer.TimerEvent
+import com.boardgamenation.tracker.timer.TimerSummary
 import com.boardgamenation.tracker.ui.theme.LocalChartColors
 import com.boardgamenation.tracker.ui.theme.TimerDisplayStyle
 import com.boardgamenation.tracker.ui.theme.TimerSecondaryStyle
@@ -98,6 +99,38 @@ fun TimerRunningScreen(
     }
 
     val landscape = LocalConfiguration.current.screenWidthDp > LocalConfiguration.current.screenHeightDp
+
+    if (current.state.isCountUp) {
+        CountUpBoard(
+            projection = current,
+            onPause = viewModel::pause,
+            onResume = viewModel::resume,
+            onStop = {
+                viewModel.stop()
+                stopPromptOpen = true
+            },
+        )
+        StopPrompt(
+            open = stopPromptOpen,
+            summary = summary,
+            onDismiss = { stopPromptOpen = false },
+            onSave = { stopped ->
+                stopPromptOpen = false
+                onSaveSession(stopped.gameId, stopped.sessionId ?: 0L)
+                viewModel.releaseAfterSave()
+            },
+            onExit = {
+                stopPromptOpen = false
+                onExit()
+            },
+            onDiscard = {
+                stopPromptOpen = false
+                viewModel.discard()
+                onExit()
+            },
+        )
+        return
+    }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         ControlBar(
@@ -151,41 +184,135 @@ fun TimerRunningScreen(
         }
     }
 
-    if (stopPromptOpen) {
-        val played = summary?.durationMinutes ?: 0
-        AlertDialog(
-            onDismissRequest = { stopPromptOpen = false },
-            title = { Text(stringResource(R.string.timer_stop_title)) },
-            text = { Text(stringResource(R.string.timer_stop_body, DurationFormat.minutes(played))) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        stopPromptOpen = false
-                        val stopped = summary
-                        if (stopped != null) {
-                            onSaveSession(stopped.gameId, stopped.sessionId ?: 0L)
-                            viewModel.releaseAfterSave()
-                        } else {
-                            onExit()
-                        }
-                    },
-                ) { Text(stringResource(R.string.timer_stop_save)) }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        stopPromptOpen = false
-                        viewModel.discard()
-                        onExit()
-                    },
-                ) {
-                    Text(
-                        text = stringResource(R.string.timer_stop_discard),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            },
+    StopPrompt(
+        open = stopPromptOpen,
+        summary = summary,
+        onDismiss = { stopPromptOpen = false },
+        onSave = { stopped ->
+            stopPromptOpen = false
+            onSaveSession(stopped.gameId, stopped.sessionId ?: 0L)
+            viewModel.releaseAfterSave()
+        },
+        onExit = {
+            stopPromptOpen = false
+            onExit()
+        },
+        onDiscard = {
+            stopPromptOpen = false
+            viewModel.discard()
+            onExit()
+        },
+    )
+}
+
+/** Save or throw away the play that just finished. Shared by both clocks. */
+@Composable
+private fun StopPrompt(
+    open: Boolean,
+    summary: TimerSummary?,
+    onDismiss: () -> Unit,
+    onSave: (TimerSummary) -> Unit,
+    onExit: () -> Unit,
+    onDiscard: () -> Unit,
+) {
+    if (!open) return
+    val played = summary?.durationMinutes ?: 0
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.timer_stop_title)) },
+        text = { Text(stringResource(R.string.timer_stop_body, DurationFormat.minutes(played))) },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val stopped = summary
+                    if (stopped != null) onSave(stopped) else onExit()
+                },
+            ) { Text(stringResource(R.string.timer_stop_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDiscard) {
+                Text(
+                    text = stringResource(R.string.timer_stop_discard),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+    )
+}
+
+/**
+ * The whole-game clock.
+ *
+ * One number, counting up, big enough to read from across the table. There is nothing to
+ * tap through: the game is either running or paused, and it ends when somebody says so.
+ */
+@Composable
+private fun CountUpBoard(
+    projection: TimerProjection,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onStop: () -> Unit,
+) {
+    val running = projection.state.isRunning
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.timer_count_up_elapsed),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        Text(
+            text = DurationFormat.longClock(projection.elapsedPlayMs),
+            style = TimerDisplayStyle,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+        )
+        if (!running) {
+            Text(
+                text = stringResource(R.string.timer_paused),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
+        }
+
+        Spacer(Modifier.height(32.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            IconButton(onClick = if (running) onPause else onResume) {
+                Icon(
+                    imageVector = if (running) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = stringResource(
+                        if (running) R.string.timer_action_pause else R.string.timer_action_resume,
+                    ),
+                )
+            }
+            IconButton(onClick = onStop) {
+                Icon(
+                    Icons.Filled.Stop,
+                    contentDescription = stringResource(R.string.timer_action_stop),
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+
+        if (projection.seats.isNotEmpty()) {
+            Spacer(Modifier.height(32.dp))
+            Text(
+                text = stringResource(R.string.timer_count_up_at_table),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = projection.seats.joinToString(", ") { it.name },
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 

@@ -248,6 +248,13 @@
     <string name="timer_setup_game">Game</string>
     <string name="timer_setup_players">Turn order</string>
     <string name="timer_seat_position">%1$d.</string>
+    <string name="timer_setup_mode">What to time</string>
+    <string name="timer_mode_turn_based">Turn clocks</string>
+    <string name="timer_mode_count_up">Whole game</string>
+    <string name="timer_mode_count_up_help">One clock counting up, for co-ops, fillers and party games. No turn or bank limits.</string>
+    <string name="timer_setup_needs_player">Pick at least one player</string>
+    <string name="timer_count_up_elapsed">Elapsed</string>
+    <string name="timer_count_up_at_table">At the table</string>
     <string name="timer_setup_preset">Preset</string>
     <string name="timer_setup_turn_seconds">Turn seconds</string>
     <string name="timer_setup_bank_seconds">Bank seconds</string>
