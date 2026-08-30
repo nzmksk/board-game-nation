@@ -246,6 +246,9 @@ fun SessionRow(
                             stringResource(R.string.session_coop_win)
                         session.isCooperative ->
                             stringResource(R.string.session_coop_loss)
+                        // A side won, so the side is the result; who was on it is detail.
+                        !session.winningTeam.isNullOrBlank() ->
+                            stringResource(R.string.session_team_won, session.winningTeam)
                         !session.winnerNames.isNullOrBlank() ->
                             stringResource(R.string.session_winner, session.winnerNames)
                         else -> null

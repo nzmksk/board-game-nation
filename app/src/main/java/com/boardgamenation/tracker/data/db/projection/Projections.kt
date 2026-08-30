@@ -70,6 +70,9 @@ data class SessionListItem(
     /** Non-null only for a play that ended early; shown as a badge on the row. */
     @ColumnInfo(name = "end_reason") val endReason: String?,
 
+    /** The side that won, when the play was a team game. */
+    @ColumnInfo(name = "winning_team") val winningTeam: String?,
+
     @ColumnInfo(name = "winner_names") val winnerNames: String?,
 
     /** Whoever holds the first seat, or null on a play nobody recorded an order for. */

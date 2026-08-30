@@ -30,6 +30,12 @@ interface SessionDao {
             s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won, s.mode,
             s.is_incomplete, s.is_teaching_game, s.end_reason,
             (
+                SELECT sp.team FROM session_players sp
+                WHERE sp.session_id = s.id AND sp.is_winner = 1
+                  AND sp.team IS NOT NULL AND trim(sp.team) <> ''
+                LIMIT 1
+            ) AS winning_team,
+            (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
                 WHERE sp.session_id = s.id AND sp.is_winner = 1
@@ -65,6 +71,12 @@ interface SessionDao {
             s.played_on, s.duration_minutes, s.player_count, s.location,
             s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won, s.mode,
             s.is_incomplete, s.is_teaching_game, s.end_reason,
+            (
+                SELECT sp.team FROM session_players sp
+                WHERE sp.session_id = s.id AND sp.is_winner = 1
+                  AND sp.team IS NOT NULL AND trim(sp.team) <> ''
+                LIMIT 1
+            ) AS winning_team,
             (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
