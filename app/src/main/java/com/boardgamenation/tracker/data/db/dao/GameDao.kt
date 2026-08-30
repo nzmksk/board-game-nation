@@ -13,6 +13,7 @@ import com.boardgamenation.tracker.data.db.entity.GameEntity
 import com.boardgamenation.tracker.data.db.entity.GameRatingEntity
 import com.boardgamenation.tracker.data.db.entity.GameTagCrossRef
 import com.boardgamenation.tracker.data.db.entity.SessionEntity
+import com.boardgamenation.tracker.data.db.projection.FactionRecord
 import com.boardgamenation.tracker.data.db.projection.GameAggregates
 import com.boardgamenation.tracker.data.db.projection.GameListItem
 import com.boardgamenation.tracker.domain.model.GameStatus
@@ -100,6 +101,37 @@ interface GameDao {
         """,
     )
     fun observeAggregates(gameId: Long): Flow<GameAggregates>
+
+    /**
+     * Win rate per faction for one game, over every player who has played it.
+     *
+     * Abandoned plays are excluded, the same way they are excluded from the duration
+     * averages: a game nobody finished has no winner, and counting it would drag every
+     * faction down as though each had lost.
+     *
+     * Co-operative plays are counted. A game where the table shares one result still
+     * asks a real balance question -- which spirit, which character, which role tends
+     * to be at the table when the table wins.
+     *
+     * Grouped case-insensitively so "Alexandria" and "alexandria" are one faction; the
+     * name shown is whichever spelling SQLite picks out of the group, which is stable
+     * for a given set of rows.
+     */
+    @Query(
+        """
+        SELECT
+            sp.faction AS faction,
+            COUNT(*) AS plays,
+            COALESCE(SUM(sp.is_winner), 0) AS wins
+        FROM session_players sp
+        JOIN sessions s ON s.id = sp.session_id
+        WHERE s.game_id = :gameId AND s.is_draft = 0 AND s.is_incomplete = 0
+          AND sp.faction IS NOT NULL AND trim(sp.faction) <> ''
+        GROUP BY sp.faction COLLATE NOCASE
+        ORDER BY (wins * 1.0 / plays) DESC, plays DESC, faction COLLATE NOCASE
+        """,
+    )
+    fun observeFactionRecords(gameId: Long): Flow<List<FactionRecord>>
 
     @Query(
         """
