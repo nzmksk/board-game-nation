@@ -272,6 +272,35 @@ class SessionRepository @Inject constructor(
         )
     }
 
+    /**
+     * Hands what the clock measured to the draft it created, so that stopping the timer
+     * and opening the session form is a handover rather than a fresh start.
+     *
+     * The row stays a draft: the clock knows the duration and the players, but nobody
+     * has said who won yet, and nothing is a logged play until the form is saved.
+     */
+    suspend fun recordTimerResult(
+        sessionId: Long,
+        durationMinutes: Int,
+        startedAt: Long?,
+        endedAt: Long?,
+        pausedMs: Long,
+        participants: List<ParticipantForm>,
+    ) {
+        val draft = sessionDao.getSession(sessionId) ?: return
+        sessionDao.saveDraft(
+            draft.copy(
+                durationMinutes = durationMinutes,
+                startedAt = startedAt ?: draft.startedAt,
+                endedAt = endedAt,
+                pausedMs = pausedMs,
+                playerCount = participants.size,
+                updatedAt = clock.nowMillis(),
+            ),
+            participants.map { it.toDraftRow(sessionId) },
+        )
+    }
+
     suspend fun updateDraft(session: SessionEntity) {
         sessionDao.updateSession(session.copy(updatedAt = clock.nowMillis()))
     }

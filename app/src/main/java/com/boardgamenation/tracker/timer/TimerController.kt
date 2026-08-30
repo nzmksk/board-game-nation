@@ -198,7 +198,7 @@ class TimerController @Inject constructor(
         _events.tryEmit(TimerEvent.Stopped)
 
         val playedMs = TimerEngine.elapsedPlayMs(stopped, elapsed.elapsedMillis())
-        TimerSummary(
+        val summary = TimerSummary(
             gameId = stopped.gameId,
             sessionId = stopped.sessionId,
             durationMinutes = ((playedMs / 60_000L).toInt()).coerceAtLeast(1),
@@ -217,6 +217,20 @@ class TimerController @Inject constructor(
                 )
             },
         )
+
+        // The form is opened from the draft, not from this object, so the measurement
+        // has to reach the row before the summary reaches the screen.
+        summary.sessionId?.let { sessionId ->
+            sessionRepository.recordTimerResult(
+                sessionId = sessionId,
+                durationMinutes = summary.durationMinutes,
+                startedAt = summary.startedAt,
+                endedAt = summary.endedAt,
+                pausedMs = summary.pausedMs,
+                participants = summary.participants,
+            )
+        }
+        summary
     }
 
     /** Clears the clock and the draft it created. Used by "discard" after stopping. */
