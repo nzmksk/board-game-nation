@@ -60,6 +60,13 @@ data class SessionPlayerEntity(
      */
     @ColumnInfo(name = "turn_order") val turnOrder: Int? = null,
 
+    /**
+     * The side this player was on, for a game where a side wins together. Separate
+     * from [faction] on purpose: a Secret Hitler player is on the fascist team while
+     * their role is Hitler, and conflating the two loses one or the other.
+     */
+    @ColumnInfo(name = "team") val team: String? = null,
+
     /** First time this player played this game. */
     @ColumnInfo(name = "is_new_player", defaultValue = "0") val isNewPlayer: Boolean = false,
 

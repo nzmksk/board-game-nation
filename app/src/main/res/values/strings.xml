@@ -178,6 +178,7 @@
     <string name="scoring_ranked">Scores</string>
     <string name="scoring_manual">Placement</string>
     <string name="scoring_coop">Co-operative</string>
+    <string name="scoring_teams">Teams</string>
     <string name="scoring_none">No scoring</string>
 
     <!-- Sessions -->

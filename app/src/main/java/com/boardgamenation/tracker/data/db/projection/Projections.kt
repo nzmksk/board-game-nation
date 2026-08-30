@@ -87,6 +87,10 @@ data class SessionParticipant(
     @ColumnInfo(name = "is_winner") val isWinner: Boolean,
     @ColumnInfo(name = "faction") val faction: String?,
     @ColumnInfo(name = "turn_order") val turnOrder: Int?,
+
+    /** The side this player was on, for a game where a side wins together. */
+    @ColumnInfo(name = "team") val team: String?,
+
     @ColumnInfo(name = "is_new_player") val isNewPlayer: Boolean,
     @ColumnInfo(name = "turn_time_ms") val turnTimeMs: Long?,
     @ColumnInfo(name = "bank_time_remaining_ms") val bankTimeRemainingMs: Long?,

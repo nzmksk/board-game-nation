@@ -70,6 +70,13 @@ enum class ScoringMode {
     /** One win/loss for the whole table. */
     COOPERATIVE,
 
+    /**
+     * Players are split into sides and a side wins together. Hidden-role games work
+     * this way: in Secret Hitler the liberals win or the fascists do, and which side
+     * somebody was on is not the same as the role they were dealt.
+     */
+    TEAM_BASED,
+
     /** Neither scores nor order matter; just record who played. */
     NONE;
 

@@ -60,6 +60,9 @@ class SessionRepository @Inject constructor(
     /** Configurations this game has already been played at, newest first. */
     fun observeModesFor(gameId: Long): Flow<List<String>> = sessionDao.observeModesFor(gameId)
 
+    /** Sides this game has already been played with, newest first. */
+    fun observeTeamsFor(gameId: Long): Flow<List<String>> = sessionDao.observeTeamsFor(gameId)
+
     suspend fun getDrafts(): List<SessionEntity> = sessionDao.getDrafts()
 
     suspend fun getSession(id: Long): SessionEntity? = sessionDao.getSession(id)
@@ -105,11 +108,16 @@ class SessionRepository @Inject constructor(
             location = session.location,
             scoringMode = when {
                 session.isCooperative -> ScoringMode.COOPERATIVE
+                // A play with sides on it was a team game whatever the game says now.
+                participants.any { !it.team.isNullOrBlank() } -> ScoringMode.TEAM_BASED
                 else -> game?.scoringMode ?: ScoringMode.RANKED_SCORES
             },
             highScoreWins = game?.highScoreWins ?: true,
             coopOutcome = session.coopOutcome,
             mode = session.mode,
+
+            // The winning side is read back off the winners rather than stored twice.
+            winningTeam = participants.firstOrNull { it.isWinner }?.team,
             endCondition = session.endCondition,
             endReason = session.endReason,
             isIncomplete = session.isIncomplete,
@@ -167,6 +175,7 @@ class SessionRepository @Inject constructor(
                 isWinner = participant.isWinner,
                 faction = participant.faction?.takeIf { it.isNotBlank() },
                 turnOrder = participant.turnOrder,
+                team = participant.team?.takeIf { it.isNotBlank() },
                 isNewPlayer = participant.isNewPlayer,
                 turnTimeMs = participant.turnTimeMs,
                 bankTimeRemainingMs = participant.bankTimeRemainingMs,
@@ -215,6 +224,8 @@ class SessionRepository @Inject constructor(
                 ScoringMode.MANUAL_PLACEMENT -> PlacementCalculator.fromOrder(form.participants)
                 ScoringMode.COOPERATIVE ->
                     PlacementCalculator.applyCoop(form.participants, form.coopOutcome)
+                ScoringMode.TEAM_BASED ->
+                    PlacementCalculator.applyTeams(form.participants, form.winningTeam)
                 ScoringMode.NONE -> form.participants.map { it.copy(placement = null) }
             }
         }
@@ -285,6 +296,7 @@ private fun SessionParticipant.toParticipantForm() = ParticipantForm(
     isWinner = isWinner,
     faction = faction,
     turnOrder = turnOrder,
+    team = team,
     isNewPlayer = isNewPlayer,
     turnTimeMs = turnTimeMs,
     bankTimeRemainingMs = bankTimeRemainingMs,

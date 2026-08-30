@@ -493,5 +493,6 @@ internal fun ScoringMode.labelRes(): Int = when (this) {
     ScoringMode.RANKED_SCORES -> R.string.scoring_ranked
     ScoringMode.MANUAL_PLACEMENT -> R.string.scoring_manual
     ScoringMode.COOPERATIVE -> R.string.scoring_coop
+    ScoringMode.TEAM_BASED -> R.string.scoring_teams
     ScoringMode.NONE -> R.string.scoring_none
 }
