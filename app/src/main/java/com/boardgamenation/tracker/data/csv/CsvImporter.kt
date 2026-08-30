@@ -559,6 +559,7 @@ class CsvImporter @Inject constructor(
                     // Absent from any archive taken before the column existed, which
                     // reads back as null: nobody recorded an order for those plays.
                     turnOrder = row.int("turn_order"),
+                    team = row.string("team"),
                     isNewPlayer = row.boolean("is_new_player"),
                     turnTimeMs = row.long("turn_time_ms"),
                     bankTimeRemainingMs = row.long("bank_time_remaining_ms"),

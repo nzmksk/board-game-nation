@@ -180,5 +180,9 @@ class LegacyCsvImportTest {
         assertNull("no end_condition column in the archive", session.endCondition)
         assertNull(session.endReason)
         assertNull("no mode column in the archive", session.mode)
+        assertTrue(
+            "no team column in the archive",
+            db.sessionDao().getParticipants(1).all { it.team == null },
+        )
     }
 }
