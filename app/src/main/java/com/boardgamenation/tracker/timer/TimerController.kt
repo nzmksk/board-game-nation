@@ -120,7 +120,16 @@ class TimerController @Inject constructor(
     suspend fun start() = mutex.withLock {
         val current = _state.value ?: return@withLock
         val sessionId = current.sessionId
-            ?: sessionRepository.createDraft(current.gameId, current.seats.size)
+            ?: sessionRepository.createDraft(
+                gameId = current.gameId,
+                players = current.seats.map {
+                    ParticipantForm(
+                        playerId = it.playerId,
+                        playerName = it.name,
+                        colorHex = it.colorHex,
+                    )
+                },
+            )
         val started = TimerEngine
             .start(current.copy(sessionId = sessionId), elapsed.elapsedMillis(), clock.nowMillis())
         commitAndAnnounce(started)

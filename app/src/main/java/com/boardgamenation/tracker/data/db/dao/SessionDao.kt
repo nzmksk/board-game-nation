@@ -122,6 +122,14 @@ interface SessionDao {
     )
     suspend fun findByNaturalKey(gameId: Long, playedOn: String, playerCount: Int): SessionEntity?
 
+    /**
+     * The players on one session, ranked.
+     *
+     * Rows are written in the order the form holds them, so `sp.id` breaks ties by that
+     * order rather than by name. Unplaced rows are the case that matters: a draft handed
+     * over by the timer is ordered by nothing else, and its order is the turn order the
+     * user sat the table in.
+     */
     @Query(
         """
         SELECT
@@ -131,7 +139,7 @@ interface SessionDao {
         FROM session_players sp
         JOIN players p ON p.id = sp.player_id
         WHERE sp.session_id = :sessionId
-        ORDER BY sp.placement IS NULL, sp.placement, p.name COLLATE NOCASE
+        ORDER BY sp.placement IS NULL, sp.placement, sp.id
         """,
     )
     fun observeParticipants(sessionId: Long): Flow<List<SessionParticipant>>
@@ -145,7 +153,7 @@ interface SessionDao {
         FROM session_players sp
         JOIN players p ON p.id = sp.player_id
         WHERE sp.session_id = :sessionId
-        ORDER BY sp.placement IS NULL, sp.placement, p.name COLLATE NOCASE
+        ORDER BY sp.placement IS NULL, sp.placement, sp.id
         """,
     )
     suspend fun getParticipants(sessionId: Long): List<SessionParticipant>
@@ -273,6 +281,25 @@ interface SessionDao {
         insertParticipants(participants.map { it.copy(id = 0, sessionId = id) })
         clearExpansions(id)
         insertExpansions(expansionIds.map { SessionExpansionEntity(sessionId = id, gameId = it) })
+        return id
+    }
+
+    /**
+     * Writes a draft and the players it currently knows about as one unit.
+     *
+     * Separate from [saveComplete] because the expansions belong to the session form,
+     * not to the clock: the timer must not clear a choice it knows nothing about.
+     */
+    @Transaction
+    suspend fun saveDraft(session: SessionEntity, participants: List<SessionPlayerEntity>): Long {
+        val id = if (session.id == 0L) {
+            insertSession(session)
+        } else {
+            updateSession(session)
+            session.id
+        }
+        clearParticipants(id)
+        insertParticipants(participants.map { it.copy(id = 0, sessionId = id) })
         return id
     }
 

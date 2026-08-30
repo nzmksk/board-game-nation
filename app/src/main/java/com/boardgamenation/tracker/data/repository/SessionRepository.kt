@@ -250,20 +250,25 @@ class SessionRepository @Inject constructor(
     /**
      * Creates the draft the timer fills in. It exists from the moment the clock starts,
      * so a process death mid-game leaves something to recover rather than nothing.
+     *
+     * The seating is written with it. A draft that knows only its game recovers into an
+     * empty form, which is no better than starting again; one that knows who is at the
+     * table recovers into the play that was actually happening.
      */
-    suspend fun createDraft(gameId: Long, playerCount: Int): Long {
+    suspend fun createDraft(gameId: Long, players: List<ParticipantForm>): Long {
         val now = clock.nowMillis()
-        return sessionDao.insertSession(
+        return sessionDao.saveDraft(
             SessionEntity(
                 gameId = gameId,
                 playedOn = DateUtils.toIso(clock.today()),
                 startedAt = now,
                 durationMinutes = 0,
-                playerCount = playerCount,
+                playerCount = players.size,
                 isDraft = true,
                 createdAt = now,
                 updatedAt = now,
             ),
+            players.map { it.toDraftRow(0) },
         )
     }
 
@@ -280,6 +285,17 @@ class SessionRepository @Inject constructor(
     suspend fun averageDurationFor(gameId: Long): Int? =
         sessionDao.averageDurationFor(gameId)?.toInt()
 }
+
+/**
+ * A draft's player row. Only what the clock can know: the result columns stay empty
+ * until the session form fills them in.
+ */
+private fun ParticipantForm.toDraftRow(sessionId: Long) = SessionPlayerEntity(
+    sessionId = sessionId,
+    playerId = playerId,
+    turnTimeMs = turnTimeMs,
+    bankTimeRemainingMs = bankTimeRemainingMs,
+)
 
 private fun PlayerEntity.toParticipant() = ParticipantForm(
     playerId = id,

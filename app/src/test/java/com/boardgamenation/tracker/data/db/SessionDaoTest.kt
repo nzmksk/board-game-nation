@@ -64,6 +64,9 @@ class SessionDaoTest {
         },
     )
 
+    private fun seating(vararg playerIds: Long) =
+        playerIds.map { ParticipantForm(playerId = it, playerName = "p$it") }
+
     @Test
     fun `saving a session writes its participants in the same breath`() = runTest {
         val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
@@ -205,7 +208,7 @@ class SessionDaoTest {
 
     @Test
     fun `a draft is created by the timer and hidden from every list`() = runTest {
-        repository.createDraft(gameId, playerCount = 3)
+        repository.createDraft(gameId, seating(me, ben))
 
         assertEquals(0, db.sessionDao().count())
         assertEquals(1, repository.getDrafts().size)
@@ -214,15 +217,32 @@ class SessionDaoTest {
     }
 
     @Test
+    fun `a draft keeps the seating the timer started with`() = runTest {
+        val id = repository.createDraft(gameId, seating(me, ben))
+
+        assertEquals(listOf(me, ben), db.sessionDao().getParticipants(id).map { it.playerId })
+        assertEquals(2, db.sessionDao().getSession(id)!!.playerCount)
+    }
+
+    @Test
+    fun `a draft loads back into a form that still knows who was playing`() = runTest {
+        val id = repository.createDraft(gameId, seating(me, ben))
+
+        val form = repository.loadForm(id)!!
+        assertEquals(gameId, form.gameId)
+        assertEquals(listOf(me, ben), form.participants.map { it.playerId })
+    }
+
+    @Test
     fun `discarding a draft removes it`() = runTest {
-        val id = repository.createDraft(gameId, playerCount = 2)
+        val id = repository.createDraft(gameId, seating(me, ben))
         repository.discardDraft(id)
         assertTrue(repository.getDrafts().isEmpty())
     }
 
     @Test
     fun `saving a form clears the draft flag`() = runTest {
-        val draftId = repository.createDraft(gameId, playerCount = 1)
+        val draftId = repository.createDraft(gameId, seating(me))
         repository.save(form(listOf(me to 10.0), id = draftId))
 
         assertTrue(repository.getDrafts().isEmpty())
