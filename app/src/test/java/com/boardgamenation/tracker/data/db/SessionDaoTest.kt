@@ -174,6 +174,36 @@ class SessionDaoTest {
     }
 
     @Test
+    fun `finalising a timer draft does not make a regular look like a first-timer`() = runTest {
+        repository.save(form(listOf(me to 10.0)))
+
+        val draftId = repository.createDraft(gameId, seating(me))
+        repository.save(form(listOf(me to 12.0), id = draftId))
+
+        assertFalse(db.sessionDao().getParticipants(draftId).first().isNewPlayer)
+    }
+
+    @Test
+    fun `a player added to an existing play keeps the plays they already have`() = runTest {
+        repository.save(form(listOf(ben to 10.0)))
+        val id = repository.save(form(listOf(me to 10.0)))
+
+        repository.save(form(listOf(me to 10.0, ben to 8.0), id = id))
+
+        val participants = db.sessionDao().getParticipants(id).associateBy { it.playerId }
+        assertFalse(participants[ben]!!.isNewPlayer)
+        assertTrue(participants[me]!!.isNewPlayer)
+    }
+
+    @Test
+    fun `editing a play does not withdraw the first appearance it recorded`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0)))
+        repository.save(form(listOf(me to 15.0), id = id))
+
+        assertTrue(db.sessionDao().getParticipants(id).first().isNewPlayer)
+    }
+
+    @Test
     fun `the scoring mode the user actually used is remembered on the game`() = runTest {
         repository.save(form(listOf(me to null), mode = ScoringMode.COOPERATIVE))
         assertEquals(ScoringMode.COOPERATIVE, db.gameDao().getGame(gameId)!!.scoringMode)

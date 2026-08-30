@@ -235,9 +235,18 @@ class SessionRepository @Inject constructor(
             } else {
                 // A player's first appearance with a game is worth recording even when
                 // the person entering the session did not think to tick the box.
-                val priorPlays = sessionDao.timesPlayerPlayedGame(participant.playerId, form.gameId)
-                val priorExcludingThis = if (form.id != 0L) priorPlays - 1 else priorPlays
-                participant.copy(isNewPlayer = priorExcludingThis <= 0)
+                //
+                // This session is excluded from the count rather than subtracted from
+                // it. Subtracting assumed it was always already counted, which is untrue
+                // of a draft the timer is finalising and of a player just added to an
+                // existing play: both counted nothing and then took one away, so one
+                // prior play read as none and a regular came back a first-timer.
+                val priorPlays = sessionDao.timesPlayerPlayedGame(
+                    playerId = participant.playerId,
+                    gameId = form.gameId,
+                    excludingSessionId = form.id,
+                )
+                participant.copy(isNewPlayer = priorPlays == 0)
             }
         }
 
