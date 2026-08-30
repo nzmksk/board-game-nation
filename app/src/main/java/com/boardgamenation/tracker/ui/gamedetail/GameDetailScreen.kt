@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.core.time.DurationFormat
 import com.boardgamenation.tracker.data.db.entity.GameEntity
+import com.boardgamenation.tracker.data.db.projection.FactionRecord
 import com.boardgamenation.tracker.data.db.projection.GameAggregates
 import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.ui.collection.labelRes
@@ -207,6 +208,15 @@ fun GameDetailScreen(
                 }
             }
 
+            // Only for games that are actually played with factions. On everything
+            // else an empty section would be a permanent piece of furniture.
+            if (state.factions.isNotEmpty()) {
+                item { SectionHeader(stringResource(R.string.game_detail_factions)) }
+                items(state.factions.size) { index ->
+                    FactionRow(state.factions[index])
+                }
+            }
+
             item { SectionHeader(stringResource(R.string.game_detail_play_history)) }
             if (state.sessions.isEmpty()) {
                 item {
@@ -352,6 +362,51 @@ private fun HeaderCard(game: GameEntity, state: GameDetailUiState) {
                 )
             }
         }
+    }
+}
+
+/**
+ * One faction's record: the name, how often it won, and the bar that makes an outlier
+ * visible without reading the numbers.
+ *
+ * The play count is shown beside the percentage on purpose -- a 100% from a single play
+ * is not the same claim as a 60% from twenty, and this list is read to judge balance.
+ */
+@Composable
+private fun FactionRow(record: FactionRecord) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = record.faction,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = stringResource(R.string.stats_win_rate_value, record.winPercent),
+                style = MaterialTheme.typography.labelMedium,
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = stringResource(
+                    R.string.game_detail_faction_plays,
+                    record.wins,
+                    record.plays,
+                ),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        LinearProgressIndicator(
+            progress = { record.winPercent / 100f },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
