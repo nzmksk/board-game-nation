@@ -5,6 +5,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -194,6 +196,7 @@ private fun FilterRow(
 }
 
 /** Shared by the session list, the dashboard, and a game's play history. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SessionRow(
     session: SessionListItem,
@@ -258,7 +261,9 @@ fun SessionRow(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Flows rather than a Row: these badges wrap onto a second line on a
+                // narrow screen instead of the last one being clipped off the card.
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     // Deliberately not styled like "Unfinished" next to it: the game did
                     // finish, it just finished the moment a condition was met.
                     session.endReason?.let { reason ->
@@ -266,6 +271,15 @@ fun SessionRow(
                             text = reason,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    session.firstPlayerName?.let { name ->
+                        Text(
+                            text = stringResource(R.string.session_first_player, name),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )

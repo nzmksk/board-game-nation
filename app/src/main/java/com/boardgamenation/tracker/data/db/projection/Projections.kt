@@ -71,6 +71,9 @@ data class SessionListItem(
     @ColumnInfo(name = "end_reason") val endReason: String?,
 
     @ColumnInfo(name = "winner_names") val winnerNames: String?,
+
+    /** Whoever holds the first seat, or null on a play nobody recorded an order for. */
+    @ColumnInfo(name = "first_player_name") val firstPlayerName: String?,
 )
 
 /** A participant joined to their player record, for session detail. */

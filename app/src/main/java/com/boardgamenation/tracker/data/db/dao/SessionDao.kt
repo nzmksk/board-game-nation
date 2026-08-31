@@ -33,7 +33,12 @@ interface SessionDao {
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
                 WHERE sp.session_id = s.id AND sp.is_winner = 1
-            ) AS winner_names
+            ) AS winner_names,
+            (
+                SELECT p.name FROM session_players sp
+                JOIN players p ON p.id = sp.player_id
+                WHERE sp.session_id = s.id AND sp.turn_order = 1
+            ) AS first_player_name
         FROM sessions s
         JOIN games g ON g.id = s.game_id
         WHERE s.is_draft = 0
@@ -64,7 +69,12 @@ interface SessionDao {
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
                 WHERE sp.session_id = s.id AND sp.is_winner = 1
-            ) AS winner_names
+            ) AS winner_names,
+            (
+                SELECT p.name FROM session_players sp
+                JOIN players p ON p.id = sp.player_id
+                WHERE sp.session_id = s.id AND sp.turn_order = 1
+            ) AS first_player_name
         FROM sessions s
         JOIN games g ON g.id = s.game_id
         WHERE s.is_draft = 0

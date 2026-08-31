@@ -261,6 +261,27 @@ class SessionDaoTest {
         assertEquals("Muhammad", row.winnerNames)
     }
 
+    @Test
+    fun `the starting player is resolved for the list row`() = runTest {
+        repository.save(
+            form(listOf(me to 12.0, ben to 8.0)).let { form ->
+                form.copy(
+                    participants = form.participants.map {
+                        it.copy(turnOrder = if (it.playerId == ben) 1 else 2)
+                    },
+                )
+            },
+        )
+        repository.save(
+            form(listOf(me to 12.0)).copy(playedOn = LocalDate.parse("2026-02-08")),
+        )
+
+        val rows = repository.observeSessions(SessionFilter()).first().associateBy { it.playedOn }
+        assertEquals("Ben", rows.getValue("2026-02-01").firstPlayerName)
+        // A play nobody recorded an order for says nothing rather than guessing.
+        assertNull(rows.getValue("2026-02-08").firstPlayerName)
+    }
+
     /** Merge import leans on this: same game, same day, same head count is a match. */
     @Test
     fun `the natural key finds an existing session`() = runTest {

@@ -186,6 +186,7 @@
     <string name="sessions_empty_filtered">No plays match these filters.</string>
     <string name="session_players_count">%1$d players</string>
     <string name="session_winner">Won by %1$s</string>
+    <string name="session_first_player">%1$s went first</string>
     <string name="session_coop_win">Table won</string>
     <string name="session_coop_loss">Table lost</string>
     <string name="session_incomplete">Unfinished</string>
