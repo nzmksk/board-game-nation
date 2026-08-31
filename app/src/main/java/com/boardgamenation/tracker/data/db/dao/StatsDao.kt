@@ -319,6 +319,11 @@ interface StatsDao {
     /**
      * Head-to-head against the device owner. Only competitive sessions count: in a
      * co-op everybody wins or loses together, which says nothing about who is better.
+     *
+     * Ordered by how the record reads rather than by how much of it there is: wins over
+     * the opponent first, then the fewest losses to them. A 10-0 outranks a 10-5, which
+     * outranks a 10-13, and every one of those outranks a 5-3. Sorting by shared plays
+     * instead would bury the records worth bragging about under the merely frequent.
      */
     @Query(
         """
@@ -334,7 +339,7 @@ interface StatsDao {
         JOIN players sp2 ON sp2.id = self.player_id AND sp2.is_self = 1
         WHERE p.is_self = 0
         GROUP BY p.id
-        ORDER BY shared_plays DESC, p.name COLLATE NOCASE
+        ORDER BY self_wins DESC, opponent_wins ASC, p.name COLLATE NOCASE
         """,
     )
     fun observeHeadToHead(): Flow<List<HeadToHeadRow>>
