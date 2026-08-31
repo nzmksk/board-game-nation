@@ -15,6 +15,7 @@ import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.PlacementCalculator
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
+import com.boardgamenation.tracker.domain.model.TurnOrder
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -165,6 +166,7 @@ class SessionRepository @Inject constructor(
                 placement = participant.placement,
                 isWinner = participant.isWinner,
                 faction = participant.faction?.takeIf { it.isNotBlank() },
+                turnOrder = participant.turnOrder,
                 isNewPlayer = participant.isNewPlayer,
                 turnTimeMs = participant.turnTimeMs,
                 bankTimeRemainingMs = participant.bankTimeRemainingMs,
@@ -216,7 +218,7 @@ class SessionRepository @Inject constructor(
                 ScoringMode.NONE -> form.participants.map { it.copy(placement = null) }
             }
         }
-        return ranked.map { participant ->
+        val flagged = ranked.map { participant ->
             if (participant.isNewPlayer) {
                 participant
             } else {
@@ -227,6 +229,11 @@ class SessionRepository @Inject constructor(
                 participant.copy(isNewPlayer = priorExcludingThis <= 0)
             }
         }
+
+        // Renumbered here for the same reason placements are derived here: the quick
+        // sheet, the full form and an import all reach this line, and exactly one of
+        // them may leave a play with two first players.
+        return TurnOrder.normalise(flagged)
     }
 
     /**
@@ -277,6 +284,7 @@ private fun SessionParticipant.toParticipantForm() = ParticipantForm(
     placement = placement,
     isWinner = isWinner,
     faction = faction,
+    turnOrder = turnOrder,
     isNewPlayer = isNewPlayer,
     turnTimeMs = turnTimeMs,
     bankTimeRemainingMs = bankTimeRemainingMs,
