@@ -213,6 +213,7 @@ fails.
 | `GameDaoTest` | The assembled collection query, aggregates, cascades, Flow invalidation |
 | `SessionDaoTest` | Placement derivation, drafts, prefill, filters |
 | `PlacementCalculatorTest` | Ties, golf scoring, co-op |
+| `TurnOrderTest` | Gaps closed, one first player only, partial orders left partial |
 | `StreaksTest` | Day, week and month runs, including across a year boundary |
 | `CsvTest` | RFC 4180 quoting, embedded newlines, locale-independent numbers |
 | `GameQueryBuilderTest` | That values are bound and never interpolated |
