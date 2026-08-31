@@ -12,7 +12,7 @@ import androidx.room.migration.Migration
  *
  * Adding one looks like:
  *
- *     private val MIGRATION_3_4 = Migration(3, 4) { db ->
+ *     private val MIGRATION_4_5 = Migration(4, 5) { db ->
  *         db.execSQL("ALTER TABLE games ADD COLUMN sleeved INTEGER NOT NULL DEFAULT 0")
  *     }
  *
@@ -217,8 +217,26 @@ object Migrations {
     }
 
     /**
+     * Records who went first and the order the table took its turns in.
+     *
+     * Additive and nullable, so nothing needs backfilling. Null is the honest answer for
+     * every play logged before the column existed: defaulting it to 1 would have handed
+     * a first player to thousands of rows nobody recorded one for, and the first-player
+     * statistics would then be measuring the default rather than the table.
+     */
+    private val MIGRATION_5_6 = Migration(5, 6) { db ->
+        db.execSQL("ALTER TABLE session_players ADD COLUMN turn_order INTEGER")
+    }
+
+    /**
      * Ordered oldest to newest. Room composes them, so a device three versions behind
      * walks the chain rather than needing a 1-to-4 migration of its own.
      */
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+    val ALL: Array<Migration> = arrayOf(
+        MIGRATION_1_2,
+        MIGRATION_2_3,
+        MIGRATION_3_4,
+        MIGRATION_4_5,
+        MIGRATION_5_6,
+    )
 }
