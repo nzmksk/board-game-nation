@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.toRoute
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.data.db.entity.PlayerEntity
+import com.boardgamenation.tracker.data.db.projection.GameWinRateRow
 import com.boardgamenation.tracker.data.db.projection.LabelledValue
 import com.boardgamenation.tracker.data.db.projection.SessionListItem
 import com.boardgamenation.tracker.data.repository.PlayerRepository
@@ -49,7 +50,7 @@ import kotlin.math.roundToInt
 
 data class PlayerDetailState(
     val player: PlayerEntity? = null,
-    val winRateByGame: List<LabelledValue> = emptyList(),
+    val winRateByGame: List<GameWinRateRow> = emptyList(),
     val averageScores: List<LabelledValue> = emptyList(),
     val sessions: List<SessionListItem> = emptyList(),
     val plays: Int = 0,
@@ -140,8 +141,9 @@ fun PlayerDetailScreen(
             item {
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     HorizontalBarChart(
-                        data = state.winRateByGame.map { it.label to it.value },
+                        data = state.winRateByGame.map { it.title to it.winRate },
                         valueFormatter = { "${it.roundToInt()}%" },
+                        maxRows = state.winRateByGame.size,
                     )
                 }
             }

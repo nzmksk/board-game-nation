@@ -131,6 +131,19 @@ data class HeadToHeadRow(
     @ColumnInfo(name = "opponent_wins") val opponentWins: Int,
 )
 
+/**
+ * A player's record with one game. The rate draws the bar; the sample size travels with
+ * it, because 100% off one play and 100% off twelve are the same number and not the
+ * same fact.
+ */
+data class GameWinRateRow(
+    @ColumnInfo(name = "game_id") val gameId: Long,
+    @ColumnInfo(name = "title") val title: String,
+    @ColumnInfo(name = "plays") val plays: Int,
+    @ColumnInfo(name = "wins") val wins: Int,
+    @ColumnInfo(name = "win_rate") val winRate: Double,
+)
+
 data class CostPerPlayRow(
     @ColumnInfo(name = "game_id") val gameId: Long,
     @ColumnInfo(name = "title") val title: String,
