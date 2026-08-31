@@ -196,8 +196,8 @@ object TurnOrder {
         participants.map { it.copy(turnOrder = null) }
 
     /**
-     * Records only who went first, which is all the quick sheet asks for. Passing null,
-     * or the player who already holds it, leaves the table with no first player.
+     * Records only who went first, which is all the quick sheet asks for. A null player
+     * id leaves the table with no first player, which is a perfectly ordinary answer.
      */
     fun firstOnly(participants: List<ParticipantForm>, playerId: Long?): List<ParticipantForm> =
         participants.map { it.copy(turnOrder = if (it.playerId == playerId) 1 else null) }
