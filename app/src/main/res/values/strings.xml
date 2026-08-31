@@ -212,6 +212,10 @@
     <string name="session_edit_faction">Faction or role</string>
     <string name="session_edit_winner">Winner</string>
     <string name="session_edit_first_time">First time playing</string>
+    <string name="session_edit_turn_order">Turn order</string>
+    <string name="session_edit_turn_order_help">Tap players in the order they played. Tap only the starting player if that is all you know.</string>
+    <string name="session_edit_turn_order_seat">%1$d. %2$s</string>
+    <string name="session_edit_turn_order_clear">Clear turn order</string>
     <string name="session_edit_incomplete">Abandoned before finishing</string>
     <string name="session_edit_teaching">Someone was learning</string>
     <string name="session_edit_coop_result">Result</string>
