@@ -64,6 +64,14 @@ fun HorizontalBarChart(
     valueFormatter: (Double) -> String = { it.toInt().toString() },
     maxRows: Int = 12,
     barColor: Color? = null,
+    /**
+     * Value text per row, positional against [data], for the charts where the number
+     * alone is not the whole fact -- a win rate wants the sample it came from beside
+     * it. Rows it does not cover fall back to [valueFormatter].
+     */
+    valueLabels: List<String> = emptyList(),
+    /** Widen when [valueLabels] carry more than a bare number. */
+    valueWidth: androidx.compose.ui.unit.Dp = 56.dp,
 ) {
     if (data.isEmpty()) {
         EmptyChartMessage(modifier)
@@ -75,7 +83,8 @@ fun HorizontalBarChart(
     val max = rows.maxOf { it.second }.takeIf { it > 0 } ?: 1.0
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        rows.forEach { (label, value) ->
+        rows.forEachIndexed { index, (label, value) ->
+            val valueText = valueLabels.getOrElse(index) { valueFormatter(value) }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = label,
@@ -90,7 +99,7 @@ fun HorizontalBarChart(
                     modifier = Modifier
                         .weight(1f)
                         .height(18.dp)
-                        .semantics { contentDescription = "$label: ${valueFormatter(value)}" },
+                        .semantics { contentDescription = "$label: $valueText" },
                 ) {
                     Canvas(Modifier.fillMaxWidth().height(18.dp)) {
                         val fraction = (value / max).toFloat().coerceIn(0f, 1f)
@@ -110,11 +119,11 @@ fun HorizontalBarChart(
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = valueFormatter(value),
+                    text = valueText,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    modifier = Modifier.width(56.dp),
+                    modifier = Modifier.width(valueWidth),
                 )
             }
         }

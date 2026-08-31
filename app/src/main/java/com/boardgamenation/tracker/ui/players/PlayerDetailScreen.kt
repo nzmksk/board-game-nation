@@ -142,8 +142,18 @@ fun PlayerDetailScreen(
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     HorizontalBarChart(
                         data = state.winRateByGame.map { it.title to it.winRate },
-                        valueFormatter = { "${it.roundToInt()}%" },
                         maxRows = state.winRateByGame.size,
+                        // The rate on its own would rank a first-play fluke level with a
+                        // game somebody has actually learnt; the play count is what tells
+                        // the two apart.
+                        valueLabels = state.winRateByGame.map {
+                            stringResource(
+                                R.string.stats_win_rate_over_plays,
+                                it.winRate.roundToInt(),
+                                it.plays,
+                            )
+                        },
+                        valueWidth = 72.dp,
                     )
                 }
             }
