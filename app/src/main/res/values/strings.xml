@@ -249,6 +249,7 @@
     <!-- Quick log -->
     <string name="quick_log_title">Quick log</string>
     <string name="quick_log_who_won">Who won?</string>
+    <string name="quick_log_who_went_first">Who went first?</string>
     <string name="quick_log_nobody">Nobody</string>
 
     <!-- Timer -->

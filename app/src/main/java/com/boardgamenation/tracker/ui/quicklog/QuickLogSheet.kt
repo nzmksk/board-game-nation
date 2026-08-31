@@ -52,6 +52,7 @@ import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
+import com.boardgamenation.tracker.domain.model.TurnOrder
 import com.boardgamenation.tracker.domain.usecase.SaveSessionUseCase
 import com.boardgamenation.tracker.ui.components.IsoDateField
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -71,6 +72,9 @@ data class QuickLogState(
 
     /** Configurations already recorded for this game, offered as one-tap chips. */
     val previousModes: List<String> = emptyList(),
+
+    /** Null when nobody said, which is a fine answer and the default one. */
+    val firstPlayerId: Long? = null,
 
     val savedUnlocks: List<String>? = null,
     val isSaving: Boolean = false,
@@ -117,6 +121,7 @@ class QuickLogViewModel @Inject constructor(
                 // duration are: those are safe to be wrong about, a configuration is
                 // the thing that makes the result mean what it means.
                 previousModes = sessionRepository.observeModesFor(gameId).first(),
+                firstPlayerId = null,
             )
         }
     }
@@ -137,6 +142,8 @@ class QuickLogViewModel @Inject constructor(
                 },
             ),
             winnerIds = _state.value.winnerIds - player.id,
+            // Someone who is not at the table cannot have started the game.
+            firstPlayerId = _state.value.firstPlayerId?.takeIf { it != player.id },
         )
     }
 
@@ -170,6 +177,13 @@ class QuickLogViewModel @Inject constructor(
         _state.value = _state.value.copy(form = _state.value.form.copy(mode = mode))
     }
 
+    /** Tapping the chosen player again clears it: who started is not always known. */
+    fun setFirstPlayer(playerId: Long) {
+        _state.value = _state.value.copy(
+            firstPlayerId = playerId.takeIf { it != _state.value.firstPlayerId },
+        )
+    }
+
     fun setDuration(minutes: Int) {
         _state.value = _state.value.copy(form = _state.value.form.copy(durationMinutes = minutes))
     }
@@ -201,9 +215,15 @@ class QuickLogViewModel @Inject constructor(
                 } else {
                     null
                 },
-                participants = current.form.participants.map {
-                    it.copy(isWinner = it.playerId in current.winnerIds)
-                },
+                // The sheet asks for the starting player and nothing more of the order,
+                // so that is all it records: the rest of the seats stay unknown rather
+                // than being guessed from the chip order.
+                participants = TurnOrder.firstOnly(
+                    current.form.participants.map {
+                        it.copy(isWinner = it.playerId in current.winnerIds)
+                    },
+                    current.firstPlayerId,
+                ),
             )
             val result = saveSession(form)
             _state.value = _state.value.copy(
@@ -322,6 +342,23 @@ fun QuickLogSheet(
                             FilterChip(
                                 selected = participant.playerId in state.winnerIds,
                                 onClick = { viewModel.toggleWinner(participant.playerId) },
+                                label = { Text(participant.playerName) },
+                            )
+                        }
+                    }
+
+                    // One optional tap. Most plays are logged from this sheet, so asking
+                    // here is the difference between a first-player win rate built on a
+                    // season of plays and one built on the few that got the full form.
+                    Text(
+                        text = stringResource(R.string.quick_log_who_went_first),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        state.form.participants.forEach { participant ->
+                            FilterChip(
+                                selected = participant.playerId == state.firstPlayerId,
+                                onClick = { viewModel.setFirstPlayer(participant.playerId) },
                                 label = { Text(participant.playerName) },
                             )
                         }
