@@ -72,6 +72,16 @@ fun HorizontalBarChart(
     valueLabels: List<String> = emptyList(),
     /** Widen when [valueLabels] carry more than a bare number. */
     valueWidth: androidx.compose.ui.unit.Dp = 56.dp,
+    /**
+     * The top of the scale, for data that has a fixed ceiling rather than one taken
+     * from the rows. A win rate is out of 100 whether or not anybody has reached it,
+     * and scaling it to the best row instead says a 40% best is a full bar.
+     *
+     * Rows drawn against a fixed scale get a recessive track behind the bar, so the
+     * length a bar does not fill reads as the rest of the scale rather than as the
+     * edge of the chart.
+     */
+    scaleMax: Double? = null,
 ) {
     if (data.isEmpty()) {
         EmptyChartMessage(modifier)
@@ -80,7 +90,8 @@ fun HorizontalBarChart(
     val colors = LocalChartColors.current
     val color = barColor ?: colors.magnitude
     val rows = data.take(maxRows)
-    val max = rows.maxOf { it.second }.takeIf { it > 0 } ?: 1.0
+    val ceiling = scaleMax?.takeIf { it > 0 }
+    val max = ceiling ?: rows.maxOf { it.second }.takeIf { it > 0 } ?: 1.0
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         rows.forEachIndexed { index, (label, value) ->
@@ -102,15 +113,28 @@ fun HorizontalBarChart(
                         .semantics { contentDescription = "$label: $valueText" },
                 ) {
                     Canvas(Modifier.fillMaxWidth().height(18.dp)) {
+                        val top = size.height * 0.15f
+                        val barHeight = size.height * 0.7f
+                        if (ceiling != null) {
+                            drawEndRoundedBar(
+                                color = colors.grid,
+                                left = 0f,
+                                top = top,
+                                width = size.width,
+                                height = barHeight,
+                                cornerPx = BarCorner.toPx(),
+                                roundedEnd = RoundedEnd.RIGHT,
+                            )
+                        }
                         val fraction = (value / max).toFloat().coerceIn(0f, 1f)
                         val barWidth = size.width * fraction
                         if (barWidth > 0f) {
                             drawEndRoundedBar(
                                 color = color,
                                 left = 0f,
-                                top = size.height * 0.15f,
+                                top = top,
                                 width = barWidth,
-                                height = size.height * 0.7f,
+                                height = barHeight,
                                 cornerPx = BarCorner.toPx(),
                                 roundedEnd = RoundedEnd.RIGHT,
                             )

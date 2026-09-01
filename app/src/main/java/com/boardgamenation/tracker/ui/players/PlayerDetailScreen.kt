@@ -154,6 +154,7 @@ fun PlayerDetailScreen(
                             )
                         },
                         valueWidth = 72.dp,
+                        scaleMax = 100.0,
                     )
                 }
             }
