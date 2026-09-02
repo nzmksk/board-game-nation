@@ -27,6 +27,16 @@ cp local.properties.example local.properties   # then set sdk.dir
 
 `local.properties` is git-ignored and is the only file that ever holds a secret.
 
+### Getting an APK without building one
+
+Every pull request builds a debug APK and attaches it to the run. Open the pull request's
+Checks tab, pick the **APK** workflow, and the `app-debug-<sha>` artifact at the foot of
+the run summary is an installable build of exactly that commit. It is kept for 14 days.
+
+It is a debug build — unshrunk, debuggable, signed with the shared debug key, and with BGG
+features switched off because CI holds no token. Fine for putting a change on a device to
+look at; not something to hand anybody as a release.
+
 ### BoardGameGeek access
 
 Since BGG's 2025-07-02 policy revision, the XML API2 needs a registered application and a
