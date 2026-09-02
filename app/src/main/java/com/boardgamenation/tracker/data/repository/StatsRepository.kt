@@ -87,10 +87,18 @@ class StatsRepository @Inject constructor(
     /**
      * The opponent who beats the user most often, over a sample large enough to mean
      * something. Three shared plays is not a rivalry.
+     *
+     * Two opponents can beat the user at the same rate, and then the one who has done it
+     * over more plays is the nemesis -- 8 of 16 is a rivalry in a way 2 of 4 is not. That
+     * tie-break is spelled out here rather than left to whatever order the query happens
+     * to return, which is how it used to be decided.
      */
     fun nemesis(minPlays: Int = 3): Flow<HeadToHeadRow?> = statsDao.observeHeadToHead().map { rows ->
         rows.filter { it.sharedPlays >= minPlays }
-            .maxByOrNull { it.opponentWins.toDouble() / it.sharedPlays }
+            .maxWithOrNull(
+                compareBy<HeadToHeadRow> { it.opponentWins.toDouble() / it.sharedPlays }
+                    .thenBy { it.sharedPlays },
+            )
     }
 
     fun winRateByGame(playerId: Long): Flow<List<GameWinRateRow>> =

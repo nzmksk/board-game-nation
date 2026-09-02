@@ -362,9 +362,10 @@ plays by day of week, and current/longest streak of consecutive weeks with a pla
 economical purchases. This is the metric that most changes buying behaviour, so give
 it a first-class card.
 
-**Players:** head-to-head win rates, win rate per game per player, most frequent
-opponents, average score per game per player, and a "nemesis" (highest win rate against
-the user).
+**Players:** head-to-head win rates (ranked by the record itself -- most wins first,
+then fewest losses -- not by how many plays the pair have shared), win rate per game per
+player, most frequent opponents, average score per game per player, and a "nemesis"
+(highest win rate against the user).
 
 **Derived metrics:** H-index (N games played at least N times), a common collector
 metric worth including.
