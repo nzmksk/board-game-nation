@@ -68,6 +68,10 @@ data class QuickLogState(
     val players: List<PlayerEntity> = emptyList(),
     val form: SessionForm = SessionForm(playedOn = LocalDate.now()),
     val winnerIds: Set<Long> = emptySet(),
+
+    /** Configurations already recorded for this game, offered as one-tap chips. */
+    val previousModes: List<String> = emptyList(),
+
     val savedUnlocks: List<String>? = null,
     val isSaving: Boolean = false,
 ) {
@@ -106,7 +110,14 @@ class QuickLogViewModel @Inject constructor(
     fun selectGame(gameId: Long) {
         viewModelScope.launch {
             val prefilled = sessionRepository.newSessionForm(gameId)
-            _state.value = _state.value.copy(form = prefilled, winnerIds = emptySet())
+            _state.value = _state.value.copy(
+                form = prefilled,
+                winnerIds = emptySet(),
+                // Deliberately not pre-filled from the last play the way the lineup and
+                // duration are: those are safe to be wrong about, a configuration is
+                // the thing that makes the result mean what it means.
+                previousModes = sessionRepository.observeModesFor(gameId).first(),
+            )
         }
     }
 
@@ -147,6 +158,16 @@ class QuickLogViewModel @Inject constructor(
         _state.value = _state.value.copy(
             winnerIds = if (playerId in current) current - playerId else current + playerId,
         )
+    }
+
+    /** Tapping the chip that is already chosen clears it, so a mistap is one tap back. */
+    fun toggleMode(mode: String) {
+        val current = _state.value.form.mode
+        setMode(if (current == mode) null else mode)
+    }
+
+    fun setMode(mode: String?) {
+        _state.value = _state.value.copy(form = _state.value.form.copy(mode = mode))
     }
 
     fun setDuration(minutes: Int) {
@@ -306,6 +327,32 @@ fun QuickLogSheet(
                         }
                     }
                 }
+
+                // Last, and optional, so it never stands between the sheet and the
+                // twenty-second save. The chips are the point of putting it here at all:
+                // a table that keeps playing Catan with Seafarers taps it once.
+                Text(
+                    text = stringResource(R.string.session_edit_mode),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                if (state.previousModes.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        state.previousModes.forEach { mode ->
+                            FilterChip(
+                                selected = state.form.mode == mode,
+                                onClick = { viewModel.toggleMode(mode) },
+                                label = { Text(mode) },
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = state.form.mode.orEmpty(),
+                    onValueChange = { value -> viewModel.setMode(value) },
+                    placeholder = { Text(stringResource(R.string.session_edit_mode_hint)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
 
             Row(
