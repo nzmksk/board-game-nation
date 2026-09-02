@@ -19,6 +19,31 @@ val bggToken: String = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }.getProperty("BGG_API_TOKEN", "").trim()
 
+/**
+ * The version an APK claims. CI builds a release from a tag and passes it here, as
+ * -PversionName=v0.2.0 or VERSION_NAME in the environment; every other build -- local, and
+ * every CI debug build -- gets the value below, which is what the app has always reported.
+ */
+val appVersionName: String = (providers.gradleProperty("versionName").orNull
+    ?: providers.environmentVariable("VERSION_NAME").orNull)
+    ?.trim()?.removePrefix("v")?.takeIf { it.isNotEmpty() }
+    ?: "0.1.0-alpha"
+
+/**
+ * versionCode is the number Android compares to decide an install is an upgrade, so it has
+ * to rise with the version rather than stay the constant 1 it was while nothing was handed
+ * out. It is derived from the version instead of from a run counter so that the same tag
+ * rebuilt is the same build; a counter resets when a workflow is renamed, and a code lower
+ * than the one already installed is an install Android refuses.
+ *
+ * major * 10000 + minor * 100 + patch, so 0.1.0 is 100 and 1.2.3 is 10203. A version that
+ * is not a semantic one keeps 1, since there is nothing in it to order by.
+ */
+val appVersionCode: Int = Regex("""^(\d+)\.(\d+)\.(\d+)""").find(appVersionName)
+    ?.destructured?.let { (major, minor, patch) ->
+        major.toInt() * 10_000 + minor.toInt() * 100 + patch.toInt()
+    } ?: 1
+
 android {
     namespace = "com.boardgamenation.tracker"
     compileSdk = 37
@@ -27,8 +52,8 @@ android {
         applicationId = "com.boardgamenation.tracker"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0-alpha"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
