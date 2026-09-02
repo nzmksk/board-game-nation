@@ -62,7 +62,7 @@ data class SessionListItem(
     @ColumnInfo(name = "is_cooperative") val isCooperative: Boolean,
     @ColumnInfo(name = "coop_won") val coopWon: Boolean,
 
-    /** The configuration a co-op was played at, shown beside the result. */
+    /** The configuration the game was played at, shown beside the result. */
     @ColumnInfo(name = "mode") val mode: String?,
     @ColumnInfo(name = "is_incomplete") val isIncomplete: Boolean,
     @ColumnInfo(name = "is_teaching_game") val isTeachingGame: Boolean,
