@@ -28,12 +28,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       # The artifact name is what a reviewer reads in the run summary and what the
-      # downloaded zip is called, so it carries the commit the APK was built from.
-      - name: Short SHA of the reviewed commit
-        id: rev
+      # downloaded zip is called, so it carries the branch the APK was built from.
+      # github.ref_name would be "34/merge" on a pull request, hence head_ref first.
+      # A slash is legal in a branch name and illegal in an artifact name — and is
+      # the only character git allows that the artifact does not — so ci/apk-on-pr
+      # is uploaded as ci-apk-on-pr.
+      - name: Branch the APK was built from
+        id: branch
         env:
-          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: echo "short=${SHA:0:7}" >> "$GITHUB_OUTPUT"
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: echo "name=${BRANCH//\//-}" >> "$GITHUB_OUTPUT"
 
       # Debug rather than release: a release APK would need a signing key the
       # repository deliberately does not hold, and an unsigned one will not install.
@@ -47,7 +51,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
-          name: app-debug-${{ steps.rev.outputs.short }}
+          name: app-debug-${{ steps.branch.outputs.name }}
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
