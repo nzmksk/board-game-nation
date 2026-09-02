@@ -349,6 +349,16 @@
     <string name="stats_streak">Week streak</string>
     <string name="stats_h_index">H-index</string>
     <string name="stats_h_index_body">%1$d games played at least %1$d times each.</string>
+    <string name="stats_first_player">First player advantage</string>
+    <string name="stats_first_player_body">How often the player who went first won, against what the first seat would have won if going first meant nothing.</string>
+    <string name="stats_first_player_actual">Went first</string>
+    <string name="stats_first_player_chance">By chance</string>
+    <string name="stats_first_player_percent">%1$d%%</string>
+    <!-- Points ahead of chance, over the plays it was measured on: +12 points over 24 plays -->
+    <string name="stats_first_player_edge_ahead">+%1$d points over %2$d plays</string>
+    <string name="stats_first_player_edge_behind">%1$d points over %2$d plays</string>
+    <string name="stats_first_player_edge_level">Level with chance over %1$d plays</string>
+    <string name="stats_first_player_empty">No play has recorded who went first yet.</string>
     <string name="stats_cost_per_play">Cost per play</string>
     <string name="stats_overall_cost_per_play">Overall cost per play</string>
     <string name="stats_most_economical">Best value</string>
