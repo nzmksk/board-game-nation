@@ -28,7 +28,9 @@ apart from that one import path.
 
 ### Non-goals
 
-- Multi-device sync, cloud backup, user accounts, sharing, or social features.
+- Multi-device sync, cloud backup, user accounts, or social features. Sharing here means
+  accounts and a server, not the OS: handing a rendered picture of one result to the
+  system share sheet is local, offline, and in scope.
 - Play Store distribution, in-app purchases, analytics, or crash reporting SDKs.
 - Writing data back to BGG (no play sync to a BGG account).
 

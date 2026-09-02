@@ -132,10 +132,12 @@ app/src/main/java/com/boardgamenation/tracker/
 │   └── dev/          Generated fixtures, debug builds only
 ├── domain/
 │   ├── model/        Domain types and the placement rules
+│   ├── share/        How a result is arranged for a picture. Pure Kotlin.
 │   ├── timer/        The dual-timer state machine. Pure Kotlin.
 │   ├── achievement/  The rule engine
 │   ├── stats/        Streaks
 │   └── usecase/      Operations that span repositories
+├── share/            Draws a result card and hands it to the system share sheet
 ├── timer/            The foreground service and the singleton that owns the clock
 └── ui/               Compose screens, one package per screen
 ```
@@ -260,6 +262,29 @@ own light and dark surfaces, and are assigned to players in fixed order so a pla
 their colour when the set on screen changes. Nothing is ever encoded by colour alone —
 every chart row and every timer zone carries the name beside the swatch.
 
+### A shared result is a picture, and pictures leave
+
+Sharing a play renders a 1080x1920 card and hands it to the system chooser. Two decisions
+in it are worth knowing about.
+
+It is drawn on a canvas rather than composed. The card is never on screen, and rendering
+a composable to a bitmap means attaching it to a window and waiting for a frame -- a
+lifecycle a ViewModel does not have, producing an image whose size depends on the phone
+that drew it. `share/ShareCardRenderer.kt` is a pure function of a `ShareCard` instead:
+same play, same picture, on any device, off the main thread. The arrangement it draws --
+who leads, who is highlighted, what the headline says -- is `domain/share/`, pure Kotlin
+and tested without a device.
+
+It ignores the theme, both the wallpaper and light or dark. The image outlives the phone
+it was made on: it lands in a group chat, on a story, in somebody else's camera roll. A
+card that looked like the sender's home screen would make the same app's results arrive
+looking like a different app every time.
+
+The file itself is a throwaway in `cacheDir/share`, replaced on every share and exposed
+through a `FileProvider` scoped to exactly that directory -- naming the cache root would
+have put the BGG image cache one guessed filename away from any app that received a
+share.
+
 ### BGG is treated as somebody else's service
 
 Requests are serialised through a single permit with a minimum two-second gap. Community
@@ -277,7 +302,7 @@ than a spinner that says nothing.
 ./gradlew :app:testDebugUnitTest
 ```
 
-183 tests, run on the JVM. The database tests use a real Room in-memory database through
+269 tests, run on the JVM. The database tests use a real Room in-memory database through
 Robolectric rather than mocks, so a query that compiles but returns the wrong rows still
 fails.
 
@@ -299,6 +324,8 @@ fails.
 | `SuddenDeathTest` | Placement without scores, and that logging a play never rewrites the game |
 | `QuickLogViewModelTest` | That a quick log leaves the game's scoring mode alone |
 | `LegacyCsvImportTest` | An archive from before designers were tags still imports intact |
+| `ShareCardTest` | Winners lead the card, sides stay whole, an unrecorded result stays unannounced |
+| `ShareCardRendererTest` | That the drawing survives twelve players, unreadable lengths and an empty play |
 
 ### Sample data
 
@@ -330,7 +357,11 @@ reproducible.
 ## Not built
 
 Deliberately out of scope, per the specification: multi-device sync, cloud backup, user
-accounts, sharing, Play Store distribution, analytics, crash reporting, and writing plays
-back to BoardGameGeek.
+accounts, social features, Play Store distribution, analytics, crash reporting, and
+writing plays back to BoardGameGeek.
+
+Sharing a result is the one thing that crossed over, and only in the sense the OS means
+it: a picture, drawn on the device, handed to the share sheet. No account, no server,
+nothing uploaded.
 
 Powered by [BoardGameGeek](https://boardgamegeek.com).
