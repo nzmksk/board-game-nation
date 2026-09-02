@@ -50,9 +50,10 @@ data class SessionEntity(
 
     /**
      * The configuration the game was set up with: Pandemic's module and epidemic count,
-     * Bomb Busters' level number, Sky Team's airport.
+     * Bomb Busters' level number, Sky Team's airport, but equally Catan's scenario or
+     * Azul's board side. Not a co-op idea -- any game can be played more than one way.
      *
-     * Free text on purpose. Every co-op expresses difficulty differently and a
+     * Free text on purpose. Every game expresses its variants differently and a
      * structured column would have to be reinvented per game; what the user needs is
      * their own wording back, which the form offers as chips from previous plays.
      */

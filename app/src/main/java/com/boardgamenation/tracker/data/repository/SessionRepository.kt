@@ -144,9 +144,7 @@ class SessionRepository @Inject constructor(
             location = form.location?.takeIf { it.isNotBlank() },
             isCooperative = form.isCooperative,
             coopOutcome = if (form.isCooperative) form.coopOutcome ?: CoopOutcome.NA else null,
-            // A mode belongs to the co-op setup that produced it, so switching the play
-            // back to competitive scoring drops it rather than leaving it stranded.
-            mode = form.mode?.takeIf { it.isNotBlank() && form.isCooperative },
+            mode = form.mode?.takeIf { it.isNotBlank() },
             endCondition = form.endCondition,
             endReason = form.endReason?.takeIf { it.isNotBlank() && form.isSuddenDeath },
             isIncomplete = form.isIncomplete,

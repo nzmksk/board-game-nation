@@ -207,7 +207,7 @@ object Migrations {
     }
 
     /**
-     * Records the configuration a co-op was played at -- modules, level, scenario.
+     * Records the configuration a game was played at -- modules, level, scenario.
      *
      * Additive and nullable: a null `mode` means nobody recorded one, which is what
      * every session written before this migration is. Nothing needs backfilling.
