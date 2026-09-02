@@ -8,6 +8,7 @@ import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TagKind
+import com.boardgamenation.tracker.domain.model.TimerMode
 import com.boardgamenation.tracker.domain.model.TimerRunState
 
 /**
@@ -30,6 +31,9 @@ class Converters {
     @TypeConverter fun endConditionToString(v: SessionEndCondition?): String? = v?.name
     @TypeConverter fun stringToEndCondition(v: String?): SessionEndCondition? =
         SessionEndCondition.fromStorage(v)
+
+    @TypeConverter fun timerModeToString(v: TimerMode): String = v.name
+    @TypeConverter fun stringToTimerMode(v: String): TimerMode = TimerMode.fromStorage(v)
 
     @TypeConverter fun runStateToString(v: TimerRunState): String = v.name
     @TypeConverter fun stringToRunState(v: String): TimerRunState = TimerRunState.fromStorage(v)

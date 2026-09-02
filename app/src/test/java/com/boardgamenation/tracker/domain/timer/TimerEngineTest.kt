@@ -3,6 +3,7 @@ package com.boardgamenation.tracker.domain.timer
 import com.boardgamenation.tracker.core.time.FakeElapsedTimeSource
 import com.boardgamenation.tracker.domain.model.ActiveClock
 import com.boardgamenation.tracker.domain.model.BankExhaustedBehaviour
+import com.boardgamenation.tracker.domain.model.TimerMode
 import com.boardgamenation.tracker.domain.model.TimerRunState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -299,5 +300,104 @@ class TimerEngineTest {
         val state = started()
         val projection = TimerEngine.project(state, clock.elapsedMillis() - 60_000)
         assertEquals(60_000, projection.displayMs)
+    }
+
+    // --- count-up -------------------------------------------------------------------
+
+    private fun countUpConfig() = TimerConfig(mode = TimerMode.COUNT_UP)
+
+    private fun countingUp(seated: List<TimerPlayer> = players): TimerState =
+        TimerEngine.start(
+            TimerEngine.create(1, seated, countUpConfig()),
+            clock.elapsedMillis(),
+            0,
+        )
+
+    @Test
+    fun `a count-up clock counts the table up from zero`() {
+        val state = countingUp()
+
+        assertEquals(0, TimerEngine.project(state, clock.elapsedMillis()).displayMs)
+
+        clock.advance(90_000)
+        val projection = TimerEngine.project(state, clock.elapsedMillis())
+
+        assertEquals(90_000, projection.displayMs)
+        assertEquals(90_000, projection.elapsedPlayMs)
+    }
+
+    @Test
+    fun `counting up never warns and never leaves anybody up`() {
+        val state = countingUp()
+        clock.advance(10_000_000)
+
+        val projection = TimerEngine.project(state, clock.elapsedMillis())
+
+        assertFalse("nothing is running out", projection.isWarning)
+        assertTrue("nobody is up on a table clock", projection.seats.none { it.isActive })
+        assertFalse(TimerEngine.shouldAutoPass(projection))
+    }
+
+    @Test
+    fun `count-up time accrues to the table and not to a seat`() {
+        var state = countingUp()
+        clock.advance(120_000)
+
+        state = TimerEngine.commit(state, clock.elapsedMillis())
+
+        assertEquals(120_000, state.tableTimeMs)
+        state.seats.forEach { seat ->
+            assertEquals("no seat is charged for table time", 0, seat.totalTurnTimeMs)
+            assertEquals(config.turnMs, seat.turnRemainingMs)
+        }
+    }
+
+    @Test
+    fun `a paused count-up clock holds its reading`() {
+        var state = countingUp()
+        clock.advance(60_000)
+
+        state = TimerEngine.pause(state, clock.elapsedMillis())
+        clock.advance(300_000)
+
+        assertEquals(60_000, TimerEngine.project(state, clock.elapsedMillis()).displayMs)
+
+        state = TimerEngine.resume(state, clock.elapsedMillis())
+        clock.advance(30_000)
+
+        assertEquals(90_000, TimerEngine.project(state, clock.elapsedMillis()).displayMs)
+        assertEquals("the pause is banked, not played", 300_000, state.accumulatedPausedMs)
+    }
+
+    @Test
+    fun `stopping a count-up clock records the whole game`() {
+        var state = countingUp()
+        clock.advance(45 * 60_000L)
+
+        state = TimerEngine.stop(state, clock.elapsedMillis())
+
+        assertEquals(TimerRunState.STOPPED, state.runState)
+        assertEquals(45 * 60_000L, TimerEngine.elapsedPlayMs(state, clock.elapsedMillis()))
+    }
+
+    @Test
+    fun `passing a turn does nothing on a count-up clock`() {
+        var state = countingUp()
+        clock.advance(60_000)
+
+        state = TimerEngine.passTurn(state, clock.elapsedMillis())
+
+        assertEquals(0, state.activeSeat)
+        assertEquals(0, state.seats[0].turnsTaken)
+        assertNull(state.undoSnapshot)
+        assertEquals(60_000, TimerEngine.project(state, clock.elapsedMillis()).displayMs)
+    }
+
+    @Test
+    fun `a solo count-up clock works with one player at the table`() {
+        val state = countingUp(listOf(players.first()))
+        clock.advance(25 * 60_000L)
+
+        assertEquals(25 * 60_000L, TimerEngine.project(state, clock.elapsedMillis()).displayMs)
     }
 }

@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardgamenation.tracker.R
+import com.boardgamenation.tracker.domain.model.TimerMode
 import com.boardgamenation.tracker.ui.components.PlayerDot
 import com.boardgamenation.tracker.ui.components.SectionHeader
 import com.boardgamenation.tracker.ui.theme.LocalChartColors
@@ -107,6 +108,35 @@ fun TimerSetupScreen(
         ) {
             item { SectionHeader(stringResource(R.string.timer_setup_game)) }
             item { GameDropdown(state, viewModel::selectGame) }
+
+            item { SectionHeader(stringResource(R.string.timer_setup_mode)) }
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = !state.isCountUp,
+                            onClick = {
+                                viewModel.updateSetup { it.copy(mode = TimerMode.TURN_BASED) }
+                            },
+                            label = { Text(stringResource(R.string.timer_mode_turn_based)) },
+                        )
+                        FilterChip(
+                            selected = state.isCountUp,
+                            onClick = {
+                                viewModel.updateSetup { it.copy(mode = TimerMode.COUNT_UP) }
+                            },
+                            label = { Text(stringResource(R.string.timer_mode_count_up)) },
+                        )
+                    }
+                    if (state.isCountUp) {
+                        Text(
+                            text = stringResource(R.string.timer_mode_count_up_help),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
 
             item { SectionHeader(stringResource(R.string.timer_setup_players)) }
             item {
@@ -161,46 +191,50 @@ fun TimerSetupScreen(
                 }
             }
 
-            item { SectionHeader(stringResource(R.string.timer_setup_preset)) }
-            item {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    state.presets.forEach { preset ->
+            // Everything below is about turn and bank clocks, which a game clock has
+            // none of. Hidden rather than disabled: there is nothing to configure.
+            if (!state.isCountUp) {
+                item { SectionHeader(stringResource(R.string.timer_setup_preset)) }
+                item {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        state.presets.forEach { preset ->
+                            FilterChip(
+                                selected = false,
+                                onClick = { viewModel.applyPreset(preset.id) },
+                                label = { Text(preset.name) },
+                            )
+                        }
                         FilterChip(
                             selected = false,
-                            onClick = { viewModel.applyPreset(preset.id) },
-                            label = { Text(preset.name) },
+                            onClick = { presetDialogOpen = true },
+                            label = { Text(stringResource(R.string.timer_setup_save_preset)) },
                         )
                     }
-                    FilterChip(
-                        selected = false,
-                        onClick = { presetDialogOpen = true },
-                        label = { Text(stringResource(R.string.timer_setup_save_preset)) },
-                    )
                 }
-            }
 
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SecondsField(
-                        value = state.turnSeconds,
-                        label = stringResource(R.string.timer_setup_turn_seconds),
-                        onChange = { value -> viewModel.updateSetup { it.copy(turnSeconds = value) } },
-                        modifier = Modifier.weight(1f),
-                    )
-                    SecondsField(
-                        value = state.bankSeconds,
-                        label = stringResource(R.string.timer_setup_bank_seconds),
-                        onChange = { value -> viewModel.updateSetup { it.copy(bankSeconds = value) } },
-                        modifier = Modifier.weight(1f),
-                    )
-                    SecondsField(
-                        value = state.warningSeconds,
-                        label = stringResource(R.string.timer_setup_warning_seconds),
-                        onChange = { value ->
-                            viewModel.updateSetup { it.copy(warningSeconds = value) }
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SecondsField(
+                            value = state.turnSeconds,
+                            label = stringResource(R.string.timer_setup_turn_seconds),
+                            onChange = { value -> viewModel.updateSetup { it.copy(turnSeconds = value) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                        SecondsField(
+                            value = state.bankSeconds,
+                            label = stringResource(R.string.timer_setup_bank_seconds),
+                            onChange = { value -> viewModel.updateSetup { it.copy(bankSeconds = value) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                        SecondsField(
+                            value = state.warningSeconds,
+                            label = stringResource(R.string.timer_setup_warning_seconds),
+                            onChange = { value ->
+                                viewModel.updateSetup { it.copy(warningSeconds = value) }
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
 
@@ -216,17 +250,19 @@ fun TimerSetupScreen(
                     state.hapticsEnabled,
                 ) { value -> viewModel.updateSetup { it.copy(hapticsEnabled = value) } }
             }
-            item {
-                Column {
-                    ToggleRow(
-                        stringResource(R.string.timer_setup_auto_pass),
-                        state.autoPass,
-                    ) { value -> viewModel.updateSetup { it.copy(autoPass = value) } }
-                    Text(
-                        text = stringResource(R.string.timer_setup_auto_pass_help),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+            if (!state.isCountUp) {
+                item {
+                    Column {
+                        ToggleRow(
+                            stringResource(R.string.timer_setup_auto_pass),
+                            state.autoPass,
+                        ) { value -> viewModel.updateSetup { it.copy(autoPass = value) } }
+                        Text(
+                            text = stringResource(R.string.timer_setup_auto_pass_help),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
             item {
@@ -249,8 +285,11 @@ fun TimerSetupScreen(
                 item {
                     Text(
                         text = stringResource(
-                            if (state.gameId == 0L) R.string.timer_no_game
-                            else R.string.timer_setup_needs_players,
+                            when {
+                                state.gameId == 0L -> R.string.timer_no_game
+                                state.isCountUp -> R.string.timer_setup_needs_player
+                                else -> R.string.timer_setup_needs_players
+                            },
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

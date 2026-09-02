@@ -192,8 +192,23 @@ object Migrations {
     }
 
     /**
+     * Lets the live timer be a count-up clock as well as a dual countdown.
+     *
+     * Both columns are additive with defaults matching what every stored clock already
+     * is: a turn-based one, with no table time because time belonged to a seat.
+     */
+    private val MIGRATION_3_4 = Migration(3, 4) { db ->
+        db.execSQL(
+            "ALTER TABLE timer_state ADD COLUMN mode TEXT NOT NULL DEFAULT 'TURN_BASED'",
+        )
+        db.execSQL(
+            "ALTER TABLE timer_state ADD COLUMN table_time_ms INTEGER NOT NULL DEFAULT 0",
+        )
+    }
+
+    /**
      * Ordered oldest to newest. Room composes them, so a device three versions behind
      * walks the chain rather than needing a 1-to-4 migration of its own.
      */
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }

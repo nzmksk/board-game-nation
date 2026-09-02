@@ -12,6 +12,7 @@ import com.boardgamenation.tracker.data.repository.GameRepository
 import com.boardgamenation.tracker.data.repository.PlayerRepository
 import com.boardgamenation.tracker.data.repository.TimerRepository
 import com.boardgamenation.tracker.domain.model.BankExhaustedBehaviour
+import com.boardgamenation.tracker.domain.model.TimerMode
 import com.boardgamenation.tracker.domain.timer.TimerConfig
 import com.boardgamenation.tracker.domain.timer.TimerProjection
 import com.boardgamenation.tracker.timer.TimerController
@@ -35,6 +36,10 @@ data class TimerSetupState(
     val players: List<PlayerEntity> = emptyList(),
     val presets: List<TimerPresetEntity> = emptyList(),
     val gameId: Long = 0,
+
+    /** Turn clocks per seat, or one clock timing the whole game. */
+    val mode: TimerMode = TimerMode.TURN_BASED,
+
     /** Ordered: this list *is* the seating, so index equals turn order. */
     val seating: List<PlayerEntity> = emptyList(),
     val turnSeconds: Int = 60,
@@ -45,7 +50,14 @@ data class TimerSetupState(
     val autoPass: Boolean = false,
     val keepScreenOn: Boolean = true,
 ) {
-    val canStart: Boolean get() = gameId != 0L && seating.size >= 2
+    val isCountUp: Boolean get() = mode == TimerMode.COUNT_UP
+
+    /**
+     * Turn clocks need somebody to pass to; a game clock does not, and a solo co-op is
+     * one of the things it exists for.
+     */
+    val canStart: Boolean
+        get() = gameId != 0L && seating.size >= if (isCountUp) 1 else 2
     val selectedGame: GameEntity? get() = games.firstOrNull { it.id == gameId }
 }
 
@@ -180,6 +192,7 @@ class TimerViewModel @Inject constructor(
                 gameId = current.gameId,
                 players = current.seating,
                 config = TimerConfig(
+                    mode = current.mode,
                     turnMs = current.turnSeconds * 1000L,
                     bankMs = current.bankSeconds * 1000L,
                     warningMs = current.warningSeconds * 1000L,

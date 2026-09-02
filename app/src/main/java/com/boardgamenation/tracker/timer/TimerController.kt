@@ -188,7 +188,7 @@ class TimerController @Inject constructor(
         stopForegroundService()
         _events.tryEmit(TimerEvent.Stopped)
 
-        val playedMs = stopped.seats.sumOf { it.totalTurnTimeMs }
+        val playedMs = TimerEngine.elapsedPlayMs(stopped, elapsed.elapsedMillis())
         TimerSummary(
             gameId = stopped.gameId,
             sessionId = stopped.sessionId,
@@ -201,8 +201,10 @@ class TimerController @Inject constructor(
                     playerId = seat.playerId,
                     playerName = seat.name,
                     colorHex = seat.colorHex,
-                    turnTimeMs = seat.totalTurnTimeMs,
-                    bankTimeRemainingMs = seat.bankRemainingMs,
+                    // A count-up clock timed the table, so there is no per-player time to
+                    // report. Writing zeroes would look like everyone sat there silently.
+                    turnTimeMs = seat.totalTurnTimeMs.takeUnless { stopped.isCountUp },
+                    bankTimeRemainingMs = seat.bankRemainingMs.takeUnless { stopped.isCountUp },
                 )
             },
         )

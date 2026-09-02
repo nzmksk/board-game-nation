@@ -109,11 +109,21 @@ class TimerService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
+        // A count-up clock has nobody up: the whole notification is that a game is
+        // running and how long it has been running for.
+        val countUp = projection?.state?.isCountUp == true
         val player = projection?.activePlayer?.name
             ?: getString(R.string.timer_notification_idle)
-        val clockLabel = when (projection?.activeClock) {
-            ActiveClock.BANK -> getString(R.string.timer_clock_bank)
-            ActiveClock.OVERTIME -> getString(R.string.timer_clock_overtime)
+        val title = if (countUp) {
+            getString(R.string.timer_notification_game)
+        } else {
+            getString(R.string.timer_notification_title, player)
+        }
+        val clockLabel = when {
+            countUp -> getString(R.string.timer_clock_elapsed)
+            projection?.activeClock == ActiveClock.BANK -> getString(R.string.timer_clock_bank)
+            projection?.activeClock == ActiveClock.OVERTIME ->
+                getString(R.string.timer_clock_overtime)
             else -> getString(R.string.timer_clock_turn)
         }
         val time = projection?.let { DurationFormat.longClock(it.displayMs) }.orEmpty()
@@ -121,7 +131,7 @@ class TimerService : Service() {
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_timer_notification)
-            .setContentTitle(getString(R.string.timer_notification_title, player))
+            .setContentTitle(title)
             .setContentText(getString(R.string.timer_notification_body, clockLabel, time))
             .setContentIntent(contentIntent)
             .setOngoing(true)
@@ -131,11 +141,14 @@ class TimerService : Service() {
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
 
         if (running) {
-            builder.addAction(
-                0,
-                getString(R.string.timer_action_pass),
-                servicePendingIntent(ACTION_PASS, 1),
-            )
+            // Nothing to pass on a table clock.
+            if (!countUp) {
+                builder.addAction(
+                    0,
+                    getString(R.string.timer_action_pass),
+                    servicePendingIntent(ACTION_PASS, 1),
+                )
+            }
             builder.addAction(
                 0,
                 getString(R.string.timer_action_pause),
