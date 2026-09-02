@@ -120,7 +120,19 @@ class TimerController @Inject constructor(
     suspend fun start() = mutex.withLock {
         val current = _state.value ?: return@withLock
         val sessionId = current.sessionId
-            ?: sessionRepository.createDraft(current.gameId, current.seats.size)
+            ?: sessionRepository.createDraft(
+                gameId = current.gameId,
+                // The seat list is the turn order the table sat down in, so the seat
+                // index is the position that belongs on the play.
+                players = current.seats.mapIndexed { index, seat ->
+                    ParticipantForm(
+                        playerId = seat.playerId,
+                        playerName = seat.name,
+                        colorHex = seat.colorHex,
+                        turnOrder = index + 1,
+                    )
+                },
+            )
         val started = TimerEngine
             .start(current.copy(sessionId = sessionId), elapsed.elapsedMillis(), clock.nowMillis())
         commitAndAnnounce(started)
@@ -189,18 +201,21 @@ class TimerController @Inject constructor(
         _events.tryEmit(TimerEvent.Stopped)
 
         val playedMs = TimerEngine.elapsedPlayMs(stopped, elapsed.elapsedMillis())
-        TimerSummary(
+        val summary = TimerSummary(
             gameId = stopped.gameId,
             sessionId = stopped.sessionId,
             durationMinutes = ((playedMs / 60_000L).toInt()).coerceAtLeast(1),
             pausedMs = stopped.accumulatedPausedMs,
             startedAt = stopped.startedAtWallMs,
             endedAt = clock.nowMillis(),
-            participants = stopped.seats.map { seat ->
+            participants = stopped.seats.mapIndexed { index, seat ->
                 ParticipantForm(
                     playerId = seat.playerId,
                     playerName = seat.name,
                     colorHex = seat.colorHex,
+                    // Where the seats sat, not something the clock measured: it holds
+                    // for a count-up clock too, which the per-player times below do not.
+                    turnOrder = index + 1,
                     // A count-up clock timed the table, so there is no per-player time to
                     // report. Writing zeroes would look like everyone sat there silently.
                     turnTimeMs = seat.totalTurnTimeMs.takeUnless { stopped.isCountUp },
@@ -208,6 +223,20 @@ class TimerController @Inject constructor(
                 )
             },
         )
+
+        // The form is opened from the draft, not from this object, so the measurement
+        // has to reach the row before the summary reaches the screen.
+        summary.sessionId?.let { sessionId ->
+            sessionRepository.recordTimerResult(
+                sessionId = sessionId,
+                durationMinutes = summary.durationMinutes,
+                startedAt = summary.startedAt,
+                endedAt = summary.endedAt,
+                pausedMs = summary.pausedMs,
+                participants = summary.participants,
+            )
+        }
+        summary
     }
 
     /** Clears the clock and the draft it created. Used by "discard" after stopping. */

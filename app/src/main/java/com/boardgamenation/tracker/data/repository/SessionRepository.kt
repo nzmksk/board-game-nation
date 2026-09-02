@@ -235,9 +235,18 @@ class SessionRepository @Inject constructor(
             } else {
                 // A player's first appearance with a game is worth recording even when
                 // the person entering the session did not think to tick the box.
-                val priorPlays = sessionDao.timesPlayerPlayedGame(participant.playerId, form.gameId)
-                val priorExcludingThis = if (form.id != 0L) priorPlays - 1 else priorPlays
-                participant.copy(isNewPlayer = priorExcludingThis <= 0)
+                //
+                // This session is excluded from the count rather than subtracted from
+                // it. Subtracting assumed it was always already counted, which is untrue
+                // of a draft the timer is finalising and of a player just added to an
+                // existing play: both counted nothing and then took one away, so one
+                // prior play read as none and a regular came back a first-timer.
+                val priorPlays = sessionDao.timesPlayerPlayedGame(
+                    playerId = participant.playerId,
+                    gameId = form.gameId,
+                    excludingSessionId = form.id,
+                )
+                participant.copy(isNewPlayer = priorPlays == 0)
             }
         }
 
@@ -250,20 +259,54 @@ class SessionRepository @Inject constructor(
     /**
      * Creates the draft the timer fills in. It exists from the moment the clock starts,
      * so a process death mid-game leaves something to recover rather than nothing.
+     *
+     * The seating is written with it. A draft that knows only its game recovers into an
+     * empty form, which is no better than starting again; one that knows who is at the
+     * table recovers into the play that was actually happening.
      */
-    suspend fun createDraft(gameId: Long, playerCount: Int): Long {
+    suspend fun createDraft(gameId: Long, players: List<ParticipantForm>): Long {
         val now = clock.nowMillis()
-        return sessionDao.insertSession(
+        return sessionDao.saveDraft(
             SessionEntity(
                 gameId = gameId,
                 playedOn = DateUtils.toIso(clock.today()),
                 startedAt = now,
                 durationMinutes = 0,
-                playerCount = playerCount,
+                playerCount = players.size,
                 isDraft = true,
                 createdAt = now,
                 updatedAt = now,
             ),
+            players.map { it.toDraftRow(0) },
+        )
+    }
+
+    /**
+     * Hands what the clock measured to the draft it created, so that stopping the timer
+     * and opening the session form is a handover rather than a fresh start.
+     *
+     * The row stays a draft: the clock knows the duration and the players, but nobody
+     * has said who won yet, and nothing is a logged play until the form is saved.
+     */
+    suspend fun recordTimerResult(
+        sessionId: Long,
+        durationMinutes: Int,
+        startedAt: Long?,
+        endedAt: Long?,
+        pausedMs: Long,
+        participants: List<ParticipantForm>,
+    ) {
+        val draft = sessionDao.getSession(sessionId) ?: return
+        sessionDao.saveDraft(
+            draft.copy(
+                durationMinutes = durationMinutes,
+                startedAt = startedAt ?: draft.startedAt,
+                endedAt = endedAt,
+                pausedMs = pausedMs,
+                playerCount = participants.size,
+                updatedAt = clock.nowMillis(),
+            ),
+            participants.map { it.toDraftRow(sessionId) },
         )
     }
 
@@ -280,6 +323,18 @@ class SessionRepository @Inject constructor(
     suspend fun averageDurationFor(gameId: Long): Int? =
         sessionDao.averageDurationFor(gameId)?.toInt()
 }
+
+/**
+ * A draft's player row. Only what the clock can know -- who was at the table and where
+ * they sat -- with the result columns left empty until the session form fills them in.
+ */
+private fun ParticipantForm.toDraftRow(sessionId: Long) = SessionPlayerEntity(
+    sessionId = sessionId,
+    playerId = playerId,
+    turnOrder = turnOrder,
+    turnTimeMs = turnTimeMs,
+    bankTimeRemainingMs = bankTimeRemainingMs,
+)
 
 private fun PlayerEntity.toParticipant() = ParticipantForm(
     playerId = id,

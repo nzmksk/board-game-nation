@@ -122,6 +122,14 @@ interface SessionDao {
     )
     suspend fun findByNaturalKey(gameId: Long, playedOn: String, playerCount: Int): SessionEntity?
 
+    /**
+     * The players on one session, ranked.
+     *
+     * Rows are written in the order the form holds them, so `sp.id` breaks ties by that
+     * order rather than by name. Unplaced rows are the case that matters: a draft handed
+     * over by the timer is ordered by nothing else, and its order is the turn order the
+     * user sat the table in.
+     */
     @Query(
         """
         SELECT
@@ -131,7 +139,7 @@ interface SessionDao {
         FROM session_players sp
         JOIN players p ON p.id = sp.player_id
         WHERE sp.session_id = :sessionId
-        ORDER BY sp.placement IS NULL, sp.placement, p.name COLLATE NOCASE
+        ORDER BY sp.placement IS NULL, sp.placement, sp.id
         """,
     )
     fun observeParticipants(sessionId: Long): Flow<List<SessionParticipant>>
@@ -145,7 +153,7 @@ interface SessionDao {
         FROM session_players sp
         JOIN players p ON p.id = sp.player_id
         WHERE sp.session_id = :sessionId
-        ORDER BY sp.placement IS NULL, sp.placement, p.name COLLATE NOCASE
+        ORDER BY sp.placement IS NULL, sp.placement, sp.id
         """,
     )
     suspend fun getParticipants(sessionId: Long): List<SessionParticipant>
@@ -168,14 +176,27 @@ interface SessionDao {
     )
     suspend fun averageDurationFor(gameId: Long): Double?
 
+    /**
+     * How often a player has played a game, ignoring one session.
+     *
+     * The exclusion is what makes this answer "before this play" rather than "in total":
+     * the session being saved may already have rows of its own, and counting them would
+     * have every player look like a returning one. Pass 0 for a session that does not
+     * exist yet, which no row can match.
+     */
     @Query(
         """
         SELECT COUNT(*) FROM session_players sp
         JOIN sessions s ON s.id = sp.session_id AND s.is_draft = 0
         WHERE sp.player_id = :playerId AND s.game_id = :gameId
+          AND sp.session_id != :excludingSessionId
         """,
     )
-    suspend fun timesPlayerPlayedGame(playerId: Long, gameId: Long): Int
+    suspend fun timesPlayerPlayedGame(
+        playerId: Long,
+        gameId: Long,
+        excludingSessionId: Long,
+    ): Int
 
     /**
      * Sudden-death reasons already recorded for this game, newest first, so the form can
@@ -273,6 +294,25 @@ interface SessionDao {
         insertParticipants(participants.map { it.copy(id = 0, sessionId = id) })
         clearExpansions(id)
         insertExpansions(expansionIds.map { SessionExpansionEntity(sessionId = id, gameId = it) })
+        return id
+    }
+
+    /**
+     * Writes a draft and the players it currently knows about as one unit.
+     *
+     * Separate from [saveComplete] because the expansions belong to the session form,
+     * not to the clock: the timer must not clear a choice it knows nothing about.
+     */
+    @Transaction
+    suspend fun saveDraft(session: SessionEntity, participants: List<SessionPlayerEntity>): Long {
+        val id = if (session.id == 0L) {
+            insertSession(session)
+        } else {
+            updateSession(session)
+            session.id
+        }
+        clearParticipants(id)
+        insertParticipants(participants.map { it.copy(id = 0, sessionId = id) })
         return id
     }
 
