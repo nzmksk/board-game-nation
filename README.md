@@ -42,6 +42,62 @@ Because the debug key is `app/debug.keystore` rather than one each machine makes
 build installs over any other — a later APK, an earlier one, or your own local build —
 without uninstalling first, so the app data you set up to test with survives.
 
+### The APK on a release
+
+Publishing a GitHub release builds a **release** APK — shrunk, not debuggable, signed with a
+key only this repository's secrets hold — and attaches it to that release as
+`board-game-nation-<version>.apk`. That is the build for a phone you keep data on; the
+per-pull-request artifact above is for looking at a change.
+
+The version comes from the tag. `v0.2.0` produces an APK reporting 0.2.0 under
+Settings → About with a `versionCode` of 200 — `major × 10000 + minor × 100 + patch` — so
+every release installs over the last as an upgrade. A tag that is not a version fails the
+workflow instead of shipping an APK that misreports which build it is.
+
+BGG features are off in a release APK, and more deliberately than in the CI debug one:
+`BuildConfig` fields are plain strings inside an APK and this APK is downloadable by anyone,
+so a token supplied to the build would be a published token. Build locally with your own
+`local.properties` to have BGG on your own device.
+
+A release APK and a CI debug APK share an application id but are signed with different keys,
+so Android will not install either over the other. Moving between them means uninstalling
+first, which takes the app's data with it — pick one for a device that matters.
+
+#### Signing a release
+
+The debug key is committed because it guards nothing. The release key guards everything: it
+is what stops somebody else publishing an update over your install. None of the four values
+below is looked up anywhere — you invent them here, once, generating a keystore you then keep
+somewhere you will still have it in five years.
+
+Pick a long password first. `-validity 10000` is about twenty-seven years, because a
+certificate that has expired is one you can no longer sign an update with.
+
+```bash
+keytool -genkeypair -v -keystore release.keystore -alias board-game-nation \
+  -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 release.keystore        # macOS: base64 -i release.keystore
+```
+
+Then set four repository secrets under **Settings → Secrets and variables → Actions**:
+
+| Secret | Value |
+|---|---|
+| `RELEASE_KEYSTORE` | The base64 of `release.keystore` |
+| `RELEASE_KEYSTORE_PASSWORD` | The password `keytool` asked for |
+| `RELEASE_KEY_ALIAS` | `board-game-nation`, or whatever `-alias` you chose |
+| `RELEASE_KEY_PASSWORD` | The same password again — see below |
+
+`keytool` has written PKCS12 keystores since JDK 9, and one PKCS12 password covers the key
+as well: pass `-keypass` something different and it tells you so and discards it — *"Different
+store and key passwords not supported for PKCS12 KeyStores"*. Gradle asks for both regardless,
+so the two secrets hold the same value. Different ones fail at signing, after the build.
+
+The workflow checks all four are present before it builds, so a missing one costs seconds
+rather than a full Gradle run. Losing the keystore is the expensive mistake: every release
+after it carries a different signature, and installing one means uninstalling the app and
+its data first.
+
 ### BoardGameGeek access
 
 Since BGG's 2025-07-02 policy revision, the XML API2 needs a registered application and a
