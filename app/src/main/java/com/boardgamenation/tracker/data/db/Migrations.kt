@@ -229,6 +229,16 @@ object Migrations {
     }
 
     /**
+     * Records which side a player was on, for games where a side wins together.
+     *
+     * Additive and nullable. A null team is every session written before this one,
+     * where a win belonged to a player rather than to a side.
+     */
+    private val MIGRATION_6_7 = Migration(6, 7) { db ->
+        db.execSQL("ALTER TABLE session_players ADD COLUMN team TEXT")
+    }
+
+    /**
      * Ordered oldest to newest. Room composes them, so a device three versions behind
      * walks the chain rather than needing a 1-to-4 migration of its own.
      */
@@ -238,5 +248,6 @@ object Migrations {
         MIGRATION_3_4,
         MIGRATION_4_5,
         MIGRATION_5_6,
+        MIGRATION_6_7,
     )
 }

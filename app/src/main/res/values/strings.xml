@@ -178,6 +178,7 @@
     <string name="scoring_ranked">Scores</string>
     <string name="scoring_manual">Placement</string>
     <string name="scoring_coop">Co-operative</string>
+    <string name="scoring_teams">Teams</string>
     <string name="scoring_none">No scoring</string>
 
     <!-- Sessions -->
@@ -225,6 +226,11 @@
     <string name="session_edit_mode">Mode or configuration</string>
     <string name="session_edit_mode_hint">e.g. 5 epidemics + mutation, Level 12, Seafarers</string>
     <string name="session_edit_mode_previous">Previously played</string>
+    <string name="session_edit_team">Team</string>
+    <string name="session_edit_winning_team">Which side won</string>
+    <string name="session_edit_winning_team_help">Put each player on a side, then pick the side that won.</string>
+    <string name="session_edit_teams_previous">Previously used</string>
+    <string name="session_team_won">%1$s won</string>
     <string name="session_edit_notes">Notes</string>
     <string name="session_edit_expansions">Expansions used</string>
     <string name="session_edit_photo">Attach a photo</string>

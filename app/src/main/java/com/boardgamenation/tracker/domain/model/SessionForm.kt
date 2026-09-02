@@ -15,6 +15,9 @@ data class ParticipantForm(
     /** Seat in the turn order; 1 went first, null means nobody recorded it. */
     val turnOrder: Int? = null,
 
+    /** The side this player was on, when the game is played in teams. */
+    val team: String? = null,
+
     val isNewPlayer: Boolean = false,
     val turnTimeMs: Long? = null,
     val bankTimeRemainingMs: Long? = null,
@@ -37,6 +40,13 @@ data class SessionForm(
 
     /** The configuration played: expansion set, modules, level, scenario. Free text. */
     val mode: String? = null,
+
+    /**
+     * The side that won, for a team game. Not stored as a column of its own: the
+     * winners are marked on the participants, so the winning side is whichever team
+     * those rows belong to and cannot drift away from them.
+     */
+    val winningTeam: String? = null,
 
     /** Null means the play ran to final scoring, which is the ordinary case. */
     val endCondition: SessionEndCondition? = null,
@@ -66,6 +76,14 @@ data class SessionForm(
     val derivePlacements: Boolean = true,
 ) {
     val isCooperative: Boolean get() = scoringMode == ScoringMode.COOPERATIVE
+
+    /** Sides win together, so nobody is marked a winner individually. */
+    val isTeamBased: Boolean get() = scoringMode == ScoringMode.TEAM_BASED
+
+    /** The sides named on the form so far, in the order they were entered. */
+    val teams: List<String>
+        get() = participants.mapNotNull { it.team?.trim()?.takeIf(String::isNotEmpty) }
+            .distinctBy { it.lowercase() }
 
     /** A play that ended the moment a condition was met, before any final scoring. */
     val isSuddenDeath: Boolean get() = endCondition == SessionEndCondition.SUDDEN_DEATH
@@ -135,6 +153,26 @@ object PlacementCalculator {
         participants.mapIndexed { index, participant ->
             participant.copy(placement = index + 1, isWinner = index == 0)
         }
+
+    /**
+     * Applies a team result: everyone on the winning side wins, everyone else does not.
+     *
+     * Matched case-insensitively on the trimmed name, because "Liberals" typed once and
+     * "liberals" typed again are the same side to everybody except a string comparison.
+     * Nobody is placed: a side winning says nothing about the order within it.
+     */
+    fun applyTeams(
+        participants: List<ParticipantForm>,
+        winningTeam: String?,
+    ): List<ParticipantForm> {
+        val winner = winningTeam?.trim()?.lowercase()
+        return participants.map { participant ->
+            participant.copy(
+                placement = null,
+                isWinner = winner != null && participant.team?.trim()?.lowercase() == winner,
+            )
+        }
+    }
 
     /** In a co-op the table shares one result, so every participant gets the same flag. */
     fun applyCoop(

@@ -255,6 +255,38 @@ fun SessionEditScreen(
                 }
             }
 
+            // Sides are named on the player cards below; this is only the result. The
+            // chips are the sides on the form plus any this game has been played with
+            // before, so a regular group never retypes "Liberals".
+            if (state.form.isTeamBased) {
+                item { SectionHeader(stringResource(R.string.session_edit_winning_team)) }
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        val teams = (state.form.teams + state.previousTeams)
+                            .distinctBy { it.lowercase() }
+                        if (teams.isEmpty()) {
+                            Text(
+                                text = stringResource(
+                                    R.string.session_edit_winning_team_help,
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                teams.forEach { team ->
+                                    FilterChip(
+                                        selected = state.form.winningTeam == team,
+                                        onClick = { viewModel.setWinningTeam(team) },
+                                        label = { Text(team) },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Only for games that can actually end early. On everything else the choice
             // would be noise, which is why it is a per-game flag rather than always on.
             if (state.suddenDeathPossible &&
@@ -340,6 +372,8 @@ fun SessionEditScreen(
                     showOrdering = state.form.scoringMode == ScoringMode.MANUAL_PLACEMENT ||
                         state.form.isSuddenDeath,
                     showScore = state.form.scoringMode == ScoringMode.RANKED_SCORES,
+                    showTeam = state.form.isTeamBased,
+                    previousTeams = state.previousTeams,
                     onScore = { score ->
                         viewModel.updateParticipant(participant.playerId) { it.copy(score = score) }
                     },
@@ -348,6 +382,7 @@ fun SessionEditScreen(
                             it.copy(faction = faction)
                         }
                     },
+                    onTeam = { team -> viewModel.setParticipantTeam(participant.playerId, team) },
                     onToggleWinner = { viewModel.toggleWinner(participant.playerId) },
                     onToggleNew = {
                         viewModel.updateParticipant(participant.playerId) {
@@ -587,8 +622,11 @@ private fun ParticipantCard(
     mode: ScoringMode,
     showOrdering: Boolean,
     showScore: Boolean,
+    showTeam: Boolean,
+    previousTeams: List<String>,
     onScore: (Double?) -> Unit,
     onFaction: (String) -> Unit,
+    onTeam: (String) -> Unit,
     onToggleWinner: () -> Unit,
     onToggleNew: () -> Unit,
     onMove: (Int) -> Unit,
@@ -624,7 +662,7 @@ private fun ParticipantCard(
                         )
                     }
                 }
-                if (mode != ScoringMode.COOPERATIVE) {
+                if (mode != ScoringMode.COOPERATIVE && mode != ScoringMode.TEAM_BASED) {
                     IconButton(onClick = onToggleWinner) {
                         Icon(
                             imageVector = Icons.Filled.EmojiEvents,
@@ -667,6 +705,27 @@ private fun ParticipantCard(
                     singleLine = true,
                     modifier = Modifier.weight(1.4f),
                 )
+            }
+
+            if (showTeam) {
+                OutlinedTextField(
+                    value = participant.team.orEmpty(),
+                    onValueChange = onTeam,
+                    label = { Text(stringResource(R.string.session_edit_team)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (previousTeams.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        previousTeams.forEach { team ->
+                            FilterChip(
+                                selected = participant.team == team,
+                                onClick = { onTeam(team) },
+                                label = { Text(team) },
+                            )
+                        }
+                    }
+                }
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {

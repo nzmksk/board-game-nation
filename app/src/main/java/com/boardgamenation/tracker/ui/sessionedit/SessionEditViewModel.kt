@@ -48,6 +48,9 @@ data class SessionEditUiState(
     /** Configurations already recorded for this game, offered the same way. */
     val previousModes: List<String> = emptyList(),
 
+    /** Sides this game has been played with before, offered the same way. */
+    val previousTeams: List<String> = emptyList(),
+
     val isNew: Boolean = true,
     val isSaving: Boolean = false,
     val validationError: Int? = null,
@@ -109,6 +112,10 @@ class SessionEditViewModel @Inject constructor(
                     .takeIf { it != 0L }
                     ?.let { sessionRepository.observeModesFor(it).first() }
                     .orEmpty(),
+                previousTeams = form.gameId
+                    .takeIf { it != 0L }
+                    ?.let { sessionRepository.observeTeamsFor(it).first() }
+                    .orEmpty(),
                 isNew = route.sessionId == 0L,
             )
         }
@@ -135,6 +142,7 @@ class SessionEditViewModel @Inject constructor(
                 suddenDeathPossible = gameRepository.getGame(gameId)?.suddenDeathPossible == true,
                 previousEndReasons = sessionRepository.observeEndReasonsFor(gameId).first(),
                 previousModes = sessionRepository.observeModesFor(gameId).first(),
+                previousTeams = sessionRepository.observeTeamsFor(gameId).first(),
                 validationError = null,
             )
         }
@@ -224,6 +232,24 @@ class SessionEditViewModel @Inject constructor(
 
     fun setCoopOutcome(outcome: CoopOutcome) {
         update { it.copy(coopOutcome = outcome) }
+    }
+
+    /** Tapping the winning side again clears it, for a play still being argued over. */
+    fun setWinningTeam(team: String) {
+        update { it.copy(winningTeam = team.takeUnless { chosen -> chosen == it.winningTeam }) }
+    }
+
+    /**
+     * Renaming a side out from under the result would leave a winning team nothing is
+     * on, so the choice follows the rename.
+     */
+    fun setParticipantTeam(playerId: Long, team: String) {
+        val previous = _state.value.form.participants
+            .firstOrNull { it.playerId == playerId }?.team
+        updateParticipant(playerId) { it.copy(team = team) }
+        if (previous != null && previous == _state.value.form.winningTeam) {
+            update { it.copy(winningTeam = team.takeIf { name -> name.isNotBlank() }) }
+        }
     }
 
     /**

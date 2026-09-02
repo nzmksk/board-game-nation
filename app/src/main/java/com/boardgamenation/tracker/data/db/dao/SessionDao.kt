@@ -30,6 +30,12 @@ interface SessionDao {
             s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won, s.mode,
             s.is_incomplete, s.is_teaching_game, s.end_reason,
             (
+                SELECT sp.team FROM session_players sp
+                WHERE sp.session_id = s.id AND sp.is_winner = 1
+                  AND sp.team IS NOT NULL AND trim(sp.team) <> ''
+                LIMIT 1
+            ) AS winning_team,
+            (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
                 WHERE sp.session_id = s.id AND sp.is_winner = 1
@@ -65,6 +71,12 @@ interface SessionDao {
             s.played_on, s.duration_minutes, s.player_count, s.location,
             s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won, s.mode,
             s.is_incomplete, s.is_teaching_game, s.end_reason,
+            (
+                SELECT sp.team FROM session_players sp
+                WHERE sp.session_id = s.id AND sp.is_winner = 1
+                  AND sp.team IS NOT NULL AND trim(sp.team) <> ''
+                LIMIT 1
+            ) AS winning_team,
             (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
                 JOIN players p ON p.id = sp.player_id
@@ -114,7 +126,7 @@ interface SessionDao {
         """
         SELECT
             sp.id AS session_player_id, sp.player_id, p.name AS player_name, p.color_hex,
-            sp.score, sp.placement, sp.is_winner, sp.faction, sp.turn_order,
+            sp.score, sp.placement, sp.is_winner, sp.faction, sp.turn_order, sp.team,
             sp.is_new_player, sp.turn_time_ms, sp.bank_time_remaining_ms
         FROM session_players sp
         JOIN players p ON p.id = sp.player_id
@@ -128,7 +140,7 @@ interface SessionDao {
         """
         SELECT
             sp.id AS session_player_id, sp.player_id, p.name AS player_name, p.color_hex,
-            sp.score, sp.placement, sp.is_winner, sp.faction, sp.turn_order,
+            sp.score, sp.placement, sp.is_winner, sp.faction, sp.turn_order, sp.team,
             sp.is_new_player, sp.turn_time_ms, sp.bank_time_remaining_ms
         FROM session_players sp
         JOIN players p ON p.id = sp.player_id
@@ -192,6 +204,20 @@ interface SessionDao {
         """,
     )
     fun observeModesFor(gameId: Long, limit: Int = 6): Flow<List<String>>
+
+    /** Sides this game has already been played with, newest first. */
+    @Query(
+        """
+        SELECT sp.team FROM session_players sp
+        JOIN sessions s ON s.id = sp.session_id
+        WHERE s.game_id = :gameId AND s.is_draft = 0
+          AND sp.team IS NOT NULL AND trim(sp.team) <> ''
+        GROUP BY sp.team COLLATE NOCASE
+        ORDER BY MAX(s.played_on) DESC
+        LIMIT :limit
+        """,
+    )
+    fun observeTeamsFor(gameId: Long, limit: Int = 8): Flow<List<String>>
 
     // --- drafts -------------------------------------------------------------------
 

@@ -118,4 +118,79 @@ class PlacementCalculatorTest {
         )
         assertTrue(result.none { it.isWinner })
     }
+
+    // --- teams ----------------------------------------------------------------------
+
+    private fun sides(vararg members: Pair<String, String?>) =
+        members.mapIndexed { index, (name, team) ->
+            ParticipantForm(playerId = index + 1L, playerName = name, team = team)
+        }
+
+    @Test
+    fun `a team win makes that whole side the winners`() {
+        val result = PlacementCalculator.applyTeams(
+            sides(
+                "Aina" to "Liberals",
+                "Ben" to "Fascists",
+                "Chandra" to "Liberals",
+                "Dee" to "Fascists",
+            ),
+            winningTeam = "Liberals",
+        )
+
+        assertEquals(
+            listOf("Aina", "Chandra"),
+            result.filter { it.isWinner }.map { it.playerName },
+        )
+        assertTrue("a side winning says nothing about the order within it",
+            result.all { it.placement == null })
+    }
+
+    @Test
+    fun `team names match regardless of case and stray spacing`() {
+        val result = PlacementCalculator.applyTeams(
+            sides("Aina" to " liberals ", "Ben" to "Fascists"),
+            winningTeam = "Liberals",
+        )
+
+        assertTrue(result.first { it.playerName == "Aina" }.isWinner)
+        assertFalse(result.first { it.playerName == "Ben" }.isWinner)
+    }
+
+    @Test
+    fun `no winning side means nobody won`() {
+        val result = PlacementCalculator.applyTeams(
+            sides("Aina" to "Liberals", "Ben" to "Fascists"),
+            winningTeam = null,
+        )
+        assertTrue(result.none { it.isWinner })
+    }
+
+    @Test
+    fun `a player left off a side cannot win by accident`() {
+        val result = PlacementCalculator.applyTeams(
+            sides("Aina" to "Liberals", "Ben" to null),
+            winningTeam = "Liberals",
+        )
+
+        assertTrue(result.first { it.playerName == "Aina" }.isWinner)
+        assertFalse(result.first { it.playerName == "Ben" }.isWinner)
+    }
+
+    @Test
+    fun `the form lists each side once however many players are on it`() {
+        val form = SessionForm(
+            playedOn = java.time.LocalDate.of(2026, 8, 30),
+            scoringMode = ScoringMode.TEAM_BASED,
+            participants = sides(
+                "Aina" to "Liberals",
+                "Ben" to "fascists",
+                "Chandra" to "Liberals",
+                "Dee" to "  ",
+            ),
+        )
+
+        assertEquals(listOf("Liberals", "fascists"), form.teams)
+        assertTrue(form.isTeamBased)
+    }
 }

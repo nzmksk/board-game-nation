@@ -270,6 +270,37 @@ class MigrationTest {
         assertEquals(12.0, rows.first { it.playerId == 1L }.score!!, 0.0)
     }
 
+    // --- teams ----------------------------------------------------------------------
+
+    @Test
+    fun `existing participants come through on no team at all`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "Secret Hitler", designers = "NULL")
+            db.execSQL(
+                """
+                INSERT INTO sessions
+                    (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
+                VALUES (1, 1, '2026-01-05', 45, 7, 0, 0)
+                """.trimIndent(),
+            )
+            db.execSQL("INSERT INTO players (id, name) VALUES (1, 'Aina')")
+            db.execSQL(
+                """
+                INSERT INTO session_players (id, session_id, player_id, is_winner, faction)
+                VALUES (1, 1, 1, 1, 'Hitler')
+                """.trimIndent(),
+            )
+        }
+
+        val db = openMigrated()
+
+        assertTrue("team column added", "team" in columnsOf(db, "session_players"))
+        val participant = db.sessionDao().getParticipants(1).single()
+        assertNull("a win used to belong to a player, not a side", participant.team)
+        assertEquals("Hitler", participant.faction)
+        assertTrue(participant.isWinner)
+    }
+
     // --- integrity ------------------------------------------------------------------
 
     @Test

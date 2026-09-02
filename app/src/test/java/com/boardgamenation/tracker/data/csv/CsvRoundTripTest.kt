@@ -323,6 +323,36 @@ class CsvRoundTripTest {
     }
 
     @Test
+    fun `the side a player was on survives the round trip`() = runTest {
+        populate()
+        val sessionId = db.sessionDao().getAllSessions().first().id
+        val participants = db.sessionDao().getParticipants(sessionId)
+        db.sessionDao().clearParticipants(sessionId)
+        db.sessionDao().insertParticipants(
+            participants.mapIndexed { index, participant ->
+                DatabaseTestFixture.participant(
+                    sessionId = sessionId,
+                    playerId = participant.playerId,
+                    score = participant.score,
+                    isWinner = index == 0,
+                    placement = participant.placement ?: 1,
+                ).copy(team = if (index == 0) "Liberals" else "Fascists")
+            },
+        )
+        val files = exporter.buildFiles()
+        maintenance.wipeUserData()
+
+        importer.import(files, ImportMode.REPLACE)
+
+        val restored = db.sessionDao().getParticipants(sessionId)
+        assertEquals(
+            listOf("Liberals"),
+            restored.filter { it.isWinner }.map { it.team },
+        )
+        assertTrue("every side comes back", restored.all { !it.team.isNullOrBlank() })
+    }
+
+    @Test
     fun `every export file carries a byte order mark and CRLF endings`() = runTest {
         populate()
         val games = exporter.buildFiles().getValue(CsvSchema.GAMES)
