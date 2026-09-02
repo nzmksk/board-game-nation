@@ -15,7 +15,7 @@ BoardGameGeek, and only when you explicitly ask it to import something.
 
 | | |
 |---|---|
-| JDK | 21 |
+| JDK | 25 — what CI builds and tests on. 17 or newer works locally. |
 | Android SDK | Platform 37 (or 36) and matching build-tools |
 | Gradle | Provided by the wrapper — `./gradlew` |
 
