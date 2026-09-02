@@ -1,0 +1,127 @@
+name: Release APK
+
+# Published rather than created: a draft release exists only for the person drafting it, so
+# building one would attach an APK to something nobody can download, and its tag may still
+# move. Publishing is the point at which the tag is fixed and the release is real.
+on:
+  release:
+    types: [published]
+
+# A release is cut once and the asset name is derived from its tag, so two runs would race
+# to upload the same file. Let the one in flight finish rather than cancelling it part way
+# through an upload.
+concurrency:
+  group: release-apk-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+# Attaching an asset to a release is a write to the repository's contents. Nothing else here
+# needs a token.
+permissions:
+  contents: write
+
+jobs:
+  release-apk:
+    name: Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # A release event checks out the commit its tag points at, which is the code the
+      # release claims to be.
+      - uses: actions/checkout@v7
+
+      # Both checks below run before the build, because a release that cannot produce an
+      # installable APK should say so in seconds rather than after a full Gradle run.
+
+      # An unsigned APK will not install, so a missing secret is a failed release rather
+      # than an asset nobody can open. Secrets are not readable from an `if:` expression,
+      # hence a step rather than a condition on the signing one.
+      - name: Check the signing key is configured
+        env:
+          RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          missing=""
+          for name in RELEASE_KEYSTORE RELEASE_KEYSTORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Repository secrets not set:$missing. See 'Signing a release' in the README."
+            exit 1
+          fi
+
+      # The tag is the only place the version can honestly come from, and a tag that is not
+      # a version would ship an APK still calling itself 0.1.0-alpha with a versionCode of
+      # 1 -- which the next release could not upgrade. Cheaper to say so here than to find
+      # it on a phone.
+      - name: Version the release is cut at
+        id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "::error::Tag '$TAG' is not a version like v1.2.3, so there is nothing to stamp the APK with."
+            exit 1
+          fi
+          echo "name=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      # Kept in step with apk.yml and tests.yml: a release must not be built on a JDK that
+      # nothing was tested on.
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # RUNNER_TEMP rather than the workspace: a key sitting inside the checkout is one that
+      # a build input or an artifact upload can pick up by accident.
+      - name: Decode the signing key
+        env:
+          RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
+        run: echo "$RELEASE_KEYSTORE" | base64 --decode > "$RUNNER_TEMP/release.keystore"
+
+      # Release rather than debug: shrunk, not debuggable, and signed with a key only this
+      # repository's secrets hold.
+      #
+      # local.properties is git-ignored, so BGG_API_TOKEN is empty here and the APK reports
+      # BGG as unconfigured -- deliberately, and more so than for the debug APK. BuildConfig
+      # fields are plain strings inside the APK and this one is downloadable by anybody, so
+      # a token supplied here would be a published token.
+      - name: Assemble release APK
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+          RELEASE_KEYSTORE: ${{ runner.temp }}/release.keystore
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew :app:assembleRelease --stacktrace
+
+      # app-release.apk says nothing in a downloads folder, and the release page is where
+      # people go looking for a particular version. Asking for the signed name specifically
+      # also catches a build that fell back to app-release-unsigned.apk.
+      - name: Name the APK after the release
+        id: apk
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+        run: |
+          built=app/build/outputs/apk/release/app-release.apk
+          if [ ! -f "$built" ]; then
+            echo "::error::$built was not produced; the build made no signed APK."
+            exit 1
+          fi
+          asset="$RUNNER_TEMP/board-game-nation-$VERSION.apk"
+          cp "$built" "$asset"
+          echo "path=$asset" >> "$GITHUB_OUTPUT"
+
+      # --clobber so re-running the workflow on a release replaces the asset instead of
+      # failing on the name already being taken.
+      - name: Attach the APK to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          ASSET: ${{ steps.apk.outputs.path }}
+        run: gh release upload "$TAG" "$ASSET" --clobber
