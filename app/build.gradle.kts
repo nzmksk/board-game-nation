@@ -37,9 +37,27 @@ android {
         buildConfigField("String", "BGG_BASE_URL", "\"https://boardgamegeek.com/xmlapi2/\"")
     }
 
+    /**
+     * The debug key is checked in rather than generated per machine. An
+     * auto-generated ~/.android/debug.keystore differs on every developer's box and
+     * on every CI runner, and Android refuses to install an APK over one signed with
+     * a different key — so a reviewer could not update the app with a fresh CI build
+     * without uninstalling and losing their data first. A debug key guards nothing,
+     * so committing it leaks no secret.
+     */
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
         }
         release {
             isMinifyEnabled = true
