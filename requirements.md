@@ -364,7 +364,11 @@ unplayed games ("shelf of shame"), owned-but-never-rated.
 **Plays:** total plays, total hours, plays over time (line chart by month), most-played
 games, longest and shortest actual sessions, average actual duration versus BGG's stated
 playtime per game (a genuinely interesting divergence and worth surfacing prominently),
-plays by day of week, and current/longest streak of consecutive weeks with a play.
+plays by day of week, current/longest streak of consecutive weeks with a play, and the
+first-player advantage -- how often the player who went first won, shown against what
+that seat would have won by chance, since the rate alone reads differently at a table of
+two and a table of five. Per game as well as overall: the advantage is a property of a
+game. Co-op, abandoned, solo and winnerless plays are excluded from it.
 
 **Value:** cost-per-play per game and overall, total spend by year, most and least
 economical purchases. This is the metric that most changes buying behaviour, so give
