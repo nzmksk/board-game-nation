@@ -7,6 +7,7 @@ import com.boardgamenation.tracker.data.db.dao.SessionDao
 import com.boardgamenation.tracker.data.db.dao.TagDao
 import com.boardgamenation.tracker.data.db.entity.GameEntity
 import com.boardgamenation.tracker.data.db.entity.TagEntity
+import com.boardgamenation.tracker.data.db.projection.FactionRecord
 import com.boardgamenation.tracker.data.db.projection.GameAggregates
 import com.boardgamenation.tracker.data.db.projection.GameListItem
 import com.boardgamenation.tracker.data.db.query.GameQueryBuilder
@@ -51,6 +52,10 @@ class GameRepository @Inject constructor(
     fun observeGame(id: Long): Flow<GameEntity?> = gameDao.observeGame(id)
 
     fun observeAggregates(id: Long): Flow<GameAggregates> = gameDao.observeAggregates(id)
+
+    /** Win rate per faction for this game, across everybody who has played it. */
+    fun observeFactionRecords(gameId: Long): Flow<List<FactionRecord>> =
+        gameDao.observeFactionRecords(gameId)
 
     fun observeTags(gameId: Long): Flow<List<TagEntity>> = tagDao.observeForGame(gameId)
 

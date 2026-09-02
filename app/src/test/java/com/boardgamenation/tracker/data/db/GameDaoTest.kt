@@ -343,4 +343,129 @@ class GameDaoTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    // --- faction win rates ----------------------------------------------------------
+
+    /**
+     * Seats [factions] on a play of [gameId], marking the winners named in [winners].
+     */
+    private suspend fun play(
+        gameId: Long,
+        playedOn: String,
+        factions: Map<Long, String>,
+        winners: Set<Long>,
+        incomplete: Boolean = false,
+        draft: Boolean = false,
+    ) {
+        val sessionId = sessionDao.insertSession(
+            DatabaseTestFixture.session(
+                gameId = gameId,
+                playedOn = playedOn,
+                playerCount = factions.size,
+                isIncomplete = incomplete,
+                isDraft = draft,
+            ),
+        )
+        sessionDao.insertParticipants(
+            factions.map { (playerId, faction) ->
+                DatabaseTestFixture.participant(
+                    sessionId = sessionId,
+                    playerId = playerId,
+                    isWinner = playerId in winners,
+                ).copy(faction = faction)
+            },
+        )
+    }
+
+    private suspend fun seedPlayers(vararg names: String): List<Long> =
+        names.map { db.playerDao().insert(DatabaseTestFixture.player(it)) }
+
+    @Test
+    fun `win rate per faction counts every player who used it`() = runTest {
+        val gameId = gameDao.insert(DatabaseTestFixture.game("7 Wonders"))
+        val (aina, ben) = seedPlayers("Aina", "Ben")
+
+        play(gameId, "2026-01-05", mapOf(aina to "Halikarnassos", ben to "Alexandria"), setOf(aina))
+        play(gameId, "2026-01-12", mapOf(aina to "Alexandria", ben to "Halikarnassos"), setOf(aina))
+        play(gameId, "2026-01-19", mapOf(aina to "Halikarnassos", ben to "Alexandria"), setOf(ben))
+
+        val records = gameDao.observeFactionRecords(gameId).first().associateBy { it.faction }
+
+        assertEquals(3, records.getValue("Halikarnassos").plays)
+        assertEquals(1, records.getValue("Halikarnassos").wins)
+        assertEquals(33, records.getValue("Halikarnassos").winPercent)
+        assertEquals(3, records.getValue("Alexandria").plays)
+        assertEquals(2, records.getValue("Alexandria").wins)
+        assertEquals(66, records.getValue("Alexandria").winPercent)
+    }
+
+    @Test
+    fun `factions come back best win rate first`() = runTest {
+        val gameId = gameDao.insert(DatabaseTestFixture.game("7 Wonders"))
+        val (aina, ben) = seedPlayers("Aina", "Ben")
+
+        play(gameId, "2026-01-05", mapOf(aina to "Rhodos", ben to "Ephesos"), setOf(aina))
+        play(gameId, "2026-01-12", mapOf(aina to "Rhodos", ben to "Ephesos"), setOf(aina))
+
+        assertEquals(
+            listOf("Rhodos", "Ephesos"),
+            gameDao.observeFactionRecords(gameId).first().map { it.faction },
+        )
+    }
+
+    /** An abandoned game has no winner; counting it would look like everyone lost. */
+    @Test
+    fun `abandoned and draft plays stay out of the win rate`() = runTest {
+        val gameId = gameDao.insert(DatabaseTestFixture.game("7 Wonders"))
+        val (aina, ben) = seedPlayers("Aina", "Ben")
+
+        play(gameId, "2026-01-05", mapOf(aina to "Babylon", ben to "Olympia"), setOf(aina))
+        play(gameId, "2026-01-12", mapOf(aina to "Babylon"), emptySet(), incomplete = true)
+        play(gameId, "2026-01-19", mapOf(aina to "Babylon"), emptySet(), draft = true)
+
+        val babylon = gameDao.observeFactionRecords(gameId).first().first { it.faction == "Babylon" }
+        assertEquals(1, babylon.plays)
+        assertEquals(100, babylon.winPercent)
+    }
+
+    @Test
+    fun `one faction spelled two ways is one faction`() = runTest {
+        val gameId = gameDao.insert(DatabaseTestFixture.game("7 Wonders"))
+        val (aina, ben) = seedPlayers("Aina", "Ben")
+
+        play(gameId, "2026-01-05", mapOf(aina to "Gizah", ben to "Ephesos"), setOf(aina))
+        play(gameId, "2026-01-12", mapOf(aina to "gizah", ben to "Ephesos"), setOf(ben))
+
+        val records = gameDao.observeFactionRecords(gameId).first()
+        assertEquals(2, records.size)
+        assertEquals(2, records.first { it.faction.equals("Gizah", ignoreCase = true) }.plays)
+    }
+
+    @Test
+    fun `players who recorded no faction are simply absent`() = runTest {
+        val gameId = gameDao.insert(DatabaseTestFixture.game("Catan"))
+        val (aina, ben) = seedPlayers("Aina", "Ben")
+
+        play(gameId, "2026-01-05", mapOf(aina to "   ", ben to "Ephesos"), setOf(aina))
+
+        assertEquals(
+            listOf("Ephesos"),
+            gameDao.observeFactionRecords(gameId).first().map { it.faction },
+        )
+    }
+
+    @Test
+    fun `another game's factions do not leak in`() = runTest {
+        val wonders = gameDao.insert(DatabaseTestFixture.game("7 Wonders"))
+        val root = gameDao.insert(DatabaseTestFixture.game("Root"))
+        val (aina, ben) = seedPlayers("Aina", "Ben")
+
+        play(wonders, "2026-01-05", mapOf(aina to "Rhodos", ben to "Ephesos"), setOf(aina))
+        play(root, "2026-01-06", mapOf(aina to "Marquise", ben to "Eyrie"), setOf(ben))
+
+        assertEquals(
+            listOf("Marquise", "Eyrie").sorted(),
+            gameDao.observeFactionRecords(root).first().map { it.faction }.sorted(),
+        )
+    }
 }

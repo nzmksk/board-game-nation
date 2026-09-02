@@ -88,6 +88,24 @@ data class SessionParticipant(
     @ColumnInfo(name = "bank_time_remaining_ms") val bankTimeRemainingMs: Long?,
 )
 
+/**
+ * How one faction has fared in one game, across everybody who has played it.
+ *
+ * Deliberately not per player: the question this answers is whether the game is
+ * balanced, so Halikarnassos winning 30% of the time is the figure, no matter who was
+ * sitting behind it.
+ */
+data class FactionRecord(
+    @ColumnInfo(name = "faction") val faction: String,
+
+    /** Completed plays with this faction. Abandoned games have no result to count. */
+    @ColumnInfo(name = "plays") val plays: Int,
+    @ColumnInfo(name = "wins") val wins: Int,
+) {
+    /** Whole percent, matching how every other win rate in the app is shown. */
+    val winPercent: Int get() = if (plays > 0) wins * 100 / plays else 0
+}
+
 /** A generic label/value pair backing the chart cards. */
 data class LabelledValue(
     @ColumnInfo(name = "label") val label: String,

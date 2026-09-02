@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.boardgamenation.tracker.data.db.entity.GameEntity
 import com.boardgamenation.tracker.data.db.entity.TagEntity
+import com.boardgamenation.tracker.data.db.projection.FactionRecord
 import com.boardgamenation.tracker.data.db.projection.GameAggregates
 import com.boardgamenation.tracker.data.db.projection.RatingWithRubric
 import com.boardgamenation.tracker.data.db.projection.SessionListItem
@@ -31,6 +32,10 @@ data class GameDetailUiState(
     val sessions: List<SessionListItem> = emptyList(),
     val expansions: List<GameEntity> = emptyList(),
     val ratings: List<RatingWithRubric> = emptyList(),
+
+    /** Win rate per faction, best first. Empty until somebody records a faction. */
+    val factions: List<FactionRecord> = emptyList(),
+
     val daysOnLoan: Long? = null,
     val isLoading: Boolean = true,
 ) {
@@ -76,8 +81,10 @@ class GameDetailViewModel @Inject constructor(
         combine(
             gameRepository.observeExpansions(gameId),
             rubricRepository.observeRatingsFor(gameId),
-        ) { expansions, ratings -> expansions to ratings },
-    ) { game, aggregates, tags, sessions, (expansions, ratings) ->
+            gameRepository.observeFactionRecords(gameId),
+            ::Triple,
+        ),
+    ) { game, aggregates, tags, sessions, (expansions, ratings, factions) ->
         GameDetailUiState(
             game = game,
             aggregates = aggregates,
@@ -85,6 +92,7 @@ class GameDetailViewModel @Inject constructor(
             sessions = sessions,
             expansions = expansions,
             ratings = ratings,
+            factions = factions,
             daysOnLoan = gameRepository.daysOnLoan(game?.lentDate),
             isLoading = false,
         )
