@@ -160,7 +160,7 @@ interface StatsDao {
         SELECT
             s.id, s.game_id, g.title AS game_title, g.thumbnail_path,
             s.played_on, s.duration_minutes, s.player_count, s.location,
-            s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won,
+            s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won, s.mode,
             s.is_incomplete, s.is_teaching_game, s.end_reason,
             (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
