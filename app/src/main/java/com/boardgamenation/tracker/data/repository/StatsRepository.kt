@@ -5,6 +5,7 @@ import com.boardgamenation.tracker.core.time.DateUtils
 import com.boardgamenation.tracker.data.db.dao.StatsDao
 import com.boardgamenation.tracker.data.db.projection.CostPerPlayRow
 import com.boardgamenation.tracker.data.db.projection.DurationVsExpectedRow
+import com.boardgamenation.tracker.data.db.projection.FirstPlayerRecord
 import com.boardgamenation.tracker.data.db.projection.GameWinRateRow
 import com.boardgamenation.tracker.data.db.projection.HeadToHeadRow
 import com.boardgamenation.tracker.data.db.projection.LabelledValue
@@ -51,6 +52,16 @@ class StatsRepository @Inject constructor(
     fun durationVsExpected(minPlays: Int = 2, limit: Int = 10): Flow<List<DurationVsExpectedRow>> =
         statsDao.observeDurationVsExpected(minPlays, limit)
     fun hIndex(): Flow<Int> = statsDao.observeHIndex()
+
+    /**
+     * How the first seat has fared, over every game or over one of them.
+     *
+     * Returned whole rather than as a bare percentage: the rate is only readable
+     * beside the chance baseline that travels with it, and the play count is what
+     * separates a finding from a coincidence.
+     */
+    fun firstPlayerRecord(gameId: Long? = null): Flow<FirstPlayerRecord> =
+        statsDao.observeFirstPlayerRecord(gameId)
 
     /**
      * The weekly streak.

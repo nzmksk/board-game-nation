@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import com.boardgamenation.tracker.data.db.projection.CostPerPlayRow
 import com.boardgamenation.tracker.data.db.projection.DurationVsExpectedRow
+import com.boardgamenation.tracker.data.db.projection.FirstPlayerRecord
 import com.boardgamenation.tracker.data.db.projection.GameWinRateRow
 import com.boardgamenation.tracker.data.db.projection.HeadToHeadRow
 import com.boardgamenation.tracker.data.db.projection.LabelledValue
@@ -238,6 +239,48 @@ interface StatsDao {
         """,
     )
     fun observeHIndex(): Flow<Int>
+
+    /**
+     * How often the player who went first won, and how often the first seat would have
+     * won if going first meant nothing.
+     *
+     * The bare rate is not readable on its own: 40% is a rout at a table of five and a
+     * losing record at a table of two. The chance figure is the average, per play, of
+     * the winners divided by the players, so a mixed pile of two- and five-player plays
+     * still gets a baseline the actual rate can be held against.
+     *
+     * Co-op plays are out, as they are everywhere a win rate is computed -- the table
+     * wins or loses together, so who started says nothing. Abandoned plays are out for
+     * the reason they are out of the faction records: nobody won them. So are solo
+     * plays, where the only player also went first and would push the rate to 100%
+     * while measuring nothing, and plays with no winner recorded, which would drag it
+     * down the same way.
+     *
+     * Passing a game id narrows it to that game, which is the form worth reading: a
+     * first-player advantage is a property of a game, not of a shelf.
+     */
+    @Query(
+        """
+        SELECT
+            COUNT(*) AS plays,
+            COALESCE(SUM(t.first_won), 0) AS wins,
+            AVG(t.chance) * 100.0 AS expected_win_rate
+        FROM (
+            SELECT
+                MAX(sp.turn_order = 1 AND sp.is_winner = 1) AS first_won,
+                SUM(sp.is_winner) * 1.0 / COUNT(*) AS chance
+            FROM sessions s
+            JOIN session_players sp ON sp.session_id = s.id
+            WHERE s.is_draft = 0 AND s.is_incomplete = 0 AND s.is_cooperative = 0
+              AND (:gameId IS NULL OR s.game_id = :gameId)
+            GROUP BY s.id
+            HAVING SUM(sp.turn_order = 1) = 1
+               AND COUNT(*) > 1
+               AND SUM(sp.is_winner) > 0
+        ) t
+        """,
+    )
+    fun observeFirstPlayerRecord(gameId: Long?): Flow<FirstPlayerRecord>
 
     // --- value --------------------------------------------------------------------
 
