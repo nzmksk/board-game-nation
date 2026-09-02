@@ -45,7 +45,7 @@ jobs:
         run: ./gradlew :app:assembleDebug --stacktrace
 
       - name: Upload APK
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: app-debug-${{ steps.rev.outputs.short }}
           path: app/build/outputs/apk/debug/*.apk
