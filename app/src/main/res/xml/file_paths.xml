@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The only thing this app ever hands to another one: a rendered result card.
+
+    Scoped to a single cache subdirectory rather than the whole cache, so a grant made
+    for a shared picture can never reach the BGG image cache or anything else that
+    happens to be sitting in there.
+-->
+<paths>
+    <cache-path name="shared_results" path="share/" />
+</paths>

@@ -1,5 +1,6 @@
 package com.boardgamenation.tracker.ui.sessionedit
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,9 +18,11 @@ import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TurnOrder
+import com.boardgamenation.tracker.domain.share.ShareCard
 import com.boardgamenation.tracker.domain.usecase.DeleteSessionUseCase
 import com.boardgamenation.tracker.domain.usecase.EditSessionUseCase
 import com.boardgamenation.tracker.domain.usecase.SaveSessionUseCase
+import com.boardgamenation.tracker.share.SessionShareImages
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -53,13 +56,21 @@ data class SessionEditUiState(
 
     val isNew: Boolean = true,
     val isSaving: Boolean = false,
+
+    /** True while the result card is being drawn, which takes a moment on a big table. */
+    val isSharing: Boolean = false,
     val validationError: Int? = null,
 )
 
-/** Emitted once, when the screen should close. */
+/** Emitted once, for something the screen has to do rather than draw. */
 sealed interface SessionEditEvent {
     data class Saved(val sessionId: Long, val unlockedNames: List<String>) : SessionEditEvent
     data object Deleted : SessionEditEvent
+
+    /** A rendered result card, ready for the share sheet. */
+    data class ShareReady(val image: Uri, val label: String) : SessionEditEvent
+
+    data object ShareFailed : SessionEditEvent
 }
 
 @HiltViewModel
@@ -71,6 +82,7 @@ class SessionEditViewModel @Inject constructor(
     private val saveSession: SaveSessionUseCase,
     private val editSession: EditSessionUseCase,
     private val deleteSession: DeleteSessionUseCase,
+    private val shareImages: SessionShareImages,
     private val clock: AppClock,
 ) : ViewModel() {
 
@@ -300,6 +312,30 @@ class SessionEditViewModel @Inject constructor(
             _events.emit(
                 SessionEditEvent.Saved(result.sessionId, result.newlyUnlocked.map { it.name }),
             )
+        }
+    }
+
+    /**
+     * Draws this play's result card and hands it to the screen to share.
+     *
+     * The card is built from what was saved rather than from what is on the form. A
+     * placement is derived when a session is written, so a form with edited scores in it
+     * has not been ranked yet -- sharing it would publish a standings table the app
+     * itself does not agree with. The picture is of the record.
+     */
+    fun share() {
+        val id = _state.value.form.id
+        if (id == 0L || _state.value.isSharing) return
+
+        _state.value = _state.value.copy(isSharing = true)
+        viewModelScope.launch {
+            val form = sessionRepository.loadForm(id)
+            val event = form
+                ?.let { runCatching { shareImages.write(ShareCard.of(it)) }.getOrNull() }
+                ?.let { SessionEditEvent.ShareReady(it, form.gameTitle) }
+                ?: SessionEditEvent.ShareFailed
+            _state.value = _state.value.copy(isSharing = false)
+            _events.emit(event)
         }
     }
 

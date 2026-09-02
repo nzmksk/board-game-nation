@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,6 +39,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,6 +65,7 @@ import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
+import com.boardgamenation.tracker.share.shareImageChooser
 import com.boardgamenation.tracker.ui.components.ConfirmDialog
 import com.boardgamenation.tracker.ui.components.PlayerDot
 import com.boardgamenation.tracker.ui.components.IsoDateField
@@ -79,6 +83,12 @@ fun SessionEditScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var deleteOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val snackbarHost = remember { SnackbarHostState() }
+
+    // Resolved at composition: the events arrive on a coroutine, which has no
+    // composable scope to read resources from.
+    val chooserTitle = stringResource(R.string.share_chooser_title)
+    val shareFailed = stringResource(R.string.share_failed)
 
     // The photo picker hands back a uri the app can only read while the permission
     // lasts, so the read grant is persisted before the uri is stored.
@@ -100,6 +110,12 @@ fun SessionEditScreen(
             when (event) {
                 is SessionEditEvent.Saved -> onSaved(event.sessionId, event.unlockedNames)
                 SessionEditEvent.Deleted -> onBack()
+                is SessionEditEvent.ShareReady -> context.startActivity(
+                    shareImageChooser(event.image, event.label, chooserTitle),
+                )
+                // A snackbar rather than a dialog: nothing was lost, the picture simply
+                // did not get made, and the play is still sitting there to try again on.
+                SessionEditEvent.ShareFailed -> snackbarHost.showSnackbar(shareFailed)
             }
         }
     }
@@ -125,6 +141,12 @@ fun SessionEditScreen(
                 },
                 actions = {
                     if (!state.isNew) {
+                        IconButton(onClick = viewModel::share, enabled = !state.isSharing) {
+                            Icon(
+                                Icons.Filled.Share,
+                                contentDescription = stringResource(R.string.action_share),
+                            )
+                        }
                         IconButton(onClick = { deleteOpen = true }) {
                             Icon(
                                 Icons.Filled.Delete,
@@ -138,6 +160,7 @@ fun SessionEditScreen(
                 },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHost) },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
