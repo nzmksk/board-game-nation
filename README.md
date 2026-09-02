@@ -38,6 +38,10 @@ It is a debug build — unshrunk, debuggable, signed with the shared debug key, 
 features switched off because CI holds no token. Fine for putting a change on a device to
 look at; not something to hand anybody as a release.
 
+Because the debug key is `app/debug.keystore` rather than one each machine makes up, every
+build installs over any other — a later APK, an earlier one, or your own local build —
+without uninstalling first, so the app data you set up to test with survives.
+
 ### BoardGameGeek access
 
 Since BGG's 2025-07-02 policy revision, the XML API2 needs a registered application and a
