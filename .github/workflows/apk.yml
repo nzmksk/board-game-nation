@@ -1,0 +1,53 @@
+name: APK
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+# Only the newest commit on the branch is worth an APK; a superseded build is one
+# nobody will install.
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  debug-apk:
+    name: Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The artifact name is what a reviewer reads in the run summary and what the
+      # downloaded zip is called, so it carries the commit the APK was built from.
+      - name: Short SHA of the reviewed commit
+        id: rev
+        env:
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: echo "short=${SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      # Debug rather than release: a release APK would need a signing key the
+      # repository deliberately does not hold, and an unsigned one will not install.
+      #
+      # local.properties is git-ignored, so BGG_API_TOKEN is empty here and the APK
+      # comes out with BGG features reporting themselves unconfigured. sdk.dir is not
+      # needed either — the runner already exports ANDROID_HOME.
+      - name: Assemble debug APK
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: app-debug-${{ steps.rev.outputs.short }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
