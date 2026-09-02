@@ -66,8 +66,12 @@ first, which takes the app's data with it — pick one for a device that matters
 #### Signing a release
 
 The debug key is committed because it guards nothing. The release key guards everything: it
-is what stops somebody else publishing an update over your install. Generate one once and
-keep it somewhere you will still have it in five years.
+is what stops somebody else publishing an update over your install. None of the four values
+below is looked up anywhere — you invent them here, once, generating a keystore you then keep
+somewhere you will still have it in five years.
+
+Pick a long password first. `-validity 10000` is about twenty-seven years, because a
+certificate that has expired is one you can no longer sign an update with.
 
 ```bash
 keytool -genkeypair -v -keystore release.keystore -alias board-game-nation \
@@ -80,9 +84,14 @@ Then set four repository secrets under **Settings → Secrets and variables → 
 | Secret | Value |
 |---|---|
 | `RELEASE_KEYSTORE` | The base64 of `release.keystore` |
-| `RELEASE_KEYSTORE_PASSWORD` | The store password |
-| `RELEASE_KEY_ALIAS` | `board-game-nation` |
-| `RELEASE_KEY_PASSWORD` | The key password |
+| `RELEASE_KEYSTORE_PASSWORD` | The password `keytool` asked for |
+| `RELEASE_KEY_ALIAS` | `board-game-nation`, or whatever `-alias` you chose |
+| `RELEASE_KEY_PASSWORD` | The same password again — see below |
+
+`keytool` has written PKCS12 keystores since JDK 9, and one PKCS12 password covers the key
+as well: pass `-keypass` something different and it tells you so and discards it — *"Different
+store and key passwords not supported for PKCS12 KeyStores"*. Gradle asks for both regardless,
+so the two secrets hold the same value. Different ones fail at signing, after the build.
 
 The workflow checks all four are present before it builds, so a missing one costs seconds
 rather than a full Gradle run. Losing the keystore is the expensive mistake: every release
