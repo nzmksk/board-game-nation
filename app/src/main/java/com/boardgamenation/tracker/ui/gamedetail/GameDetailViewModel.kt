@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import com.boardgamenation.tracker.data.db.entity.GameEntity
 import com.boardgamenation.tracker.data.db.entity.TagEntity
 import com.boardgamenation.tracker.data.db.projection.FactionRecord
+import com.boardgamenation.tracker.data.db.projection.FirstPlayerRecord
 import com.boardgamenation.tracker.data.db.projection.GameAggregates
 import com.boardgamenation.tracker.data.db.projection.RatingWithRubric
 import com.boardgamenation.tracker.data.db.projection.SessionListItem
@@ -15,6 +16,7 @@ import com.boardgamenation.tracker.data.repository.GameRepository
 import com.boardgamenation.tracker.data.repository.RubricRepository
 import com.boardgamenation.tracker.data.repository.SessionFilter
 import com.boardgamenation.tracker.data.repository.SessionRepository
+import com.boardgamenation.tracker.data.repository.StatsRepository
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +37,9 @@ data class GameDetailUiState(
 
     /** Win rate per faction, best first. Empty until somebody records a faction. */
     val factions: List<FactionRecord> = emptyList(),
+
+    /** How the first seat has fared here. Empty until a play names who started. */
+    val firstPlayer: FirstPlayerRecord = FirstPlayerRecord(0, 0, null),
 
     val daysOnLoan: Long? = null,
     val isLoading: Boolean = true,
@@ -63,9 +68,23 @@ class GameDetailViewModel @Inject constructor(
     private val gameRepository: GameRepository,
     private val sessionRepository: SessionRepository,
     private val rubricRepository: RubricRepository,
+    statsRepository: StatsRepository,
 ) : ViewModel() {
 
     val gameId: Long = savedStateHandle.toRoute<Route.GameDetail>().gameId
+
+    /**
+     * The flows that do not fit in one combine, which takes five.
+     *
+     * Named rather than nested pairs and triples: a positional shape has to be counted
+     * out to be read, and it miscasts silently the day somebody reorders it.
+     */
+    private data class Extras(
+        val expansions: List<GameEntity>,
+        val ratings: List<RatingWithRubric>,
+        val factions: List<FactionRecord>,
+        val firstPlayer: FirstPlayerRecord,
+    )
 
     private val _deletePrompt = MutableStateFlow<DeletePrompt?>(null)
     val deletePrompt: StateFlow<DeletePrompt?> = _deletePrompt
@@ -82,17 +101,19 @@ class GameDetailViewModel @Inject constructor(
             gameRepository.observeExpansions(gameId),
             rubricRepository.observeRatingsFor(gameId),
             gameRepository.observeFactionRecords(gameId),
-            ::Triple,
+            statsRepository.firstPlayerRecord(gameId),
+            ::Extras,
         ),
-    ) { game, aggregates, tags, sessions, (expansions, ratings, factions) ->
+    ) { game, aggregates, tags, sessions, extras ->
         GameDetailUiState(
             game = game,
             aggregates = aggregates,
             tags = tags,
             sessions = sessions,
-            expansions = expansions,
-            ratings = ratings,
-            factions = factions,
+            expansions = extras.expansions,
+            ratings = extras.ratings,
+            factions = extras.factions,
+            firstPlayer = extras.firstPlayer,
             daysOnLoan = gameRepository.daysOnLoan(game?.lentDate),
             isLoading = false,
         )

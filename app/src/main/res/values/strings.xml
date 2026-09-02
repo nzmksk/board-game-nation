@@ -108,6 +108,7 @@
     <string name="game_detail_stated_duration">BGG says</string>
     <string name="game_detail_cost_per_play">Cost per play</string>
     <string name="game_detail_never_played">Never played</string>
+    <string name="game_detail_first_player">Does going first win?</string>
     <string name="game_detail_factions">Win rate by faction</string>
     <string name="game_detail_faction_plays">%1$d of %2$d</string>
     <string name="game_detail_play_history">Play history</string>
