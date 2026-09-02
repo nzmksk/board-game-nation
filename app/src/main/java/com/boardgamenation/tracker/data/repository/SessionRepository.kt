@@ -325,12 +325,13 @@ class SessionRepository @Inject constructor(
 }
 
 /**
- * A draft's player row. Only what the clock can know: the result columns stay empty
- * until the session form fills them in.
+ * A draft's player row. Only what the clock can know -- who was at the table and where
+ * they sat -- with the result columns left empty until the session form fills them in.
  */
 private fun ParticipantForm.toDraftRow(sessionId: Long) = SessionPlayerEntity(
     sessionId = sessionId,
     playerId = playerId,
+    turnOrder = turnOrder,
     turnTimeMs = turnTimeMs,
     bankTimeRemainingMs = bankTimeRemainingMs,
 )

@@ -122,11 +122,14 @@ class TimerController @Inject constructor(
         val sessionId = current.sessionId
             ?: sessionRepository.createDraft(
                 gameId = current.gameId,
-                players = current.seats.map {
+                // The seat list is the turn order the table sat down in, so the seat
+                // index is the position that belongs on the play.
+                players = current.seats.mapIndexed { index, seat ->
                     ParticipantForm(
-                        playerId = it.playerId,
-                        playerName = it.name,
-                        colorHex = it.colorHex,
+                        playerId = seat.playerId,
+                        playerName = seat.name,
+                        colorHex = seat.colorHex,
+                        turnOrder = index + 1,
                     )
                 },
             )
@@ -205,11 +208,14 @@ class TimerController @Inject constructor(
             pausedMs = stopped.accumulatedPausedMs,
             startedAt = stopped.startedAtWallMs,
             endedAt = clock.nowMillis(),
-            participants = stopped.seats.map { seat ->
+            participants = stopped.seats.mapIndexed { index, seat ->
                 ParticipantForm(
                     playerId = seat.playerId,
                     playerName = seat.name,
                     colorHex = seat.colorHex,
+                    // Where the seats sat, not something the clock measured: it holds
+                    // for a count-up clock too, which the per-player times below do not.
+                    turnOrder = index + 1,
                     // A count-up clock timed the table, so there is no per-player time to
                     // report. Writing zeroes would look like everyone sat there silently.
                     turnTimeMs = seat.totalTurnTimeMs.takeUnless { stopped.isCountUp },

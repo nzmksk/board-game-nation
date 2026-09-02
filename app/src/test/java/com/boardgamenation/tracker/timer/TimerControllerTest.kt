@@ -8,6 +8,7 @@ import com.boardgamenation.tracker.data.db.DatabaseTestFixture
 import com.boardgamenation.tracker.data.db.entity.PlayerEntity
 import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.data.repository.TimerRepository
+import com.boardgamenation.tracker.domain.model.TimerMode
 import com.boardgamenation.tracker.domain.timer.TimerConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -18,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -170,5 +172,50 @@ class TimerControllerTest {
         )
 
         controller.discard()
+    }
+
+    /**
+     * The seating configured on the setup screen *is* the turn order, and the play was
+     * the one the clock timed. Asking again on the session form would be asking the user
+     * to re-enter something they already told the app.
+     */
+    @Test
+    fun `the seating survives the handover as the turn order`() = runTest(dispatcher) {
+        playFourMinutes()
+        val summary = controller.stopAndSummarise()!!
+
+        val form = sessionRepository.loadForm(summary.sessionId!!)!!
+        assertEquals(listOf(1, 2), form.participants.map { it.turnOrder })
+        assertEquals(me.id, form.firstPlayer?.playerId)
+    }
+
+    @Test
+    fun `a draft knows the turn order before the clock is ever stopped`() = runTest(dispatcher) {
+        controller.setUp(gameId, listOf(ben, me), TimerConfig())
+        controller.start()
+
+        val draft = sessionRepository.getDrafts().single()
+        val form = sessionRepository.loadForm(draft.id)!!
+        assertEquals(listOf(ben.id, me.id), form.participants.map { it.playerId })
+        assertEquals(listOf(1, 2), form.participants.map { it.turnOrder })
+
+        controller.discard()
+    }
+
+    /**
+     * A count-up clock times the table rather than the seats, so it has no per-player
+     * time to report. Where people sat is not a measurement, though: the user entered it
+     * on the setup screen, and it is just as true of a game clock.
+     */
+    @Test
+    fun `a count-up clock still hands over the turn order`() = runTest(dispatcher) {
+        controller.setUp(gameId, listOf(me, ben), TimerConfig(mode = TimerMode.COUNT_UP))
+        controller.start()
+        elapsed.advance(240_000)
+        val summary = controller.stopAndSummarise()!!
+
+        val form = sessionRepository.loadForm(summary.sessionId!!)!!
+        assertEquals(listOf(1, 2), form.participants.map { it.turnOrder })
+        assertNull(form.participants.first().turnTimeMs)
     }
 }
