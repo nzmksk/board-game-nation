@@ -44,6 +44,16 @@ val appVersionCode: Int = Regex("""^(\d+)\.(\d+)\.(\d+)""").find(appVersionName)
         major.toInt() * 10_000 + minor.toInt() * 100 + patch.toInt()
     } ?: 1
 
+/**
+ * The release key, unlike the debug one below, is the thing that stops anybody else
+ * publishing an update over a real install -- so it is never in the repository. CI decodes
+ * it out of a secret onto the runner and points RELEASE_KEYSTORE at the file. With nothing
+ * supplied the release build still assembles; it just comes out unsigned, and an unsigned
+ * APK will not install.
+ */
+val releaseKeystore: String? = providers.environmentVariable("RELEASE_KEYSTORE")
+    .orNull?.takeIf { it.isNotBlank() }
+
 android {
     namespace = "com.boardgamenation.tracker"
     compileSdk = 37
@@ -77,6 +87,14 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = providers.environmentVariable("RELEASE_KEYSTORE_PASSWORD").orNull
+                keyAlias = providers.environmentVariable("RELEASE_KEY_ALIAS").orNull
+                keyPassword = providers.environmentVariable("RELEASE_KEY_PASSWORD").orNull
+            }
+        }
     }
 
     buildTypes {
@@ -88,6 +106,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Null when no key was supplied, which is the unsigned build described above.
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
