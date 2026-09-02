@@ -22,7 +22,6 @@ val bggToken: String = Properties().apply {
 android {
     namespace = "com.boardgamenation.tracker"
     compileSdk = 37
-    compileSdkMinor = 1
 
     defaultConfig {
         applicationId = "com.boardgamenation.tracker"
