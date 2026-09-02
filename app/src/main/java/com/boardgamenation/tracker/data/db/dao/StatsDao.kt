@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import com.boardgamenation.tracker.data.db.projection.CostPerPlayRow
 import com.boardgamenation.tracker.data.db.projection.DurationVsExpectedRow
+import com.boardgamenation.tracker.data.db.projection.GameWinRateRow
 import com.boardgamenation.tracker.data.db.projection.HeadToHeadRow
 import com.boardgamenation.tracker.data.db.projection.LabelledValue
 import com.boardgamenation.tracker.data.db.projection.PlayerStandingRow
@@ -358,18 +359,32 @@ interface StatsDao {
     )
     fun observeAverageScoreByGame(playerId: Long, limit: Int): Flow<List<LabelledValue>>
 
+    /**
+     * Every game the player has a competitive play of. There is no minimum sample: a
+     * profile is a record of what someone has played, and hiding the games played once
+     * leaves a player who is still building a history looking at a single bar.
+     *
+     * Co-op plays stay out, as everywhere a win rate is computed. The table wins or
+     * loses together, so counting those says nothing about one player.
+     *
+     * The sample size comes back with the rate so the screen can qualify it, and equal
+     * rates are ranked by plays -- five wins from five outranks one from one, which is
+     * the order anyone reading the list already has in mind.
+     */
     @Query(
         """
-        SELECT g.title AS label,
-               COALESCE(SUM(sp.is_winner), 0) * 100.0 / COUNT(*) AS value
+        SELECT g.id AS game_id,
+               g.title AS title,
+               COUNT(*) AS plays,
+               COALESCE(SUM(sp.is_winner), 0) AS wins,
+               COALESCE(SUM(sp.is_winner), 0) * 100.0 / COUNT(*) AS win_rate
         FROM session_players sp
         JOIN sessions s ON s.id = sp.session_id AND s.is_draft = 0 AND s.is_cooperative = 0
         JOIN games g ON g.id = s.game_id
         WHERE sp.player_id = :playerId
         GROUP BY g.id
-        HAVING COUNT(*) >= :minPlays
-        ORDER BY value DESC, label COLLATE NOCASE
+        ORDER BY win_rate DESC, plays DESC, title COLLATE NOCASE
         """,
     )
-    fun observeWinRateByGame(playerId: Long, minPlays: Int): Flow<List<LabelledValue>>
+    fun observeWinRateByGame(playerId: Long): Flow<List<GameWinRateRow>>
 }

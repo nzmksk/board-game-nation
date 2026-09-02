@@ -5,6 +5,7 @@ import com.boardgamenation.tracker.core.time.DateUtils
 import com.boardgamenation.tracker.data.db.dao.StatsDao
 import com.boardgamenation.tracker.data.db.projection.CostPerPlayRow
 import com.boardgamenation.tracker.data.db.projection.DurationVsExpectedRow
+import com.boardgamenation.tracker.data.db.projection.GameWinRateRow
 import com.boardgamenation.tracker.data.db.projection.HeadToHeadRow
 import com.boardgamenation.tracker.data.db.projection.LabelledValue
 import com.boardgamenation.tracker.data.db.projection.PlayerStandingRow
@@ -92,8 +93,8 @@ class StatsRepository @Inject constructor(
             .maxByOrNull { it.opponentWins.toDouble() / it.sharedPlays }
     }
 
-    fun winRateByGame(playerId: Long, minPlays: Int = 2): Flow<List<LabelledValue>> =
-        statsDao.observeWinRateByGame(playerId, minPlays)
+    fun winRateByGame(playerId: Long): Flow<List<GameWinRateRow>> =
+        statsDao.observeWinRateByGame(playerId)
 
     fun averageScoreByGame(playerId: Long, limit: Int = 10): Flow<List<LabelledValue>> =
         statsDao.observeAverageScoreByGame(playerId, limit)

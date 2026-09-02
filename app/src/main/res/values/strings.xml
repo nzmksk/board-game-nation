@@ -356,6 +356,8 @@
     <string name="stats_no_data">Not enough data yet.</string>
     <string name="stats_plays_value">%1$d plays</string>
     <string name="stats_win_rate_value">%1$d%% wins</string>
+    <!-- A win rate with the number of plays it was taken over: 88% (8) -->
+    <string name="stats_win_rate_over_plays">%1$d%% (%2$d)</string>
 
     <!-- Achievements -->
     <string name="achievements_title">Achievements</string>

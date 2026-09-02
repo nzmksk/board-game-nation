@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.toRoute
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.data.db.entity.PlayerEntity
+import com.boardgamenation.tracker.data.db.projection.GameWinRateRow
 import com.boardgamenation.tracker.data.db.projection.LabelledValue
 import com.boardgamenation.tracker.data.db.projection.SessionListItem
 import com.boardgamenation.tracker.data.repository.PlayerRepository
@@ -49,7 +50,7 @@ import kotlin.math.roundToInt
 
 data class PlayerDetailState(
     val player: PlayerEntity? = null,
-    val winRateByGame: List<LabelledValue> = emptyList(),
+    val winRateByGame: List<GameWinRateRow> = emptyList(),
     val averageScores: List<LabelledValue> = emptyList(),
     val sessions: List<SessionListItem> = emptyList(),
     val plays: Int = 0,
@@ -140,8 +141,20 @@ fun PlayerDetailScreen(
             item {
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     HorizontalBarChart(
-                        data = state.winRateByGame.map { it.label to it.value },
-                        valueFormatter = { "${it.roundToInt()}%" },
+                        data = state.winRateByGame.map { it.title to it.winRate },
+                        maxRows = state.winRateByGame.size,
+                        // The rate on its own would rank a first-play fluke level with a
+                        // game somebody has actually learnt; the play count is what tells
+                        // the two apart.
+                        valueLabels = state.winRateByGame.map {
+                            stringResource(
+                                R.string.stats_win_rate_over_plays,
+                                it.winRate.roundToInt(),
+                                it.plays,
+                            )
+                        },
+                        valueWidth = 72.dp,
+                        scaleMax = 100.0,
                     )
                 }
             }
