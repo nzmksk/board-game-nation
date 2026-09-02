@@ -20,12 +20,13 @@ jobs:
       - uses: actions/checkout@v7
 
       # AGP wants JDK 17 or newer; the app compiles against 17 either way, so the
-      # bytecode is the same as a local build.
+      # bytecode is the same as a local build. Kept in step with apk.yml so a change
+      # cannot pass its tests on one JDK and ship an APK built on another.
       - name: Set up JDK
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
