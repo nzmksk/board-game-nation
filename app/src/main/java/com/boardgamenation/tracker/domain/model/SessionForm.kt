@@ -31,6 +31,9 @@ data class SessionForm(
     val highScoreWins: Boolean = true,
     val coopOutcome: CoopOutcome? = null,
 
+    /** The configuration played: expansion set, modules, level, scenario. Free text. */
+    val mode: String? = null,
+
     /** Null means the play ran to final scoring, which is the ordinary case. */
     val endCondition: SessionEndCondition? = null,
 

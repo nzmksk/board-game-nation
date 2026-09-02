@@ -207,8 +207,18 @@ object Migrations {
     }
 
     /**
+     * Records the configuration a game was played at -- modules, level, scenario.
+     *
+     * Additive and nullable: a null `mode` means nobody recorded one, which is what
+     * every session written before this migration is. Nothing needs backfilling.
+     */
+    private val MIGRATION_4_5 = Migration(4, 5) { db ->
+        db.execSQL("ALTER TABLE sessions ADD COLUMN mode TEXT")
+    }
+
+    /**
      * Ordered oldest to newest. Room composes them, so a device three versions behind
      * walks the chain rather than needing a 1-to-4 migration of its own.
      */
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 }

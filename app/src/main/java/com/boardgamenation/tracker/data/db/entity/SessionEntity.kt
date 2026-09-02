@@ -48,6 +48,17 @@ data class SessionEntity(
     @ColumnInfo(name = "is_cooperative", defaultValue = "0") val isCooperative: Boolean = false,
     @ColumnInfo(name = "coop_outcome") val coopOutcome: CoopOutcome? = null,
 
+    /**
+     * The configuration the game was set up with: Pandemic's module and epidemic count,
+     * Bomb Busters' level number, Sky Team's airport, but equally Catan's scenario or
+     * Azul's board side. Not a co-op idea -- any game can be played more than one way.
+     *
+     * Free text on purpose. Every game expresses its variants differently and a
+     * structured column would have to be reinvented per game; what the user needs is
+     * their own wording back, which the form offers as chips from previous plays.
+     */
+    @ColumnInfo(name = "mode") val mode: String? = null,
+
     /** Abandoned before finishing: counted in play totals, excluded from duration averages. */
     @ColumnInfo(name = "is_incomplete", defaultValue = "0") val isIncomplete: Boolean = false,
 

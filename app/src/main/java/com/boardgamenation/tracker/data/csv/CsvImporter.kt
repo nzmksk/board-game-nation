@@ -495,6 +495,7 @@ class CsvImporter @Inject constructor(
                     location = row.string("location"),
                     isCooperative = row.boolean("is_cooperative"),
                     coopOutcome = CoopOutcome.fromStorage(row.string("coop_outcome")),
+                    mode = row.string("mode"),
                     endCondition = SessionEndCondition.fromStorage(row.string("end_condition")),
                     endReason = row.string("end_reason"),
                     isIncomplete = row.boolean("is_incomplete"),

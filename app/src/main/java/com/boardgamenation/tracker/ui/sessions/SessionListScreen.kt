@@ -234,14 +234,21 @@ fun SessionRow(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                val outcome = when {
-                    session.isCooperative && session.coopWon ->
-                        stringResource(R.string.session_coop_win)
-                    session.isCooperative -> stringResource(R.string.session_coop_loss)
-                    !session.winnerNames.isNullOrBlank() ->
-                        stringResource(R.string.session_winner, session.winnerNames)
-                    else -> null
-                }
+                // A result means little without what it was played at -- a co-op's
+                // level, a competitive game's scenario or board side -- so the
+                // configuration rides along with the outcome rather than below it.
+                val outcome = withMode(
+                    outcome = when {
+                        session.isCooperative && session.coopWon ->
+                            stringResource(R.string.session_coop_win)
+                        session.isCooperative ->
+                            stringResource(R.string.session_coop_loss)
+                        !session.winnerNames.isNullOrBlank() ->
+                            stringResource(R.string.session_winner, session.winnerNames)
+                        else -> null
+                    },
+                    mode = session.mode,
+                )
                 outcome?.let {
                     Text(
                         text = it,
@@ -281,4 +288,15 @@ fun SessionRow(
             }
         }
     }
+}
+
+/**
+ * "We won · Level 12", or just the result when no configuration was recorded -- and the
+ * configuration alone when nothing else marked the play, which is the ordinary shape of a
+ * competitive session logged without winners.
+ */
+private fun withMode(outcome: String?, mode: String?): String? = when {
+    mode.isNullOrBlank() -> outcome
+    outcome == null -> mode
+    else -> "$outcome · $mode"
 }

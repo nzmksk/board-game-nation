@@ -189,6 +189,47 @@ class MigrationTest {
         assertEquals("time belonged to a seat, never to the table", 0L, state.tableTimeMs)
     }
 
+    // --- session mode ---------------------------------------------------------------
+
+    @Test
+    fun `existing sessions come through with no recorded mode`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "Pandemic", designers = "NULL")
+            db.execSQL(
+                """
+                INSERT INTO sessions
+                    (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
+                VALUES (1, 1, '2026-01-05', 45, 2, 0, 0)
+                """.trimIndent(),
+            )
+        }
+
+        val db = openMigrated()
+
+        assertTrue("mode column added", "mode" in columnsOf(db, "sessions"))
+        assertNull("nobody recorded a mode before the column existed", db.sessionDao().getSession(1)!!.mode)
+    }
+
+    @Test
+    fun `a mode survives being written after the migration`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "Bomb Busters", designers = "NULL")
+            db.execSQL(
+                """
+                INSERT INTO sessions
+                    (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
+                VALUES (1, 1, '2026-01-05', 30, 4, 0, 0)
+                """.trimIndent(),
+            )
+        }
+
+        val db = openMigrated()
+        val session = db.sessionDao().getSession(1)!!
+        db.sessionDao().updateSession(session.copy(mode = "Level 12"))
+
+        assertEquals("Level 12", db.sessionDao().getSession(1)!!.mode)
+    }
+
     // --- integrity ------------------------------------------------------------------
 
     @Test

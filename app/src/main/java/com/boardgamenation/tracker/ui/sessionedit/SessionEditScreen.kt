@@ -222,6 +222,39 @@ fun SessionEditScreen(
                 }
             }
 
+            // Every game is set up more than one way: a co-op's modules or level, but
+            // equally Catan's scenario, Azul's board side, the expansions on the table.
+            // The result alone does not say which of those was played.
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = state.form.mode.orEmpty(),
+                        onValueChange = { value ->
+                            viewModel.update { it.copy(mode = value) }
+                        },
+                        label = { Text(stringResource(R.string.session_edit_mode)) },
+                        placeholder = { Text(stringResource(R.string.session_edit_mode_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (state.previousModes.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.session_edit_mode_previous),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            state.previousModes.forEach { mode ->
+                                FilterChip(
+                                    selected = state.form.mode == mode,
+                                    onClick = { viewModel.update { it.copy(mode = mode) } },
+                                    label = { Text(mode) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Only for games that can actually end early. On everything else the choice
             // would be noise, which is why it is a per-game flag rather than always on.
             if (state.suddenDeathPossible &&

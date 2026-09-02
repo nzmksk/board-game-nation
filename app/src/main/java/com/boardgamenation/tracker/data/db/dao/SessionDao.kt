@@ -27,7 +27,7 @@ interface SessionDao {
         SELECT
             s.id, s.game_id, g.title AS game_title, g.thumbnail_path,
             s.played_on, s.duration_minutes, s.player_count, s.location,
-            s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won,
+            s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won, s.mode,
             s.is_incomplete, s.is_teaching_game, s.end_reason,
             (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
@@ -58,7 +58,7 @@ interface SessionDao {
         SELECT
             s.id, s.game_id, g.title AS game_title, g.thumbnail_path,
             s.played_on, s.duration_minutes, s.player_count, s.location,
-            s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won,
+            s.is_cooperative, (s.coop_outcome = 'WIN') AS coop_won, s.mode,
             s.is_incomplete, s.is_teaching_game, s.end_reason,
             (
                 SELECT GROUP_CONCAT(p.name, ', ') FROM session_players sp
@@ -170,6 +170,18 @@ interface SessionDao {
         """,
     )
     fun observeEndReasonsFor(gameId: Long, limit: Int = 6): Flow<List<String>>
+
+    /** Configurations this game has already been played at, newest first. */
+    @Query(
+        """
+        SELECT mode FROM sessions
+        WHERE game_id = :gameId AND is_draft = 0 AND mode IS NOT NULL AND trim(mode) <> ''
+        GROUP BY mode COLLATE NOCASE
+        ORDER BY MAX(played_on) DESC
+        LIMIT :limit
+        """,
+    )
+    fun observeModesFor(gameId: Long, limit: Int = 6): Flow<List<String>>
 
     // --- drafts -------------------------------------------------------------------
 
