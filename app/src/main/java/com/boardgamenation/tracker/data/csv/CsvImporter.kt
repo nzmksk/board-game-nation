@@ -556,6 +556,9 @@ class CsvImporter @Inject constructor(
                     placement = row.int("placement"),
                     isWinner = row.boolean("is_winner"),
                     faction = row.string("faction"),
+                    // Absent from any archive taken before the column existed, which
+                    // reads back as null: nobody recorded an order for those plays.
+                    turnOrder = row.int("turn_order"),
                     isNewPlayer = row.boolean("is_new_player"),
                     turnTimeMs = row.long("turn_time_ms"),
                     bankTimeRemainingMs = row.long("bank_time_remaining_ms"),

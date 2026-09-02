@@ -149,6 +149,32 @@ class QuickLogViewModelTest {
     }
 
     @Test
+    fun `the starting player the sheet was given is the one that is stored`() = runBlocking {
+        viewModel.selectGame(scoredGame)
+        viewModel.togglePlayer(db.playerDao().getPlayer(friend)!!)
+        viewModel.setFirstPlayer(friend)
+        viewModel.save()
+
+        val session = db.sessionDao().getAllSessions().single()
+        val rows = db.sessionDao().getParticipants(session.id).associateBy { it.playerId }
+
+        assertEquals(1, rows.getValue(friend).turnOrder)
+        // The sheet asks who started, not for the whole order, so nothing else is
+        // seated: guessing the rest from the chip order would be inventing data.
+        rows.filterKeys { it != friend }.values.forEach { assertNull(it.turnOrder) }
+    }
+
+    @Test
+    fun `a play logged without a starting player has none`() = runBlocking {
+        viewModel.selectGame(scoredGame)
+        viewModel.toggleWinner(me)
+        viewModel.save()
+
+        val session = db.sessionDao().getAllSessions().single()
+        assertTrue(db.sessionDao().getParticipants(session.id).all { it.turnOrder == null })
+    }
+
+    @Test
     fun `a co-op win is recorded for the whole table`() = runBlocking {
         viewModel.selectGame(coopGame)
         viewModel.toggleWinner(me)

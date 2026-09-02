@@ -214,6 +214,15 @@ class DevFixtures @Inject constructor(
                 val seated = (listOf(playerIds.first()) + playerIds.drop(1).shuffled(random))
                     .take(headCount)
 
+                // Three quarters of the time the table wrote down who started and in
+                // what order; the rest leave it unrecorded, which is what the statistics
+                // have to cope with on real data too.
+                val seats = if (random.nextInt(100) < 75) {
+                    seated.withIndex().associate { (index, playerId) -> playerId to index + 1 }
+                } else {
+                    emptyMap()
+                }
+
                 val stated = ((game.minPlaytimeMinutes ?: 45) + (game.maxPlaytimeMinutes ?: 90)) / 2
                 val teaching = random.nextInt(100) < 12
                 val incomplete = random.nextInt(100) < 4
@@ -254,6 +263,7 @@ class DevFixtures @Inject constructor(
                                 sessionId = sessionId,
                                 playerId = it,
                                 isWinner = won,
+                                turnOrder = seats[it],
                             )
                         },
                     )
@@ -269,6 +279,7 @@ class DevFixtures @Inject constructor(
                                 placement = index + 1,
                                 isWinner = index == 0,
                                 faction = FACTIONS.random(random),
+                                turnOrder = seats[entry.key],
                             )
                         },
                     )

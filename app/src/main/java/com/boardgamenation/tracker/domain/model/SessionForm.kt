@@ -11,6 +11,10 @@ data class ParticipantForm(
     val placement: Int? = null,
     val isWinner: Boolean = false,
     val faction: String? = null,
+
+    /** Seat in the turn order; 1 went first, null means nobody recorded it. */
+    val turnOrder: Int? = null,
+
     val isNewPlayer: Boolean = false,
     val turnTimeMs: Long? = null,
     val bankTimeRemainingMs: Long? = null,
@@ -65,6 +69,9 @@ data class SessionForm(
 
     /** A play that ended the moment a condition was met, before any final scoring. */
     val isSuddenDeath: Boolean get() = endCondition == SessionEndCondition.SUDDEN_DEATH
+
+    /** Who took the first turn, when anyone said. */
+    val firstPlayer: ParticipantForm? get() = participants.firstOrNull { it.turnOrder == 1 }
 
     /** The form is savable once it names a game and has at least one player. */
     val isValid: Boolean get() = gameId != 0L && participants.isNotEmpty()
@@ -137,4 +144,61 @@ object PlacementCalculator {
         val won = outcome == CoopOutcome.WIN
         return participants.map { it.copy(placement = null, isWinner = won) }
     }
+}
+
+/**
+ * Keeps the turn order on a form coherent.
+ *
+ * The order is built by naming players in the order they played, and it has to survive
+ * the edits that follow: dropping the second of four players must not leave 1, 3, 4, and
+ * no two rows may both claim to have gone first. Recorded seats are therefore renumbered
+ * into a run starting at 1 whenever the form is touched or saved.
+ *
+ * Players nobody named keep a null. A partial answer -- very often just "Aina started" --
+ * is real information, and filling in the rest of the table would be inventing it.
+ */
+object TurnOrder {
+
+    /** Closes gaps and breaks ties, leaving unrecorded players unrecorded. */
+    fun normalise(participants: List<ParticipantForm>): List<ParticipantForm> {
+        val seats = participants
+            .filter { it.turnOrder != null }
+            // sortedBy is stable, so two rows that somehow claim the same seat keep the
+            // order the form holds them in rather than swapping about.
+            .sortedBy { it.turnOrder }
+            .mapIndexed { index, participant -> participant.playerId to index + 1 }
+            .toMap()
+        return participants.map { it.copy(turnOrder = seats[it.playerId]) }
+    }
+
+    /**
+     * Adds a player to the end of the order, or takes one out of it.
+     *
+     * This is the whole interaction behind the picker: naming people in sequence builds
+     * the order, and naming one again removes them while everyone behind closes up.
+     */
+    fun toggle(participants: List<ParticipantForm>, playerId: Long): List<ParticipantForm> {
+        val alreadySeated = participants.any { it.playerId == playerId && it.turnOrder != null }
+        val nextSeat = (participants.mapNotNull { it.turnOrder }.maxOrNull() ?: 0) + 1
+        return normalise(
+            participants.map { participant ->
+                when {
+                    participant.playerId != playerId -> participant
+                    alreadySeated -> participant.copy(turnOrder = null)
+                    else -> participant.copy(turnOrder = nextSeat)
+                }
+            },
+        )
+    }
+
+    /** Forgets the order entirely, for when it was recorded wrongly. */
+    fun clear(participants: List<ParticipantForm>): List<ParticipantForm> =
+        participants.map { it.copy(turnOrder = null) }
+
+    /**
+     * Records only who went first, which is all the quick sheet asks for. A null player
+     * id leaves the table with no first player, which is a perfectly ordinary answer.
+     */
+    fun firstOnly(participants: List<ParticipantForm>, playerId: Long?): List<ParticipantForm> =
+        participants.map { it.copy(turnOrder = if (it.playerId == playerId) 1 else null) }
 }

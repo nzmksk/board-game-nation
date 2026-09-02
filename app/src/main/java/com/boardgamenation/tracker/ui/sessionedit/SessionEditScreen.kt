@@ -359,6 +359,21 @@ fun SessionEditScreen(
                 )
             }
 
+            // After the cards, because it can only name players who are already at the
+            // table, and separate from the list order above: in manual-placement mode
+            // that order is the finishing ranking, which has nothing to do with who
+            // started.
+            if (state.form.participants.isNotEmpty()) {
+                item { SectionHeader(stringResource(R.string.session_edit_turn_order)) }
+                item {
+                    TurnOrderPicker(
+                        participants = state.form.participants,
+                        onToggle = viewModel::toggleTurnOrder,
+                        onClear = viewModel::clearTurnOrder,
+                    )
+                }
+            }
+
             if (state.availableExpansions.isNotEmpty()) {
                 item { SectionHeader(stringResource(R.string.session_edit_expansions)) }
                 item {
@@ -513,6 +528,54 @@ private fun PlayerPicker(state: SessionEditUiState, viewModel: SessionEditViewMo
                 },
                 enabled = newName.isNotBlank(),
             ) { Text(stringResource(R.string.action_add)) }
+        }
+    }
+}
+
+/**
+ * Turn order is entered by tapping names in sequence rather than by dragging a second
+ * list into shape. It is quicker, and it is honest about a partial answer: tapping one
+ * name and stopping records who started and claims nothing about the rest of the table.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TurnOrderPicker(
+    participants: List<ParticipantForm>,
+    onToggle: (Long) -> Unit,
+    onClear: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.session_edit_turn_order_help),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            participants.forEach { participant ->
+                val seat = participant.turnOrder
+                FilterChip(
+                    selected = seat != null,
+                    onClick = { onToggle(participant.playerId) },
+                    label = {
+                        Text(
+                            if (seat == null) {
+                                participant.playerName
+                            } else {
+                                stringResource(
+                                    R.string.session_edit_turn_order_seat,
+                                    seat,
+                                    participant.playerName,
+                                )
+                            },
+                        )
+                    },
+                )
+            }
+        }
+        if (participants.any { it.turnOrder != null }) {
+            TextButton(onClick = onClear) {
+                Text(stringResource(R.string.session_edit_turn_order_clear))
+            }
         }
     }
 }

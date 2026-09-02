@@ -230,6 +230,46 @@ class MigrationTest {
         assertEquals("Level 12", db.sessionDao().getSession(1)!!.mode)
     }
 
+    // --- turn order -----------------------------------------------------------------
+
+    /**
+     * Nobody recorded a turn order before the column existed, and the migration must not
+     * pretend otherwise. A default of 1 would have handed every historical row a first
+     * player, which is the one thing that would quietly corrupt a first-player win rate.
+     */
+    @Test
+    fun `players on an existing play come through with no turn order`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "Catan", designers = "NULL")
+            db.execSQL(
+                """
+                INSERT INTO sessions
+                    (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
+                VALUES (1, 1, '2026-01-05', 90, 2, 0, 0)
+                """.trimIndent(),
+            )
+            db.execSQL("INSERT INTO players (id, name) VALUES (1, 'Hafiz'), (2, 'Aina')")
+            db.execSQL(
+                """
+                INSERT INTO session_players (id, session_id, player_id, score, placement, is_winner)
+                VALUES (1, 1, 1, 12.0, 1, 1), (2, 1, 2, 9.0, 2, 0)
+                """.trimIndent(),
+            )
+        }
+
+        val db = openMigrated()
+        val rows = db.sessionDao().getAllSessionPlayers()
+
+        assertTrue(columnsOf(db, "session_players").contains("turn_order"))
+        assertEquals(2, rows.size)
+        assertTrue(
+            "an old play has no first player until someone says so",
+            rows.all { it.turnOrder == null },
+        )
+        // The rest of the row is untouched, which is the other half of "additive".
+        assertEquals(12.0, rows.first { it.playerId == 1L }.score!!, 0.0)
+    }
+
     // --- integrity ------------------------------------------------------------------
 
     @Test

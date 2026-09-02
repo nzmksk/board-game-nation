@@ -16,6 +16,7 @@ import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
+import com.boardgamenation.tracker.domain.model.TurnOrder
 import com.boardgamenation.tracker.domain.usecase.DeleteSessionUseCase
 import com.boardgamenation.tracker.domain.usecase.EditSessionUseCase
 import com.boardgamenation.tracker.domain.usecase.SaveSessionUseCase
@@ -170,8 +171,27 @@ class SessionEditViewModel @Inject constructor(
         }
     }
 
+    /** Taking a player out closes the gap they leave in the turn order. */
     fun removeParticipant(playerId: Long) {
-        update { it.copy(participants = it.participants.filterNot { p -> p.playerId == playerId }) }
+        update { form ->
+            form.copy(
+                participants = TurnOrder.normalise(
+                    form.participants.filterNot { it.playerId == playerId },
+                ),
+            )
+        }
+    }
+
+    /**
+     * Turn order is entered by naming players in sequence: an untouched player joins the
+     * end of the order, and one already in it drops out while everyone behind closes up.
+     */
+    fun toggleTurnOrder(playerId: Long) {
+        update { it.copy(participants = TurnOrder.toggle(it.participants, playerId)) }
+    }
+
+    fun clearTurnOrder() {
+        update { it.copy(participants = TurnOrder.clear(it.participants)) }
     }
 
     fun updateParticipant(playerId: Long, block: (ParticipantForm) -> ParticipantForm) {

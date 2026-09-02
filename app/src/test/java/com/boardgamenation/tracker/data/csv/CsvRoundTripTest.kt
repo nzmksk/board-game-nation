@@ -138,8 +138,9 @@ class CsvRoundTripTest {
             )
             db.sessionDao().insertParticipants(
                 listOf(
-                    DatabaseTestFixture.participant(sessionId, me, 9.0 + index, index == 0, 1),
-                    DatabaseTestFixture.participant(sessionId, ben, 7.0, index != 0, 2),
+                    DatabaseTestFixture.participant(sessionId, me, 9.0 + index, index == 0, 1, 2),
+                    DatabaseTestFixture.participant(sessionId, ben, 7.0, index != 0, 2, 1),
+                    // Left out of the turn order: a partial one has to survive too.
                     DatabaseTestFixture.participant(sessionId, aina, 5.0, false, 3),
                 ),
             )
@@ -264,6 +265,24 @@ class CsvRoundTripTest {
 
         val gamesAfter = db.gameDao().getAllGames().map { it.id to it.title }.sortedBy { it.first }
         assertEquals(gamesBefore, gamesAfter)
+    }
+
+    @Test
+    fun `the turn order survives the round trip`() = runTest {
+        populate()
+        val files = exporter.buildFiles()
+        maintenance.wipeUserData()
+        importer.import(files, ImportMode.REPLACE)
+
+        val ben = db.playerDao().getAll().first { it.name == "Ben" }
+        val aina = db.playerDao().getAll().first { it.name == "Aina" }
+        val rows = db.sessionDao().getAllSessionPlayers()
+
+        assertEquals(3, rows.count { it.playerId == ben.id && it.turnOrder == 1 })
+        assertTrue(
+            "a player left out of the order comes back left out of it",
+            rows.filter { it.playerId == aina.id }.all { it.turnOrder == null },
+        )
     }
 
     @Test

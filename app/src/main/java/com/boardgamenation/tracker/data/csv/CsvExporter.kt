@@ -203,6 +203,7 @@ class CsvExporter @Inject constructor(
                         sp.id.toString(), sp.sessionId.toString(), sp.playerId.toString(),
                         Csv.formatDouble(sp.score), Csv.formatInt(sp.placement),
                         Csv.formatBool(sp.isWinner), sp.faction,
+                        Csv.formatInt(sp.turnOrder),
                         Csv.formatBool(sp.isNewPlayer), Csv.formatLong(sp.turnTimeMs),
                         Csv.formatLong(sp.bankTimeRemainingMs),
                     )

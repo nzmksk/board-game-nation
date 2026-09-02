@@ -97,11 +97,13 @@ object DatabaseTestFixture {
         score: Double? = null,
         isWinner: Boolean = false,
         placement: Int? = null,
+        turnOrder: Int? = null,
     ) = SessionPlayerEntity(
         sessionId = sessionId,
         playerId = playerId,
         score = score,
         isWinner = isWinner,
         placement = placement,
+        turnOrder = turnOrder,
     )
 }

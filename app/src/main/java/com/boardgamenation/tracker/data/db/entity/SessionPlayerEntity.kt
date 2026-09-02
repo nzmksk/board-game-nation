@@ -48,6 +48,18 @@ data class SessionPlayerEntity(
     /** Role, character, colour, or faction played. */
     @ColumnInfo(name = "faction") val faction: String? = null,
 
+    /**
+     * Seat in the turn order; 1 is the player who went first. Null means nobody wrote
+     * it down, which is true of every play logged before the column existed and of any
+     * table that did not care.
+     *
+     * Going first is this column being 1 rather than a flag of its own. Two fields
+     * saying the same thing can disagree, and the first player is exactly the head of
+     * the turn order. A partial order is legitimate: recording only who started is the
+     * common case, and everyone else keeps a null rather than an invented seat.
+     */
+    @ColumnInfo(name = "turn_order") val turnOrder: Int? = null,
+
     /** First time this player played this game. */
     @ColumnInfo(name = "is_new_player", defaultValue = "0") val isNewPlayer: Boolean = false,
 

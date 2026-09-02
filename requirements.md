@@ -164,6 +164,7 @@ Indexes: `game_id`, `played_on`.
 | `placement` | INTEGER NULL | 1 = winner; ties share a placement |
 | `is_winner` | INTEGER NOT NULL DEFAULT 0 | Explicit, since not all games rank by score |
 | `faction` | TEXT NULL | Role, character, colour, faction |
+| `turn_order` | INTEGER NULL | Seat in the turn order; 1 went first, null is unrecorded |
 | `is_new_player` | INTEGER NOT NULL DEFAULT 0 | First time this player played this game |
 | `turn_time_ms` | INTEGER NULL | Populated by the timer, if used |
 | `bank_time_remaining_ms` | INTEGER NULL | Populated by the timer, if used |
@@ -275,11 +276,13 @@ would have supplied, so the app is never blocked on API access.
 
 Two entry paths:
 
-1. **Quick log** — game, date, duration, players, winner. Under 20 seconds to complete.
-   Defaults: today's date, the player set from the most recent session of that game,
-   duration prefilled from the game's average actual duration.
+1. **Quick log** — game, date, duration, players, winner, and optionally who went
+   first. Under 20 seconds to complete. Defaults: today's date, the player set from the
+   most recent session of that game, duration prefilled from the game's average actual
+   duration.
 2. **Full log** — everything in `sessions` and `session_players`, including scores,
-   placements, factions, expansions used, location, notes, and a photo attachment.
+   placements, factions, turn order, expansions used, location, notes, and a photo
+   attachment.
 
 Behaviour:
 
@@ -289,6 +292,11 @@ Behaviour:
   derive automatically, highest or lowest wins configurable), **manual placement**
   (drag to order), or **co-op** (single win/loss for the table).
 - Ties are allowed: two players may share placement 1 and both be winners.
+- **Turn order.** Players are named in the order they played and the first of them is
+  the starting player. Recording it is optional, and a partial order is kept partial:
+  naming only who started says nothing about the rest of the table. Seats are renumbered
+  into a run from 1 on save, so no play carries two first players or a gap left by a
+  player who was removed.
 - **Sudden-death endings.** A game flagged `sudden_death_possible` offers an "ended by"
   choice per play. A play that ended that way is ranked by the order the user gives, since
   no final scoring happened; any partial scores are kept but excluded from score averages.

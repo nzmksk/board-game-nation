@@ -128,6 +128,49 @@ class SessionDaoTest {
     }
 
     @Test
+    fun `the turn order survives a save and a load`() = runTest {
+        val id = repository.save(
+            form(listOf(me to 10.0, ben to 8.0)).let { form ->
+                form.copy(
+                    participants = form.participants.map {
+                        it.copy(turnOrder = if (it.playerId == ben) 1 else 2)
+                    },
+                )
+            },
+        )
+
+        val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
+        assertEquals(1, rows.getValue(ben).turnOrder)
+        assertEquals(2, rows.getValue(me).turnOrder)
+        assertEquals(ben, repository.loadForm(id)!!.firstPlayer!!.playerId)
+    }
+
+    /**
+     * Normalised on the way in, not merely on the screen that happened to enter it. A
+     * form assembled from parts can hand over two rows claiming the first seat, and a
+     * first-player win rate would then count the same play twice.
+     */
+    @Test
+    fun `a play is saved with one first player, whatever the caller sent`() = runTest {
+        val id = repository.save(
+            form(listOf(me to 10.0, ben to 8.0)).let { form ->
+                form.copy(participants = form.participants.map { it.copy(turnOrder = 1) })
+            },
+        )
+
+        val seats = db.sessionDao().getParticipants(id).mapNotNull { it.turnOrder }.sorted()
+        assertEquals(listOf(1, 2), seats)
+    }
+
+    @Test
+    fun `a play with no turn order recorded keeps none`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+
+        assertTrue(db.sessionDao().getParticipants(id).all { it.turnOrder == null })
+        assertNull(repository.loadForm(id)!!.firstPlayer)
+    }
+
+    @Test
     fun `the scoring mode the user actually used is remembered on the game`() = runTest {
         repository.save(form(listOf(me to null), mode = ScoringMode.COOPERATIVE))
         assertEquals(ScoringMode.COOPERATIVE, db.gameDao().getGame(gameId)!!.scoringMode)
@@ -216,6 +259,27 @@ class SessionDaoTest {
         repository.save(form(listOf(me to 12.0, ben to 8.0)))
         val row = repository.observeSessions(SessionFilter()).first().first()
         assertEquals("Muhammad", row.winnerNames)
+    }
+
+    @Test
+    fun `the starting player is resolved for the list row`() = runTest {
+        repository.save(
+            form(listOf(me to 12.0, ben to 8.0)).let { form ->
+                form.copy(
+                    participants = form.participants.map {
+                        it.copy(turnOrder = if (it.playerId == ben) 1 else 2)
+                    },
+                )
+            },
+        )
+        repository.save(
+            form(listOf(me to 12.0)).copy(playedOn = LocalDate.parse("2026-02-08")),
+        )
+
+        val rows = repository.observeSessions(SessionFilter()).first().associateBy { it.playedOn }
+        assertEquals("Ben", rows.getValue("2026-02-01").firstPlayerName)
+        // A play nobody recorded an order for says nothing rather than guessing.
+        assertNull(rows.getValue("2026-02-08").firstPlayerName)
     }
 
     /** Merge import leans on this: same game, same day, same head count is a match. */
