@@ -21,6 +21,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -173,5 +174,61 @@ class QuickLogViewModelTest {
 
         assertEquals(CoopOutcome.LOSS, session.coopOutcome)
         assertTrue(db.sessionDao().getParticipants(session.id).none { it.isWinner })
+    }
+
+    // --- the configuration a play was set up at -----------------------------------
+
+    @Test
+    fun `a configuration typed into the sheet is saved with the session`() = runBlocking {
+        viewModel.selectGame(scoredGame)
+        viewModel.setMode("Seafarers")
+        viewModel.toggleWinner(me)
+        viewModel.save()
+
+        assertEquals("Seafarers", db.sessionDao().getAllSessions().single().mode)
+    }
+
+    /**
+     * The chips are the reason the field is on the sheet at all: the second play of a
+     * setup is one tap rather than retyping it inside a bottom sheet.
+     */
+    @Test
+    fun `configurations from earlier plays are offered when the game is picked`() =
+        runBlocking {
+            viewModel.selectGame(scoredGame)
+            viewModel.setMode("Pantheon")
+            viewModel.toggleWinner(me)
+            viewModel.save()
+
+            viewModel.selectGame(scoredGame)
+
+            assertEquals(listOf("Pantheon"), viewModel.state.value.previousModes)
+        }
+
+    /** Picking a different game must not leave the previous game's chips on screen. */
+    @Test
+    fun `switching game clears both the configuration and the chips`() = runBlocking {
+        viewModel.selectGame(scoredGame)
+        viewModel.setMode("Pantheon")
+        viewModel.toggleWinner(me)
+        viewModel.save()
+
+        viewModel.selectGame(scoredGame)
+        viewModel.toggleMode("Pantheon")
+        viewModel.selectGame(coopGame)
+
+        assertNull("a configuration belongs to the game it was typed for", viewModel.state.value.form.mode)
+        assertEquals(emptyList<String>(), viewModel.state.value.previousModes)
+    }
+
+    @Test
+    fun `tapping the chosen chip again clears it`() = runBlocking {
+        viewModel.selectGame(scoredGame)
+        viewModel.toggleMode("Pantheon")
+        assertEquals("Pantheon", viewModel.state.value.form.mode)
+
+        viewModel.toggleMode("Pantheon")
+
+        assertNull(viewModel.state.value.form.mode)
     }
 }
