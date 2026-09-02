@@ -254,6 +254,13 @@
     <string name="session_edit_full_form">More options</string>
     <string name="session_saved">Play saved</string>
 
+    <!-- Sharing a result -->
+    <plurals name="share_card_players">
+        <item quantity="one">%1$d player</item>
+        <item quantity="other">%1$d players</item>
+    </plurals>
+    <string name="share_card_more_players">+%1$d more</string>
+
     <!-- Quick log -->
     <string name="quick_log_title">Quick log</string>
     <string name="quick_log_who_won">Who won?</string>
