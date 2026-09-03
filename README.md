@@ -205,6 +205,35 @@ the rate down for want of data rather than for want of an advantage.
 The figure is worth reading per game. A collection-wide number averages a heavy euro
 together with a filler and describes neither.
 
+### Where you sat is not when you played
+
+Both are a number per player on a session, and they are deliberately two columns.
+
+A turn order is a line with a head. Someone went first, someone went last, and the
+useful question it answers -- who started -- is about that head. A seating is a ring with
+neither: what it answers is who was *beside* whom, and the player in the last chair is
+next to the player in the first. That wrap is the entire point. 7 Wonders passes cards to
+whoever is physically on your left, Bang! measures range round the table, and in both the
+arrangement decides the game while who started barely registers.
+
+They coincide at plenty of tables and part company at plenty of others, because a first
+player rotates every round while nobody moves chairs. So neither is read off the other,
+and a play can carry one, both or neither.
+
+The asymmetry between them shows up in what a partial answer is worth. Half a turn order
+is real information: "Aina started" is the common case and stands on its own, which is why
+the quick log asks for exactly that and nothing else. Half a seating is worth nothing,
+because an unseated player may have been sitting between the two you would otherwise call
+neighbours -- so neighbours are reported only once every player has a chair, and withheld
+rather than approximated until then. A table of two is not an edge case there: both sides
+really are the same person, which is why 7 Wonders starts at three.
+
+The timer is the one place the app fills a seating in for you. Its rotation passes round
+the list it was given and wraps back to the top, and a direction-reversal effect sends it
+the other way, so what was entered there is a ring rather than a queue -- the setup screen
+says so, and the session form opens the moment the clock stops if the table wants to
+correct it.
+
 ### Achievements are data, not code
 
 Every achievement lives in `assets/achievements.json` with a rule descriptor. Adding one
@@ -357,7 +386,7 @@ attaches the HTML reports to the run, and annotates the diff with what it found.
 ./gradlew :app:testDebugUnitTest
 ```
 
-300 tests, run on the JVM. The database tests use a real Room in-memory database through
+331 tests, run on the JVM. The database tests use a real Room in-memory database through
 Robolectric rather than mocks, so a query that compiles but returns the wrong rows still
 fails.
 
@@ -370,6 +399,7 @@ fails.
 | `SessionDaoTest` | Placement derivation, drafts, prefill, filters |
 | `PlacementCalculatorTest` | Ties, golf scoring, co-op |
 | `TurnOrderTest` | Gaps closed, one first player only, partial orders left partial |
+| `SeatingTest` | That the ring closes, and that a half-seated table reports no neighbours |
 | `FirstPlayerWinRateTest` | The chance baseline across table sizes, and which plays are excluded from it |
 | `StreaksTest` | Day, week and month runs, including across a year boundary |
 | `CsvTest` | RFC 4180 quoting, embedded newlines, locale-independent numbers |
@@ -386,7 +416,9 @@ fails.
 
 Debug builds have **Settings → Data → Generate sample data**: 40 games with varied
 mechanics, weights and prices, 8 players, 200 plays clustered onto weekends across two
-years, two rubrics and 25 rated games. Enough to exercise every statistic and every
+years, two rubrics and 25 rated games. Three quarters of the plays record a turn order and
+two thirds a seating, and the two disagree where both are present -- a fixture that always
+agreed with itself would never catch a screen reading one where it meant the other. Enough to exercise every statistic and every
 achievement rule without typing anything. The random source is seeded, so the fixture is
 reproducible.
 

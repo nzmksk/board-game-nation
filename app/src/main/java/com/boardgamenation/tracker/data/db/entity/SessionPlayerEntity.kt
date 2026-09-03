@@ -61,6 +61,21 @@ data class SessionPlayerEntity(
     @ColumnInfo(name = "turn_order") val turnOrder: Int? = null,
 
     /**
+     * The chair this player occupied, numbered round the table from 1. Null means
+     * nobody wrote the arrangement down.
+     *
+     * Deliberately not [turnOrder], which answers a different question. A turn order is
+     * a line with a head -- someone went first, someone went last -- while a seating is
+     * a ring with neither. 7 Wonders passes cards to the player physically beside you
+     * and Bang! measures range round the table, and in both the arrangement matters
+     * while who started barely does. The two coincide at plenty of tables and part
+     * company at plenty of others, because a first player rotates every round and
+     * nobody moves chairs, so deriving either from the other would be inventing the
+     * half that was never recorded.
+     */
+    @ColumnInfo(name = "seat") val seat: Int? = null,
+
+    /**
      * The side this player was on, for a game where a side wins together. Separate
      * from [faction] on purpose: a Secret Hitler player is on the fascist team while
      * their role is Hitler, and conflating the two loses one or the other.

@@ -220,6 +220,13 @@
     <string name="session_edit_turn_order_help">Tap players in the order they played. Tap only the starting player if that is all you know.</string>
     <string name="session_edit_turn_order_seat">%1$d. %2$s</string>
     <string name="session_edit_turn_order_clear">Clear turn order</string>
+    <string name="session_edit_seating">Seating</string>
+    <string name="session_edit_seating_help">Tap players going round the table, in either direction. Neighbours are only worked out once everybody has a chair.</string>
+    <string name="session_edit_seating_seat">%1$d. %2$s</string>
+    <string name="session_edit_seating_ring">Round the table: %1$s</string>
+    <string name="session_edit_seating_ring_separator">" → "</string>
+    <string name="session_edit_seating_partial">Seat everyone to see who sat next to whom.</string>
+    <string name="session_edit_seating_clear">Clear seating</string>
     <string name="session_edit_incomplete">Abandoned before finishing</string>
     <string name="session_edit_teaching">Someone was learning</string>
     <string name="session_edit_coop_result">Result</string>
@@ -278,6 +285,7 @@
     <string name="timer_setup_title">Timer setup</string>
     <string name="timer_setup_game">Game</string>
     <string name="timer_setup_players">Turn order</string>
+    <string name="timer_setup_players_help">The clock passes round this list and wraps, so it is recorded on the play as the seating too.</string>
     <string name="timer_seat_position">%1$d.</string>
     <string name="timer_setup_mode">What to time</string>
     <string name="timer_mode_turn_based">Turn clocks</string>

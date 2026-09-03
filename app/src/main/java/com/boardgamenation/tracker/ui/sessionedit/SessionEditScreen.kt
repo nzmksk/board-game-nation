@@ -64,6 +64,7 @@ import com.boardgamenation.tracker.core.time.DateUtils
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.Seating
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.share.shareImageChooser
 import com.boardgamenation.tracker.ui.components.ConfirmDialog
@@ -432,6 +433,19 @@ fun SessionEditScreen(onBack: () -> Unit, onSaved: (Long, List<String>) -> Unit,
                         onClear = viewModel::clearTurnOrder
                     )
                 }
+
+                // A second arrangement rather than a reading of the one above. Who went
+                // first and who sat where are different answers, and a table that
+                // rotates its first player every round changes one of them nightly
+                // while nobody moves chairs.
+                item { SectionHeader(stringResource(R.string.session_edit_seating)) }
+                item {
+                    SeatingPicker(
+                        participants = state.form.participants,
+                        onToggle = viewModel::toggleSeat,
+                        onClear = viewModel::clearSeating
+                    )
+                }
             }
 
             if (state.availableExpansions.isNotEmpty()) {
@@ -631,6 +645,73 @@ private fun TurnOrderPicker(participants: List<ParticipantForm>, onToggle: (Long
         if (participants.any { it.turnOrder != null }) {
             TextButton(onClick = onClear) {
                 Text(stringResource(R.string.session_edit_turn_order_clear))
+            }
+        }
+    }
+}
+
+/**
+ * The seating is entered by tapping names going round the table, the same interaction
+ * the turn order uses, because it is the same shape of answer: a position per player,
+ * built in sequence and edited freely.
+ *
+ * What it adds is the ring line underneath. The chips can show that three people have
+ * chairs; only the ring shows that it closes -- that the player in the last chair is
+ * sitting next to the player in the first -- which is the adjacency this screen is
+ * being asked to record. Until every player has a chair it says so instead, rather than
+ * showing neighbours that an unseated player might be sitting between.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SeatingPicker(participants: List<ParticipantForm>, onToggle: (Long) -> Unit, onClear: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.session_edit_seating_help),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            participants.forEach { participant ->
+                val seat = participant.seat
+                FilterChip(
+                    selected = seat != null,
+                    onClick = { onToggle(participant.playerId) },
+                    label = {
+                        Text(
+                            if (seat == null) {
+                                participant.playerName
+                            } else {
+                                stringResource(
+                                    R.string.session_edit_seating_seat,
+                                    seat,
+                                    participant.playerName
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        }
+
+        val seated = participants.filter { it.seat != null }.sortedBy { it.seat }
+        if (seated.isNotEmpty()) {
+            Text(
+                text = if (Seating.isComplete(participants)) {
+                    // The first name repeats at the end on purpose: that is the wrap,
+                    // and the wrap is the whole reason the arrangement is a ring.
+                    val names = seated.map { it.playerName } + seated.first().playerName
+                    stringResource(
+                        R.string.session_edit_seating_ring,
+                        names.joinToString(stringResource(R.string.session_edit_seating_ring_separator))
+                    )
+                } else {
+                    stringResource(R.string.session_edit_seating_partial)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            TextButton(onClick = onClear) {
+                Text(stringResource(R.string.session_edit_seating_clear))
             }
         }
     }

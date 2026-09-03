@@ -137,6 +137,13 @@ fun TimerSetupScreen(onStarted: () -> Unit, viewModel: TimerViewModel = hiltView
 
             item { SectionHeader(stringResource(R.string.timer_setup_players)) }
             item {
+                Text(
+                    text = stringResource(R.string.timer_setup_players_help),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            item {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     state.players.forEach { player ->
                         FilterChip(

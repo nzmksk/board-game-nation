@@ -301,6 +301,49 @@ class MigrationTest {
         assertTrue(participant.isWinner)
     }
 
+    // --- seating --------------------------------------------------------------------
+
+    /**
+     * The seating has to arrive empty rather than assumed. Row order is the only thing
+     * a backfill could have numbered these players by, and row order is not where they
+     * sat -- it would have published a neighbour for every play in the database and
+     * looked exactly like a recorded one.
+     */
+    @Test
+    fun `players on an existing play come through unseated`() = runTest {
+        seedV1 { db ->
+            insertGame(db, id = 1, title = "7 Wonders", designers = "NULL")
+            db.execSQL(
+                """
+                INSERT INTO sessions
+                    (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
+                VALUES (1, 1, '2026-01-05', 60, 3, 0, 0)
+                """.trimIndent()
+            )
+            db.execSQL(
+                "INSERT INTO players (id, name) VALUES (1, 'Hafiz'), (2, 'Aina'), (3, 'Ben')"
+            )
+            db.execSQL(
+                """
+                INSERT INTO session_players (id, session_id, player_id, score, placement, is_winner)
+                VALUES (1, 1, 1, 58.0, 1, 1), (2, 1, 2, 51.0, 2, 0), (3, 1, 3, 44.0, 3, 0)
+                """.trimIndent()
+            )
+        }
+
+        val db = openMigrated()
+        val rows = db.sessionDao().getAllSessionPlayers()
+
+        assertTrue("seat column added", "seat" in columnsOf(db, "session_players"))
+        assertEquals(3, rows.size)
+        assertTrue(
+            "an old play seats nobody until someone says where they sat",
+            rows.all { it.seat == null }
+        )
+        // The rest of the row is untouched, which is the other half of "additive".
+        assertEquals(58.0, rows.first { it.playerId == 1L }.score!!, 0.0)
+    }
+
     // --- integrity ------------------------------------------------------------------
 
     @Test

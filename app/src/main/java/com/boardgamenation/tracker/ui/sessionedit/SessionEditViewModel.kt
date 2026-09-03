@@ -15,6 +15,7 @@ import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.Seating
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.model.TurnOrder
@@ -191,12 +192,14 @@ class SessionEditViewModel @Inject constructor(
         }
     }
 
-    /** Taking a player out closes the gap they leave in the turn order. */
+    /** Taking a player out closes the gap they leave, in the order and at the table. */
     fun removeParticipant(playerId: Long) {
         update { form ->
             form.copy(
-                participants = TurnOrder.normalise(
-                    form.participants.filterNot { it.playerId == playerId }
+                participants = Seating.normalise(
+                    TurnOrder.normalise(
+                        form.participants.filterNot { it.playerId == playerId }
+                    )
                 )
             )
         }
@@ -212,6 +215,19 @@ class SessionEditViewModel @Inject constructor(
 
     fun clearTurnOrder() {
         update { it.copy(participants = TurnOrder.clear(it.participants)) }
+    }
+
+    /**
+     * The seating is entered the same way, by going round the table naming people. An
+     * unseated player takes the next chair; naming a seated one stands them up and
+     * everybody after them shuffles along.
+     */
+    fun toggleSeat(playerId: Long) {
+        update { it.copy(participants = Seating.toggle(it.participants, playerId)) }
+    }
+
+    fun clearSeating() {
+        update { it.copy(participants = Seating.clear(it.participants)) }
     }
 
     fun updateParticipant(playerId: Long, block: (ParticipantForm) -> ParticipantForm) {
