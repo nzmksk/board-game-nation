@@ -2,6 +2,9 @@
 agp = "9.4.0"
 kotlin = "2.4.10"
 ksp = "2.3.11"
+ktlint = "14.2.0"
+# The ktlint engine the plugin runs; it moves independently of the plugin version.
+ktlintCli = "1.8.0"
 
 coreKtx = "1.19.0"
 appcompat = "1.8.0"
@@ -92,3 +95,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 room = { id = "androidx.room", version.ref = "room" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

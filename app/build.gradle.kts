@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
+    alias(libs.plugins.ktlint)
 }
 
 /**
@@ -139,6 +140,19 @@ android {
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+/**
+ * Rules themselves are configured in .editorconfig, which the IDE reads too, so this
+ * block only says what to lint and how to report it.
+ */
+ktlint {
+    version = libs.versions.ktlintCli
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        // CI turns the SARIF file into inline annotations on the pull request diff.
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.SARIF)
+    }
 }
 
 dependencies {
