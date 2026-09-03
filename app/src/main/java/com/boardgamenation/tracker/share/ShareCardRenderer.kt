@@ -281,26 +281,32 @@ class ShareCardRenderer @Inject constructor(
         // rather than what they scored -- so they share one line under the name.
         val detail = listOfNotNull(standing.team, standing.faction).joinToString(SEPARATOR)
         val nameX = badgeCentre + badgeRadius + 30f
-        val nameWidth = scoreRight - scoreWidth - nameX
         // Type scales with the row so a big table stays legible as its rows compress,
         // rather than the text keeping its size and colliding with the row's edges.
         val namePaint = text(size = (height * 0.32f).coerceIn(34f, 48f), color = INK, bold = true)
 
-        if (detail.isEmpty()) {
-            canvas.drawText(
-                ellipsised(standing.name, namePaint, nameWidth),
-                nameX,
-                baselineIn(top, bottom, namePaint),
-                namePaint,
-            )
-        } else {
+        // Somebody's first play of the game gets a tag next to their name. It is
+        // measured before the name is drawn rather than squeezed in afterwards, so a
+        // long name is ellipsised down to the room actually left instead of the tag
+        // landing on top of it or running under the score.
+        val tag = context.getString(R.string.share_card_first_timer)
+            .takeIf { standing.isNewPlayer }
+        val tagPaint = text(size = (height * 0.2f).coerceIn(22f, 30f), color = INK, bold = true)
+            .apply { letterSpacing = 0.08f }
+        // A gap either side: one to part the tag from the name, and one so a name long
+        // enough to fill the row cannot push the tag up against the score.
+        val tagWidth = tag?.let { tagPaint.measureText(it) + TAG_PADDING * 2 + TAG_GAP * 2 } ?: 0f
+
+        val nameWidth = scoreRight - scoreWidth - nameX - tagWidth
+        val name = ellipsised(standing.name, namePaint, nameWidth)
+        // With a side or a faction under it the name sits in the row's top half;
+        // on its own it is centred.
+        val nameBaseline =
+            if (detail.isEmpty()) baselineIn(top, bottom, namePaint) else top + height * 0.44f
+        canvas.drawText(name, nameX, nameBaseline, namePaint)
+
+        if (detail.isNotEmpty()) {
             val detailPaint = text(size = (height * 0.23f).coerceIn(26f, 34f), color = MUTED)
-            canvas.drawText(
-                ellipsised(standing.name, namePaint, nameWidth),
-                nameX,
-                top + height * 0.44f,
-                namePaint,
-            )
             canvas.drawText(
                 ellipsised(detail, detailPaint, nameWidth),
                 nameX,
@@ -308,6 +314,43 @@ class ShareCardRenderer @Inject constructor(
                 detailPaint,
             )
         }
+
+        tag?.let {
+            drawTag(
+                canvas = canvas,
+                label = it,
+                paint = tagPaint,
+                x = nameX + namePaint.measureText(name) + TAG_GAP,
+                // Centred on the name, not on the row: a row-centred tag would drift
+                // away from the word it belongs to as soon as a faction appeared below.
+                centreY = nameBaseline + (namePaint.descent() + namePaint.ascent()) / 2,
+            )
+        }
+    }
+
+    /**
+     * The pill beside a name.
+     *
+     * Outlined as well as filled because it sits on a row that is already a lightened
+     * panel: the badges under the title get away with a fill alone against the dark
+     * background, but the same fill on a row is a few percent of white on a few percent
+     * of white and disappears. The outline is [MUTED] rather than [GOLD] -- the accent
+     * is what marks a winner, and a tag borrowing it would announce the wrong thing.
+     */
+    private fun drawTag(
+        canvas: Canvas,
+        label: String,
+        paint: TextPaint,
+        x: Float,
+        centreY: Float,
+    ) {
+        val height = paint.textSize + 22f
+        val top = centreY - height / 2
+        val width = paint.measureText(label) + TAG_PADDING * 2
+        val pill = RectF(x, top, x + width, top + height)
+        canvas.drawRoundRect(pill, height / 2, height / 2, fill(BADGE_FILL))
+        canvas.drawRoundRect(pill, height / 2, height / 2, stroke(MUTED, 2.5f))
+        canvas.drawText(label, x + TAG_PADDING, baselineIn(top, top + height, paint), paint)
     }
 
     /**
@@ -457,6 +500,10 @@ class ShareCardRenderer @Inject constructor(
         private const val MIN_ROW_HEIGHT = 88f
         private const val MAX_ROW_HEIGHT = 172f
         private const val OVERFLOW_HEIGHT = 52f
+
+        /** The tag beside a name: the space inside its pill, and before it. */
+        private const val TAG_PADDING = 22f
+        private const val TAG_GAP = 18f
 
         /** The same separator the session list joins a result and its mode with. */
         private const val SEPARATOR = " · "

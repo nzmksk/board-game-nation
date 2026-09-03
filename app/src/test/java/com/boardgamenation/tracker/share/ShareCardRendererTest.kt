@@ -7,6 +7,7 @@ import com.boardgamenation.tracker.domain.share.ShareCard
 import com.boardgamenation.tracker.domain.share.ShareResult
 import com.boardgamenation.tracker.domain.share.ShareStanding
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -207,6 +208,82 @@ class ShareCardRendererTest {
         )
 
         results.forEach { assertEquals(1920, renderer.render(it).height) }
+    }
+
+    /**
+     * The complaint the tag answers is that a first-timer looked like everybody else, so
+     * the check is that the same play drawn with the flag set is a different picture --
+     * an assertion a blank bitmap cannot pass, unlike a pixel count.
+     */
+    @Test
+    fun `a first-timer's row does not come out looking like everybody else's`() {
+        val standings = { isNew: Boolean ->
+            listOf(
+                standing("Aina", rank = 1, score = 94.0, isWinner = true),
+                standing("Hafiz", rank = 2, score = 71.0, isNewPlayer = isNew),
+            )
+        }
+
+        val plain = renderer.render(card(standings = standings(false)))
+        val marked = renderer.render(card(standings = standings(true)))
+
+        assertFalse(plain.sameAs(marked))
+    }
+
+    /**
+     * Gold is what says somebody won. A first play is a different kind of fact, and a
+     * tag that borrowed the accent would read as a second winner on the row below.
+     */
+    @Test
+    fun `marking a first-timer spends none of the winner's accent`() {
+        val standings = { isNew: Boolean ->
+            listOf(standing("Aina", rank = 1, score = 94.0, isWinner = true, isNewPlayer = isNew))
+        }
+
+        val plain = renderer.render(card(standings = standings(false)))
+        val marked = renderer.render(card(standings = standings(true)))
+
+        assertEquals(goldPixels(plain), goldPixels(marked))
+    }
+
+    /** The tag takes room from a row that a long name and a faction already want. */
+    @Test
+    fun `a first-timer whose name fills the row still renders`() {
+        val bitmap = renderer.render(
+            card(
+                standings = listOf(
+                    standing(
+                        name = "A name far longer than any row could hope to hold ".repeat(2),
+                        rank = 1,
+                        score = 1234.5,
+                        faction = "Peregrine Falcon",
+                        team = "The side with the long name as well",
+                        isWinner = true,
+                        isNewPlayer = true,
+                    ),
+                    standing("Hafiz", rank = 2, score = 71.0, isNewPlayer = true),
+                ),
+            ),
+        )
+
+        assertEquals(1080, bitmap.width)
+        assertTrue(distinctColours(bitmap) > 20)
+    }
+
+    /** A table of first-timers is what a game's first night on the shelf looks like. */
+    @Test
+    fun `a whole table of first-timers renders`() {
+        val bitmap = renderer.render(
+            card(
+                result = ShareResult.COOP_WIN,
+                standings = (1..12).map { seat ->
+                    standing("Player $seat", isWinner = true, isNewPlayer = true)
+                },
+            ),
+        )
+
+        assertEquals(1920, bitmap.height)
+        assertTrue(distinctColours(bitmap) > 20)
     }
 
     @Test
