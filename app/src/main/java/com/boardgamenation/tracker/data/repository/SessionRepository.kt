@@ -270,21 +270,29 @@ class SessionRepository @Inject constructor(
             }
         }
 
-        // A score belongs to the mode that has a field for it, in the same way an end
-        // reason is only written for a sudden death and a co-op outcome only for a
-        // co-op. Switching a play to placements, sides or no scoring at all otherwise
-        // leaves the old numbers sitting in rows nothing on screen shows any more --
-        // invisible in the app and still on the shared picture.
-        val scored = if (form.scoringMode.recordsScores) {
-            flagged
-        } else {
-            flagged.map { it.copy(score = null) }
+        // A score and a side each belong to the mode that has a field for them, in the
+        // same way an end reason is only written for a sudden death and a co-op outcome
+        // only for a co-op. The logging form stops offering the field the moment the
+        // mode changes, so anything left behind is beyond reach: invisible on every
+        // screen, and still on the record.
+        //
+        // A stale score was the milder half of that -- it stayed out of sight until the
+        // play was shared as a picture. A stale side is worse, because the mode is
+        // worked out again on every load and a row with a side on it is one of the
+        // answers. Leaving it turns team scoring into a state a play cannot be moved
+        // out of: the save takes the new mode, and the load hands the old one straight
+        // back.
+        val owned = flagged.map { participant ->
+            participant.copy(
+                score = participant.score.takeIf { form.scoringMode.recordsScores },
+                team = participant.team.takeIf { form.scoringMode.recordsSides },
+            )
         }
 
         // Renumbered here for the same reason placements are derived here: the quick
         // sheet, the full form and an import all reach this line, and exactly one of
         // them may leave a play with two first players.
-        return TurnOrder.normalise(scored)
+        return TurnOrder.normalise(owned)
     }
 
     /**

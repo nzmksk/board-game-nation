@@ -65,6 +65,19 @@ class SessionDaoTest {
         },
     )
 
+    private fun teamForm(id: Long = 0) = SessionForm(
+        id = id,
+        gameId = gameId,
+        playedOn = LocalDate.parse("2026-02-01"),
+        durationMinutes = 45,
+        scoringMode = ScoringMode.TEAM_BASED,
+        winningTeam = "Liberals",
+        participants = listOf(
+            ParticipantForm(playerId = me, playerName = "Me", team = "Liberals"),
+            ParticipantForm(playerId = ben, playerName = "Ben", team = "Fascists"),
+        ),
+    )
+
     private fun seating(vararg playerIds: Long) =
         playerIds.map { ParticipantForm(playerId = it, playerName = "p$it") }
 
@@ -171,6 +184,71 @@ class SessionDaoTest {
         assertEquals(2, participants.getValue(me).placement)
         assertTrue(participants.getValue(ben).isWinner)
         assertTrue(participants.values.all { it.score == null })
+    }
+
+    /**
+     * A side is what `loadForm` works the mode out from, so one left behind by a mode
+     * change does not sit there harmlessly -- it hands team scoring back on the next
+     * load and the play can never be moved off it. That was #44.
+     */
+    @Test
+    fun `switching a team play to another mode drops the sides`() = runTest {
+        val id = repository.save(teamForm())
+        assertEquals(
+            listOf("Fascists", "Liberals"),
+            db.sessionDao().getParticipants(id).mapNotNull { it.team }.sorted(),
+        )
+
+        repository.save(
+            repository.loadForm(id)!!.copy(scoringMode = ScoringMode.RANKED_SCORES),
+        )
+
+        assertTrue(db.sessionDao().getParticipants(id).all { it.team == null })
+    }
+
+    @Test
+    fun `a play switched off team scoring stays switched`() = runTest {
+        val id = repository.save(teamForm())
+        assertEquals(ScoringMode.TEAM_BASED, repository.loadForm(id)!!.scoringMode)
+
+        listOf(
+            ScoringMode.RANKED_SCORES,
+            ScoringMode.MANUAL_PLACEMENT,
+            ScoringMode.NONE,
+        ).forEach { mode ->
+            repository.save(repository.loadForm(id)!!.copy(scoringMode = mode))
+            assertEquals(mode, repository.loadForm(id)!!.scoringMode)
+        }
+    }
+
+    /** The rule cuts the other way too: a team play keeps the sides it was logged with. */
+    @Test
+    fun `a team play keeps its sides and reads back as a team game`() = runTest {
+        val id = repository.save(teamForm())
+
+        val loaded = repository.loadForm(id)!!
+        assertEquals(ScoringMode.TEAM_BASED, loaded.scoringMode)
+        assertEquals("Liberals", loaded.winningTeam)
+        assertEquals(
+            listOf("Fascists", "Liberals"),
+            loaded.participants.mapNotNull { it.team }.sorted(),
+        )
+    }
+
+    /**
+     * The reason the sides are cleared on save rather than ignored on load: a play
+     * logged with sides has to keep reading as a team game even after the game itself
+     * moves to some other scoring, which is what `loadForm` prefers them for.
+     */
+    @Test
+    fun `changing the game's mode leaves an earlier team play a team game`() = runTest {
+        val id = repository.save(teamForm())
+
+        db.gameDao().getGame(gameId)!!.let {
+            db.gameDao().update(it.copy(scoringMode = ScoringMode.RANKED_SCORES))
+        }
+
+        assertEquals(ScoringMode.TEAM_BASED, repository.loadForm(id)!!.scoringMode)
     }
 
     /** Re-saving replaces the participant set rather than accumulating duplicates. */

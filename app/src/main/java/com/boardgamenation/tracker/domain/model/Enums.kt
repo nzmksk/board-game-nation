@@ -91,6 +91,16 @@ enum class ScoringMode {
      */
     val recordsScores: Boolean get() = this == RANKED_SCORES
 
+    /**
+     * Whether a play in this mode puts each player on a side.
+     *
+     * Carries more weight than [recordsScores] does. A session never stores the mode it
+     * was played under, and one of the things it is worked out from on the way back is
+     * whether any row has a side on it -- so a side left behind by a mode change does
+     * not merely sit there unread, it pins the play to team scoring with no way out.
+     */
+    val recordsSides: Boolean get() = this == TEAM_BASED
+
     companion object {
         fun fromStorage(value: String?): ScoringMode =
             entries.firstOrNull { it.name == value } ?: RANKED_SCORES
