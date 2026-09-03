@@ -2,6 +2,7 @@ package com.boardgamenation.tracker.domain.share
 
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
+import com.boardgamenation.tracker.domain.model.Seating
 import com.boardgamenation.tracker.domain.model.SessionForm
 import java.time.LocalDate
 import java.util.Locale
@@ -26,6 +27,20 @@ enum class ShareResult {
 
     /** Played and logged, but with no outcome recorded. The card shows the lineup. */
     UNRESOLVED
+}
+
+/**
+ * Where the players were, of the two ways a play can record it.
+ *
+ * The card has room for one line about the table, so this names which question it
+ * answers rather than leaving the renderer to guess from whichever list is non-empty.
+ */
+enum class ShareArrangement {
+    /** Who played when, read from the first turn. */
+    TURN_ORDER,
+
+    /** Who sat beside whom, read round the table and wrapping back to the start. */
+    SEATING
 }
 
 /** One player's line on the card. */
@@ -73,6 +88,19 @@ data class ShareCard(
     /** Names in seat order. Empty when nobody wrote the order down, which is common. */
     val turnOrder: List<String>,
 
+    /**
+     * Names read round the table from chair 1, each of them once. Empty unless every
+     * player at the table had a chair. The wrap back to the first chair is the ring's
+     * whole point, but it is a way of saying the list rather than a fact in it, so the
+     * renderer is what closes it.
+     *
+     * Half a ring is left off rather than shown as far as it goes: the arrangement is
+     * worth sharing because it says who sat beside whom, and an unseated player may
+     * well have been sitting between two seated ones, so every adjacency in a partial
+     * seating is a guess. This is the same bar [Seating.neighbours] holds itself to.
+     */
+    val seating: List<String>,
+
     val isIncomplete: Boolean,
     val isTeachingGame: Boolean
 ) {
@@ -85,6 +113,20 @@ data class ShareCard(
 
     /** Whether the standings are a ranking rather than a lineup. */
     val hasRanks: Boolean get() = standings.any { it.rank != null }
+
+    /**
+     * The one arrangement the card shows, or null on a play that recorded neither.
+     *
+     * The turn order wins where both were recorded. A table that wrote down the whole
+     * order almost always sat in it, so printing both would spend a second line of the
+     * card restating the first; and where the two really did differ, the order is the
+     * one that decided the game.
+     */
+    val arrangement: ShareArrangement? get() = when {
+        turnOrder.isNotEmpty() -> ShareArrangement.TURN_ORDER
+        seating.isNotEmpty() -> ShareArrangement.SEATING
+        else -> null
+    }
 
     companion object {
 
@@ -110,6 +152,11 @@ data class ShareCard(
                     .filter { it.turnOrder != null }
                     .sortedBy { it.turnOrder }
                     .map { it.playerName },
+                seating = if (Seating.isComplete(form.participants)) {
+                    form.seating.map { it.playerName }
+                } else {
+                    emptyList()
+                },
                 isIncomplete = form.isIncomplete,
                 isTeachingGame = form.isTeachingGame
             )

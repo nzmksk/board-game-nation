@@ -48,6 +48,7 @@ class ShareCardTest {
         faction: String? = null,
         team: String? = null,
         turnOrder: Int? = null,
+        seat: Int? = null,
         isNewPlayer: Boolean = false
     ) = ParticipantForm(
         playerId = id,
@@ -58,6 +59,7 @@ class ShareCardTest {
         faction = faction,
         team = team,
         turnOrder = turnOrder,
+        seat = seat,
         isNewPlayer = isNewPlayer
     )
 
@@ -194,7 +196,7 @@ class ShareCardTest {
     }
 
     @Test
-    fun `the seating comes back in seat order and only for the seats recorded`() {
+    fun `the turn order comes back in turn order and only for the seats recorded`() {
         val card = ShareCard.of(
             form(
                 participants = listOf(
@@ -206,15 +208,71 @@ class ShareCardTest {
         )
 
         assertEquals(listOf("Aina", "Hafiz"), card.turnOrder)
+        assertEquals(ShareArrangement.TURN_ORDER, card.arrangement)
     }
 
     @Test
-    fun `a play with no seating recorded carries none`() {
+    fun `a play with no turn order and no seating recorded carries neither`() {
         val card = ShareCard.of(
             form(participants = listOf(player(1, "Hafiz"), player(2, "Aina")))
         )
 
         assertEquals(emptyList<String>(), card.turnOrder)
+        assertEquals(emptyList<String>(), card.seating)
+        assertNull(card.arrangement)
+    }
+
+    @Test
+    fun `a seated table comes back round the table from chair one`() {
+        val card = ShareCard.of(
+            form(
+                participants = listOf(
+                    player(1, "Hafiz", seat = 3),
+                    player(2, "Aina", seat = 1),
+                    player(3, "Ben", seat = 2)
+                )
+            )
+        )
+
+        assertEquals(listOf("Aina", "Ben", "Hafiz"), card.seating)
+        assertEquals(ShareArrangement.SEATING, card.arrangement)
+    }
+
+    /**
+     * A player without a chair may well have been sitting between two who have one, so
+     * the ring that is left after dropping them is a table that did not exist.
+     */
+    @Test
+    fun `a half seated table carries no seating at all`() {
+        val card = ShareCard.of(
+            form(
+                participants = listOf(
+                    player(1, "Hafiz", seat = 1),
+                    player(2, "Aina", seat = 2),
+                    player(3, "Ben")
+                )
+            )
+        )
+
+        assertEquals(emptyList<String>(), card.seating)
+        assertNull(card.arrangement)
+    }
+
+    /** Both are carried; the card only has room to say one of them. */
+    @Test
+    fun `the turn order is the arrangement shown when a play recorded both`() {
+        val card = ShareCard.of(
+            form(
+                participants = listOf(
+                    player(1, "Hafiz", turnOrder = 1, seat = 2),
+                    player(2, "Aina", seat = 1)
+                )
+            )
+        )
+
+        assertEquals(listOf("Hafiz"), card.turnOrder)
+        assertEquals(listOf("Aina", "Hafiz"), card.seating)
+        assertEquals(ShareArrangement.TURN_ORDER, card.arrangement)
     }
 
     @Test

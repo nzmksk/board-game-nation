@@ -57,6 +57,7 @@ class ShareCardRendererTest {
         mode: String? = null,
         endReason: String? = null,
         turnOrder: List<String> = emptyList(),
+        seating: List<String> = emptyList(),
         isIncomplete: Boolean = false,
         isTeachingGame: Boolean = false
     ) = ShareCard(
@@ -69,6 +70,7 @@ class ShareCardRendererTest {
         mode = mode,
         endReason = endReason,
         turnOrder = turnOrder,
+        seating = seating,
         isIncomplete = isIncomplete,
         isTeachingGame = isTeachingGame
     )
