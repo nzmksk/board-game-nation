@@ -182,6 +182,26 @@ There is one deliberate exception: streaks. "Consecutive" needs a window functio
 minSdk 26 ships SQLite 3.19, which predates them. The database returns a distinct list of
 playing days — a few hundred short strings — and the run arithmetic happens in Kotlin.
 
+### A first-player win rate is meaningless without a baseline
+
+Going first wins 45% of the time. That is either a serious imbalance or a serious
+disadvantage, and which one depends entirely on how many people were at the table — 45% is
+a rout among five players and a losing record between two.
+
+So the first-player figure is never shown alone. Every qualifying play contributes what the
+first seat would have won there by chance, its winners divided by its players, and the
+average of those is drawn beside the actual rate. The gap between the two is the finding,
+and it survives a history that mixes table sizes, which every real one does.
+
+Four kinds of play are excluded, each because including it would manufacture an advantage
+that is not there or hide one that is: co-op, where the table wins together and the seat
+says nothing; abandoned plays, which nobody won; solo plays, where the only player also went
+first and would report a permanent 100%; and plays with no winner recorded, which would drag
+the rate down for want of data rather than for want of an advantage.
+
+The figure is worth reading per game. A collection-wide number averages a heavy euro
+together with a filler and describes neither.
+
 ### Achievements are data, not code
 
 Every achievement lives in `assets/achievements.json` with a rule descriptor. Adding one
@@ -270,6 +290,7 @@ fails.
 | `SessionDaoTest` | Placement derivation, drafts, prefill, filters |
 | `PlacementCalculatorTest` | Ties, golf scoring, co-op |
 | `TurnOrderTest` | Gaps closed, one first player only, partial orders left partial |
+| `FirstPlayerWinRateTest` | The chance baseline across table sizes, and which plays are excluded from it |
 | `StreaksTest` | Day, week and month runs, including across a year boundary |
 | `CsvTest` | RFC 4180 quoting, embedded newlines, locale-independent numbers |
 | `GameQueryBuilderTest` | That values are bound and never interpolated |

@@ -53,6 +53,7 @@ import com.boardgamenation.tracker.data.db.projection.FactionRecord
 import com.boardgamenation.tracker.data.db.projection.GameAggregates
 import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.ui.collection.labelRes
+import com.boardgamenation.tracker.ui.components.FirstPlayerAdvantage
 import com.boardgamenation.tracker.ui.components.GameThumbnail
 import com.boardgamenation.tracker.ui.components.KeyValueRow
 import com.boardgamenation.tracker.ui.components.LoadingRows
@@ -204,6 +205,20 @@ fun GameDetailScreen(
                             .fillMaxWidth()
                             .clickable { onOpenGame(expansion.id) }
                             .padding(horizontal = 16.dp, vertical = 10.dp),
+                    )
+                }
+            }
+
+            // Only once a play of this game has named a starting player. Before that
+            // the section would be a heading over an apology.
+            if (state.firstPlayer.plays > 0) {
+                item { SectionHeader(stringResource(R.string.game_detail_first_player)) }
+                item {
+                    FirstPlayerAdvantage(
+                        record = state.firstPlayer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
                     )
                 }
             }

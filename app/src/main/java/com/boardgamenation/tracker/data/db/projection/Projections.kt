@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import com.boardgamenation.tracker.data.db.entity.PlayerEntity
 import com.boardgamenation.tracker.domain.model.GameStatus
+import kotlin.math.roundToInt
 
 /**
  * The collection list row. Play count, rating and cost-per-play are computed in SQL so
@@ -154,6 +155,39 @@ data class GameWinRateRow(
     @ColumnInfo(name = "wins") val wins: Int,
     @ColumnInfo(name = "win_rate") val winRate: Double,
 )
+
+/**
+ * How the player who went first has fared, over the plays that recorded a turn order.
+ *
+ * The rate alone does not answer the question. Winning 40% of the time is a commanding
+ * advantage at a table of five and a losing record at a table of two, so the record
+ * carries [expectedWinRate] -- what the first seat would have won if the seat meant
+ * nothing -- and the comparison between the two is the actual finding.
+ */
+data class FirstPlayerRecord(
+    /** Completed competitive plays that named a starting player. */
+    @ColumnInfo(name = "plays") val plays: Int,
+    @ColumnInfo(name = "wins") val wins: Int,
+
+    /**
+     * The share of those plays the first seat would be expected to win by chance:
+     * per play, the winners divided by the players, averaged. Null until there is a
+     * play to average.
+     */
+    @ColumnInfo(name = "expected_win_rate") val expectedWinRate: Double?,
+) {
+    /** Whole percent, matching how every other win rate in the app is shown. */
+    val winPercent: Int get() = if (plays > 0) wins * 100 / plays else 0
+
+    val expectedPercent: Int? get() = expectedWinRate?.roundToInt()
+
+    /**
+     * Percentage points the first seat is ahead of chance, negative when it is behind.
+     * Taken from the unrounded figures, so it is not the difference of two roundings.
+     */
+    val edgePoints: Int?
+        get() = expectedWinRate?.let { ((wins * 100.0 / plays) - it).roundToInt() }
+}
 
 data class CostPerPlayRow(
     @ColumnInfo(name = "game_id") val gameId: Long,

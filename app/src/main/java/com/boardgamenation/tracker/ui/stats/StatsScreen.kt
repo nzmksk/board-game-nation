@@ -36,6 +36,7 @@ import com.boardgamenation.tracker.core.time.DurationFormat
 import com.boardgamenation.tracker.data.db.projection.CostPerPlayRow
 import com.boardgamenation.tracker.data.db.projection.LabelledValue
 import com.boardgamenation.tracker.ui.components.DivergingBarChart
+import com.boardgamenation.tracker.ui.components.FirstPlayerAdvantage
 import com.boardgamenation.tracker.ui.components.HorizontalBarChart
 import com.boardgamenation.tracker.ui.components.LineChart
 import com.boardgamenation.tracker.ui.components.PlayerDot
@@ -235,6 +236,21 @@ private fun PlaysTab(viewModel: StatsViewModel) {
                         day.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to row.value
                     },
                 )
+            }
+        }
+
+        item { SectionHeader(stringResource(R.string.stats_first_player)) }
+        item {
+            ChartCard {
+                Column {
+                    Text(
+                        text = stringResource(R.string.stats_first_player_body),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    FirstPlayerAdvantage(stats.firstPlayer)
+                }
             }
         }
 
