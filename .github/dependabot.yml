@@ -1,0 +1,20 @@
+version: 2
+
+updates:
+  # The workflows pin every action to a major tag, so a patched action reaches the
+  # repository only when someone bumps the tag. Dependabot is that someone.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Three workflows sharing the same handful of actions would otherwise open a
+    # pull request per action per week; grouped, a week's updates are one review.
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    labels:
+      - infra
+    commit-message:
+      prefix: ci
