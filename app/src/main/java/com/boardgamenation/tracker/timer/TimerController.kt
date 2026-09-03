@@ -17,6 +17,8 @@ import com.boardgamenation.tracker.domain.timer.TimerPlayer
 import com.boardgamenation.tracker.domain.timer.TimerProjection
 import com.boardgamenation.tracker.domain.timer.TimerState
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -30,8 +32,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** Things worth a sound, a buzz, or a colour change. */
 sealed interface TimerEvent {
@@ -64,7 +64,7 @@ class TimerController @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val elapsed: ElapsedTimeSource,
     private val clock: AppClock,
-    @param:ApplicationScope private val scope: CoroutineScope,
+    @param:ApplicationScope private val scope: CoroutineScope
 ) {
 
     private val _state = MutableStateFlow<TimerState?>(null)
@@ -96,15 +96,11 @@ class TimerController @Inject constructor(
         true
     }
 
-    suspend fun setUp(
-        gameId: Long,
-        players: List<PlayerEntity>,
-        config: TimerConfig,
-    ) = mutex.withLock {
+    suspend fun setUp(gameId: Long, players: List<PlayerEntity>, config: TimerConfig) = mutex.withLock {
         val fresh = TimerEngine.create(
             gameId = gameId,
             players = players.map { TimerPlayer(it.id, it.name, it.colorHex) },
-            config = config,
+            config = config
         )
         _state.value = fresh
         timerRepository.checkpoint(fresh)
@@ -129,9 +125,9 @@ class TimerController @Inject constructor(
                         playerId = seat.playerId,
                         playerName = seat.name,
                         colorHex = seat.colorHex,
-                        turnOrder = index + 1,
+                        turnOrder = index + 1
                     )
-                },
+                }
             )
         val started = TimerEngine
             .start(current.copy(sessionId = sessionId), elapsed.elapsedMillis(), clock.nowMillis())
@@ -219,9 +215,9 @@ class TimerController @Inject constructor(
                     // A count-up clock timed the table, so there is no per-player time to
                     // report. Writing zeroes would look like everyone sat there silently.
                     turnTimeMs = seat.totalTurnTimeMs.takeUnless { stopped.isCountUp },
-                    bankTimeRemainingMs = seat.bankRemainingMs.takeUnless { stopped.isCountUp },
+                    bankTimeRemainingMs = seat.bankRemainingMs.takeUnless { stopped.isCountUp }
                 )
-            },
+            }
         )
 
         // The form is opened from the draft, not from this object, so the measurement
@@ -233,7 +229,7 @@ class TimerController @Inject constructor(
                 startedAt = summary.startedAt,
                 endedAt = summary.endedAt,
                 pausedMs = summary.pausedMs,
-                participants = summary.participants,
+                participants = summary.participants
             )
         }
         summary
@@ -347,7 +343,7 @@ class TimerController @Inject constructor(
 
     private fun stopForegroundService() {
         context.startService(
-            Intent(context, TimerService::class.java).setAction(TimerService.ACTION_STOP),
+            Intent(context, TimerService::class.java).setAction(TimerService.ACTION_STOP)
         )
     }
 
@@ -368,5 +364,5 @@ data class TimerSummary(
     val pausedMs: Long,
     val startedAt: Long?,
     val endedAt: Long?,
-    val participants: List<ParticipantForm>,
+    val participants: List<ParticipantForm>
 )

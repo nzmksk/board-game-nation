@@ -19,9 +19,9 @@ import com.boardgamenation.tracker.data.repository.BggRepository
 import com.boardgamenation.tracker.ui.navigation.AppNavigation
 import com.boardgamenation.tracker.ui.theme.BoardGameNationTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * The single activity. Everything else is Compose.
@@ -59,16 +59,16 @@ class MainActivity : ComponentActivity() {
 
             BoardGameNationTheme(
                 themeMode = settings.themeMode,
-                dynamicColor = settings.dynamicColor,
+                dynamicColor = settings.dynamicColor
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavigation(
                         bggEnabled = bggRepository.isConfigured,
                         onboardingComplete = settings.onboardingComplete,
-                        announceAchievements = settings.achievementNotifications,
+                        announceAchievements = settings.achievementNotifications
                     )
                 }
             }

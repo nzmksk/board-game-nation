@@ -49,8 +49,7 @@ object DateUtils {
     fun daysBetween(from: LocalDate, to: LocalDate): Long = ChronoUnit.DAYS.between(from, to)
 
     /** Monday-based, matching [weekKey]. */
-    fun startOfWeek(date: LocalDate): LocalDate =
-        date.minusDays(((date.dayOfWeek.value + 6) % 7).toLong())
+    fun startOfWeek(date: LocalDate): LocalDate = date.minusDays(((date.dayOfWeek.value + 6) % 7).toLong())
 
     fun dayOfWeekLabel(sqliteDayIndex: Int): DayOfWeek = when (sqliteDayIndex) {
         0 -> DayOfWeek.SUNDAY
@@ -97,6 +96,5 @@ object DurationFormat {
         return if (mins == 0) "${hours}h" else "${hours}h ${mins}m"
     }
 
-    fun hoursOneDecimal(totalMinutes: Int): String =
-        String.format(Locale.ROOT, "%.1f", totalMinutes / 60.0)
+    fun hoursOneDecimal(totalMinutes: Int): String = String.format(Locale.ROOT, "%.1f", totalMinutes / 60.0)
 }

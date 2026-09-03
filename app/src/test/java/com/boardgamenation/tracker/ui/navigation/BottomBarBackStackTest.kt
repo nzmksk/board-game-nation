@@ -49,11 +49,9 @@ class BottomBarBackStackTest {
     /** Route names without arguments, e.g. "Collection", "GameDetail". */
     private fun NavHostController.top(): String = name(currentBackStackEntry?.destination?.route)
 
-    private fun NavHostController.stack(): List<String> =
-        currentBackStack.value.drop(1).map { name(it.destination.route) }
+    private fun NavHostController.stack(): List<String> = currentBackStack.value.drop(1).map { name(it.destination.route) }
 
-    private fun name(route: String?): String =
-        route?.substringAfterLast('.')?.substringBefore('?')?.substringBefore('/') ?: "none"
+    private fun name(route: String?): String = route?.substringAfterLast('.')?.substringBefore('?')?.substringBefore('/') ?: "none"
 
     private val TopLevelDestination.rootName: String
         get() = when (this) {
@@ -108,7 +106,10 @@ class BottomBarBackStackTest {
         val taps = TopLevelDestination.entries
         val extras = listOf<Pair<String, NavHostController.() -> Unit>>(
             "open game" to { navigate(Route.GameDetail(1)) },
-            "back" to { popBackStack(); Unit },
+            "back" to {
+                popBackStack()
+                Unit
+            }
         )
         val actions = taps.map { it.name to { c: NavHostController -> c.tap(it) } } +
             extras.map { (label, action) -> label to { c: NavHostController -> c.action() } }

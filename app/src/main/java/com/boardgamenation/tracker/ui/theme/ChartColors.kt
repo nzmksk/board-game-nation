@@ -44,7 +44,7 @@ data class ChartColors(
     /** Reserved for state, never for a series. */
     val good: Color,
     val warning: Color,
-    val critical: Color,
+    val critical: Color
 ) {
     /** Assigns by index, folding past the eighth back onto the ramp only as a last resort. */
     fun forIndex(index: Int): Color = series[index.mod(series.size)]
@@ -69,7 +69,7 @@ private val LightChartColors = ChartColors(
         Color(0xFFE87BA4), // magenta
         Color(0xFF008300), // green
         Color(0xFF4A3AA7), // violet
-        Color(0xFFE34948), // red
+        Color(0xFFE34948) // red
     ),
     magnitude = Color(0xFF2A78D6),
     divergingHigh = Color(0xFFD03B3B),
@@ -80,7 +80,7 @@ private val LightChartColors = ChartColors(
     mutedInk = Color(0xFF898781),
     good = Color(0xFF0CA30C),
     warning = Color(0xFFFAB219),
-    critical = Color(0xFFD03B3B),
+    critical = Color(0xFFD03B3B)
 )
 
 private val DarkChartColors = ChartColors(
@@ -92,7 +92,7 @@ private val DarkChartColors = ChartColors(
         Color(0xFFD55181),
         Color(0xFF008300),
         Color(0xFF9085E9),
-        Color(0xFFE66767),
+        Color(0xFFE66767)
     ),
     magnitude = Color(0xFF3987E5),
     divergingHigh = Color(0xFFE66767),
@@ -103,7 +103,7 @@ private val DarkChartColors = ChartColors(
     mutedInk = Color(0xFF898781),
     good = Color(0xFF0CA30C),
     warning = Color(0xFFFAB219),
-    critical = Color(0xFFD03B3B),
+    critical = Color(0xFFD03B3B)
 )
 
 object ChartTheme {
@@ -112,6 +112,5 @@ object ChartTheme {
         @ReadOnlyComposable
         get() = if (isSystemInDarkTheme()) DarkChartColors else LightChartColors
 
-    fun colorsFor(darkTheme: Boolean): ChartColors =
-        if (darkTheme) DarkChartColors else LightChartColors
+    fun colorsFor(darkTheme: Boolean): ChartColors = if (darkTheme) DarkChartColors else LightChartColors
 }

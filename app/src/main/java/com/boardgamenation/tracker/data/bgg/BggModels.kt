@@ -1,12 +1,7 @@
 package com.boardgamenation.tracker.data.bgg
 
 /** A hit from the name search endpoint. Deliberately thin: search returns very little. */
-data class BggSearchResult(
-    val bggId: Long,
-    val name: String,
-    val yearPublished: Int?,
-    val isExpansion: Boolean,
-)
+data class BggSearchResult(val bggId: Long, val name: String, val yearPublished: Int?, val isExpansion: Boolean)
 
 /** Full metadata for one thing. */
 data class BggThing(
@@ -31,7 +26,7 @@ data class BggThing(
     val bestPlayerCount: String? = null,
 
     /** For expansions: the things this expands. */
-    val expandsBggIds: List<Long> = emptyList(),
+    val expandsBggIds: List<Long> = emptyList()
 )
 
 /** One row of a user's BGG collection. */
@@ -47,7 +42,7 @@ data class BggCollectionItem(
     val wishlistPriority: Int?,
     val preordered: Boolean,
     val numPlays: Int,
-    val isExpansion: Boolean,
+    val isExpansion: Boolean
 )
 
 /**
@@ -64,16 +59,13 @@ sealed class BggError(message: String, val retryable: Boolean) : Exception(messa
 
     data object RateLimited : BggError("BoardGameGeek is rate limiting requests", retryable = true)
 
-    data class Network(val detail: String) :
-        BggError("Could not reach BoardGameGeek: $detail", retryable = true)
+    data class Network(val detail: String) : BggError("Could not reach BoardGameGeek: $detail", retryable = true)
 
-    data class Server(val code: Int) :
-        BggError("BoardGameGeek returned $code", retryable = true)
+    data class Server(val code: Int) : BggError("BoardGameGeek returned $code", retryable = true)
 
     /** The collection endpoint queues; it answered 202 too many times. */
     data object StillQueued :
         BggError("BoardGameGeek is still preparing that collection", retryable = true)
 
-    data class Malformed(val detail: String) :
-        BggError("Could not read BoardGameGeek's response: $detail", retryable = false)
+    data class Malformed(val detail: String) : BggError("Could not read BoardGameGeek's response: $detail", retryable = false)
 }

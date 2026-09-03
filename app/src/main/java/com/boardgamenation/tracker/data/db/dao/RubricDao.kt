@@ -74,7 +74,7 @@ interface RubricDao {
         JOIN rubrics rb ON rb.id = r.rubric_id
         WHERE r.game_id = :gameId
         ORDER BY r.rated_on DESC, r.id DESC
-        """,
+        """
     )
     fun observeRatingsFor(gameId: Long): Flow<List<RatingWithRubric>>
 
@@ -98,7 +98,7 @@ interface RubricDao {
                ON s.criterion_id = c.id AND s.game_rating_id = :ratingId
         WHERE c.rubric_id = :rubricId
         ORDER BY c.sort_order, c.id
-        """,
+        """
     )
     fun observeCriterionScores(rubricId: Long, ratingId: Long): Flow<List<CriterionScoreRow>>
 
@@ -128,10 +128,7 @@ interface RubricDao {
      * already normalised, so sorting the collection by rating never needs a join.
      */
     @Transaction
-    suspend fun saveRating(
-        rating: GameRatingEntity,
-        scores: List<GameRatingScoreEntity>,
-    ): Long {
+    suspend fun saveRating(rating: GameRatingEntity, scores: List<GameRatingScoreEntity>): Long {
         val id = if (rating.id == 0L) {
             insertRating(rating)
         } else {

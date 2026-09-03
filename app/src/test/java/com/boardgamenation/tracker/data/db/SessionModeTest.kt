@@ -4,6 +4,7 @@ import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
+import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -13,7 +14,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.time.LocalDate
 
 /**
  * The configuration a session was played at.
@@ -40,13 +40,13 @@ class SessionModeTest {
             sessionDao = db.sessionDao(),
             gameDao = db.gameDao(),
             playerDao = db.playerDao(),
-            clock = DatabaseTestFixture.clock,
+            clock = DatabaseTestFixture.clock
         )
         catan = db.gameDao().insert(
-            DatabaseTestFixture.game("Catan").copy(scoringMode = ScoringMode.RANKED_SCORES),
+            DatabaseTestFixture.game("Catan").copy(scoringMode = ScoringMode.RANKED_SCORES)
         )
         pandemic = db.gameDao().insert(
-            DatabaseTestFixture.game("Pandemic").copy(scoringMode = ScoringMode.COOPERATIVE),
+            DatabaseTestFixture.game("Pandemic").copy(scoringMode = ScoringMode.COOPERATIVE)
         )
         me = db.playerDao().insert(DatabaseTestFixture.player("Hafiz", isSelf = true))
         opponent = db.playerDao().insert(DatabaseTestFixture.player("Aisyah"))
@@ -55,11 +55,7 @@ class SessionModeTest {
     @After
     fun tearDown() = db.close()
 
-    private fun form(
-        gameId: Long,
-        mode: String?,
-        scoringMode: ScoringMode = ScoringMode.RANKED_SCORES,
-    ) = SessionForm(
+    private fun form(gameId: Long, mode: String?, scoringMode: ScoringMode = ScoringMode.RANKED_SCORES) = SessionForm(
         gameId = gameId,
         playedOn = LocalDate.parse("2026-02-01"),
         durationMinutes = 90,
@@ -67,7 +63,7 @@ class SessionModeTest {
         mode = mode,
         participants = listOf(me to 12.0, opponent to 9.0).map { (playerId, score) ->
             ParticipantForm(playerId = playerId, playerName = "p$playerId", score = score)
-        },
+        }
     )
 
     @Test
@@ -80,7 +76,7 @@ class SessionModeTest {
     @Test
     fun `a co-op play keeps its configuration just as it always did`() = runTest {
         val id = repository.save(
-            form(pandemic, "5 epidemics + mutation", ScoringMode.COOPERATIVE),
+            form(pandemic, "5 epidemics + mutation", ScoringMode.COOPERATIVE)
         )
 
         assertEquals("5 epidemics + mutation", db.sessionDao().getSession(id)!!.mode)

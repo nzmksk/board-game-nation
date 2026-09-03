@@ -52,7 +52,7 @@ interface PlayerDao {
         WHERE p.archived = 0
         ORDER BY p.is_self DESC, r.last_played IS NULL, r.last_played DESC,
                  p.name COLLATE NOCASE
-        """,
+        """
     )
     fun observeByRecency(): Flow<List<PlayerEntity>>
 
@@ -67,7 +67,7 @@ interface PlayerDao {
             ORDER BY s.played_on DESC, s.id DESC LIMIT 1
         )
         ORDER BY p.name COLLATE NOCASE
-        """,
+        """
     )
     suspend fun lastLineupFor(gameId: Long): List<PlayerEntity>
 
@@ -82,7 +82,7 @@ interface PlayerDao {
              WHERE sp.player_id = p.id AND sp.is_winner = 1) AS wins
         FROM players p
         ORDER BY p.is_self DESC, plays DESC, p.name COLLATE NOCASE
-        """,
+        """
     )
     fun observeWithCounts(): Flow<List<PlayerRow>>
 

@@ -42,8 +42,7 @@ class GameDaoTest {
     @After
     fun tearDown() = db.close()
 
-    private suspend fun collection(filter: CollectionFilter) =
-        gameDao.observeCollection(GameQueryBuilder.build(filter)).first()
+    private suspend fun collection(filter: CollectionFilter) = gameDao.observeCollection(GameQueryBuilder.build(filter)).first()
 
     @Test
     fun `a game round trips`() = runTest {
@@ -107,7 +106,7 @@ class GameDaoTest {
         val gameId = gameDao.insert(DatabaseTestFixture.game("Catan", price = 120.0))
         repeat(4) { index ->
             sessionDao.insertSession(
-                DatabaseTestFixture.session(gameId, playedOn = "2026-02-0${index + 1}"),
+                DatabaseTestFixture.session(gameId, playedOn = "2026-02-0${index + 1}")
             )
         }
 
@@ -143,7 +142,7 @@ class GameDaoTest {
         }
 
         val sorted = collection(
-            CollectionFilter(sort = CollectionSort.PLAY_COUNT, ascending = false),
+            CollectionFilter(sort = CollectionSort.PLAY_COUNT, ascending = false)
         )
         assertEquals("Played thrice", sorted.first().title)
     }
@@ -154,7 +153,7 @@ class GameDaoTest {
         gameDao.insert(DatabaseTestFixture.game("Cheap", price = 10.0))
 
         val ascending = collection(
-            CollectionFilter(sort = CollectionSort.PRICE, ascending = true),
+            CollectionFilter(sort = CollectionSort.PRICE, ascending = true)
         )
         assertEquals("Cheap", ascending.first().title)
         assertEquals("Unpriced", ascending.last().title)
@@ -175,10 +174,10 @@ class GameDaoTest {
     fun `aggregates exclude incomplete games from the average but count the play`() = runTest {
         val gameId = gameDao.insert(DatabaseTestFixture.game("Catan"))
         sessionDao.insertSession(
-            DatabaseTestFixture.session(gameId, "2026-02-01", durationMinutes = 60),
+            DatabaseTestFixture.session(gameId, "2026-02-01", durationMinutes = 60)
         )
         sessionDao.insertSession(
-            DatabaseTestFixture.session(gameId, "2026-02-02", durationMinutes = 10, isIncomplete = true),
+            DatabaseTestFixture.session(gameId, "2026-02-02", durationMinutes = 10, isIncomplete = true)
         )
 
         val aggregates = gameDao.observeAggregates(gameId).first()
@@ -192,10 +191,10 @@ class GameDaoTest {
     fun `teaching games are separated out of the duration average`() = runTest {
         val gameId = gameDao.insert(DatabaseTestFixture.game("Catan"))
         sessionDao.insertSession(
-            DatabaseTestFixture.session(gameId, "2026-02-01", durationMinutes = 60),
+            DatabaseTestFixture.session(gameId, "2026-02-01", durationMinutes = 60)
         )
         sessionDao.insertSession(
-            DatabaseTestFixture.session(gameId, "2026-02-02", durationMinutes = 120, isTeaching = true),
+            DatabaseTestFixture.session(gameId, "2026-02-02", durationMinutes = 120, isTeaching = true)
         )
 
         val aggregates = gameDao.observeAggregates(gameId).first()
@@ -218,7 +217,7 @@ class GameDaoTest {
     fun `deleting a base game detaches its expansions`() = runTest {
         val baseId = gameDao.insert(DatabaseTestFixture.game("Catan"))
         val expansionId = gameDao.insert(
-            DatabaseTestFixture.game("Seafarers", isExpansion = true, baseGameId = baseId),
+            DatabaseTestFixture.game("Seafarers", isExpansion = true, baseGameId = baseId)
         )
 
         gameDao.delete(gameDao.getGame(baseId)!!)
@@ -263,7 +262,7 @@ class GameDaoTest {
 
         assertEquals(
             listOf("Agricola"),
-            collection(CollectionFilter(tagIds = setOf(tagId))).map { it.title },
+            collection(CollectionFilter(tagIds = setOf(tagId))).map { it.title }
         )
     }
 
@@ -277,8 +276,8 @@ class GameDaoTest {
             listOf(
                 GameTagCrossRef(gameId, designer),
                 GameTagCrossRef(gameId, shared),
-                GameTagCrossRef(other, shared),
-            ),
+                GameTagCrossRef(other, shared)
+            )
         )
 
         gameDao.delete(gameDao.getGame(gameId)!!)
@@ -355,7 +354,7 @@ class GameDaoTest {
         factions: Map<Long, String>,
         winners: Set<Long>,
         incomplete: Boolean = false,
-        draft: Boolean = false,
+        draft: Boolean = false
     ) {
         val sessionId = sessionDao.insertSession(
             DatabaseTestFixture.session(
@@ -363,22 +362,21 @@ class GameDaoTest {
                 playedOn = playedOn,
                 playerCount = factions.size,
                 isIncomplete = incomplete,
-                isDraft = draft,
-            ),
+                isDraft = draft
+            )
         )
         sessionDao.insertParticipants(
             factions.map { (playerId, faction) ->
                 DatabaseTestFixture.participant(
                     sessionId = sessionId,
                     playerId = playerId,
-                    isWinner = playerId in winners,
+                    isWinner = playerId in winners
                 ).copy(faction = faction)
-            },
+            }
         )
     }
 
-    private suspend fun seedPlayers(vararg names: String): List<Long> =
-        names.map { db.playerDao().insert(DatabaseTestFixture.player(it)) }
+    private suspend fun seedPlayers(vararg names: String): List<Long> = names.map { db.playerDao().insert(DatabaseTestFixture.player(it)) }
 
     @Test
     fun `win rate per faction counts every player who used it`() = runTest {
@@ -409,7 +407,7 @@ class GameDaoTest {
 
         assertEquals(
             listOf("Rhodos", "Ephesos"),
-            gameDao.observeFactionRecords(gameId).first().map { it.faction },
+            gameDao.observeFactionRecords(gameId).first().map { it.faction }
         )
     }
 
@@ -450,7 +448,7 @@ class GameDaoTest {
 
         assertEquals(
             listOf("Ephesos"),
-            gameDao.observeFactionRecords(gameId).first().map { it.faction },
+            gameDao.observeFactionRecords(gameId).first().map { it.faction }
         )
     }
 
@@ -465,7 +463,7 @@ class GameDaoTest {
 
         assertEquals(
             listOf("Marquise", "Eyrie").sorted(),
-            gameDao.observeFactionRecords(root).first().map { it.faction }.sorted(),
+            gameDao.observeFactionRecords(root).first().map { it.faction }.sorted()
         )
     }
 }

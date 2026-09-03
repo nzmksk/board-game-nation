@@ -11,33 +11,33 @@ import com.boardgamenation.tracker.domain.model.TimerRunState
 import com.boardgamenation.tracker.domain.timer.Seat
 import com.boardgamenation.tracker.domain.timer.TimerConfig
 import com.boardgamenation.tracker.domain.timer.TimerState
-import kotlinx.coroutines.flow.Flow
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.Json
 
 @Singleton
 class TimerRepository @Inject constructor(
     private val timerDao: TimerDao,
     private val playerDao: PlayerDao,
     private val clock: AppClock,
-    private val elapsed: ElapsedTimeSource,
+    private val elapsed: ElapsedTimeSource
 ) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
     fun observePresets(): Flow<List<TimerPresetEntity>> = timerDao.observePresets()
 
-    suspend fun presetsForGame(gameId: Long): List<TimerPresetEntity> =
-        timerDao.presetsForGame(gameId)
+    suspend fun presetsForGame(gameId: Long): List<TimerPresetEntity> = timerDao.presetsForGame(gameId)
 
     suspend fun getPreset(id: Long): TimerPresetEntity? = timerDao.getPreset(id)
 
-    suspend fun savePreset(preset: TimerPresetEntity): Long =
-        if (preset.id == 0L) timerDao.insertPreset(preset) else {
-            timerDao.updatePreset(preset)
-            preset.id
-        }
+    suspend fun savePreset(preset: TimerPresetEntity): Long = if (preset.id == 0L) {
+        timerDao.insertPreset(preset)
+    } else {
+        timerDao.updatePreset(preset)
+        preset.id
+    }
 
     suspend fun deletePreset(id: Long) = timerDao.deletePreset(id)
 
@@ -49,24 +49,24 @@ class TimerRepository @Inject constructor(
                 name = "Standard",
                 turnSeconds = 60,
                 bankSeconds = 600,
-                warningThresholdSeconds = 10,
-            ),
+                warningThresholdSeconds = 10
+            )
         )
         timerDao.insertPreset(
             TimerPresetEntity(
                 name = "Quick",
                 turnSeconds = 30,
                 bankSeconds = 300,
-                warningThresholdSeconds = 5,
-            ),
+                warningThresholdSeconds = 5
+            )
         )
         timerDao.insertPreset(
             TimerPresetEntity(
                 name = "Heavy Euro",
                 turnSeconds = 120,
                 bankSeconds = 1_800,
-                warningThresholdSeconds = 15,
-            ),
+                warningThresholdSeconds = 15
+            )
         )
     }
 
@@ -77,9 +77,12 @@ class TimerRepository @Inject constructor(
      * so a process death costs seconds rather than a turn.
      */
     suspend fun checkpoint(state: TimerState) {
-        timerDao.checkpoint(state.toEntity(), state.seats.mapIndexed { index, seat ->
-            seat.toEntity(index)
-        })
+        timerDao.checkpoint(
+            state.toEntity(),
+            state.seats.mapIndexed { index, seat ->
+                seat.toEntity(index)
+            }
+        )
     }
 
     /**
@@ -107,7 +110,7 @@ class TimerRepository @Inject constructor(
                 warningMs = entity.warningThresholdSeconds * 1000L,
                 soundEnabled = entity.soundEnabled,
                 hapticsEnabled = entity.hapticsEnabled,
-                bankExhausted = entity.bankExhaustedBehaviour,
+                bankExhausted = entity.bankExhaustedBehaviour
             ),
             seats = seats.map { seat ->
                 Seat(
@@ -119,7 +122,7 @@ class TimerRepository @Inject constructor(
                     totalTurnTimeMs = seat.totalTurnTimeMs,
                     turnsTaken = seat.turnsTaken,
                     timedOut = seat.timedOut,
-                    skipped = seat.skipped,
+                    skipped = seat.skipped
                 )
             },
             activeSeat = entity.activeSeat,
@@ -132,7 +135,7 @@ class TimerRepository @Inject constructor(
             pauseAnchorElapsedMs = elapsed.elapsedMillis(),
             undoSnapshot = entity.undoSnapshot?.let { snapshot ->
                 runCatching { json.decodeFromString(TimerState.serializer(), snapshot) }.getOrNull()
-            },
+            }
         )
     }
 
@@ -160,7 +163,7 @@ class TimerRepository @Inject constructor(
         savedAtWallClock = clock.nowMillis(),
         undoSnapshot = undoSnapshot?.let {
             json.encodeToString(TimerState.serializer(), it.copy(undoSnapshot = null))
-        },
+        }
     )
 
     private fun Seat.toEntity(order: Int) = TimerSeatEntity(
@@ -171,6 +174,6 @@ class TimerRepository @Inject constructor(
         totalTurnTimeMs = totalTurnTimeMs,
         turnsTaken = turnsTaken,
         timedOut = timedOut,
-        skipped = skipped,
+        skipped = skipped
     )
 }

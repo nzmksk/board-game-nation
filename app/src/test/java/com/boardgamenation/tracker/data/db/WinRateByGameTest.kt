@@ -41,13 +41,7 @@ class WinRateByGameTest {
      * A co-op or draft session is still a session against the same opponent; those
      * flags are what the query is expected to filter on.
      */
-    private suspend fun record(
-        title: String,
-        wins: Int,
-        losses: Int,
-        isCooperative: Boolean = false,
-        isDraft: Boolean = false,
-    ): Long {
+    private suspend fun record(title: String, wins: Int, losses: Int, isCooperative: Boolean = false, isDraft: Boolean = false): Long {
         val gameId = db.gameDao().insert(DatabaseTestFixture.game(title))
         repeat(wins + losses) { index ->
             val sessionId = db.sessionDao().insertSession(
@@ -55,15 +49,15 @@ class WinRateByGameTest {
                     gameId,
                     playedOn = "2026-02-01",
                     isCooperative = isCooperative,
-                    isDraft = isDraft,
-                ),
+                    isDraft = isDraft
+                )
             )
             val won = index < wins
             db.sessionDao().insertParticipants(
                 listOf(
                     DatabaseTestFixture.participant(sessionId, me, isWinner = won),
-                    DatabaseTestFixture.participant(sessionId, ben, isWinner = !won),
-                ),
+                    DatabaseTestFixture.participant(sessionId, ben, isWinner = !won)
+                )
             )
         }
         return gameId

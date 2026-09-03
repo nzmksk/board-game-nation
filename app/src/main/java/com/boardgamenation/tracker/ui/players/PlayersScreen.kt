@@ -38,8 +38,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.data.db.entity.PlayerEntity
 import com.boardgamenation.tracker.data.db.projection.PlayerRow
@@ -49,18 +49,16 @@ import com.boardgamenation.tracker.ui.components.EmptyState
 import com.boardgamenation.tracker.ui.components.PlayerDot
 import com.boardgamenation.tracker.ui.theme.LocalChartColors
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
-class PlayersViewModel @Inject constructor(
-    private val repository: PlayerRepository,
-) : ViewModel() {
+class PlayersViewModel @Inject constructor(private val repository: PlayerRepository) : ViewModel() {
 
     val players: StateFlow<List<PlayerRow>> = repository.observeWithCounts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -108,11 +106,7 @@ private data class BlockedDelete(val name: String, val appearances: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayersScreen(
-    onBack: () -> Unit,
-    onOpenPlayer: (Long) -> Unit,
-    viewModel: PlayersViewModel = hiltViewModel(),
-) {
+fun PlayersScreen(onBack: () -> Unit, onOpenPlayer: (Long) -> Unit, viewModel: PlayersViewModel = hiltViewModel()) {
     val players by viewModel.players.collectAsStateWithLifecycle()
     var addOpen by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<PlayerEntity?>(null) }
@@ -127,22 +121,22 @@ fun PlayersScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
-                },
+                }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { addOpen = true }) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.players_add))
             }
-        },
+        }
     ) { padding ->
         if (players.isEmpty()) {
             EmptyState(
                 title = stringResource(R.string.players_empty),
-                modifier = Modifier.padding(padding),
+                modifier = Modifier.padding(padding)
             )
             return@Scaffold
         }
@@ -150,25 +144,25 @@ fun PlayersScreen(
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             items(players.size, key = { players[it].player.id }) { index ->
                 val row = players[index]
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onOpenPlayer(row.player.id) },
+                        .clickable { onOpenPlayer(row.player.id) }
                 ) {
                     Row(
                         Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         PlayerDot(
                             chartColors.forPlayer(row.player.colorHex, index),
-                            size = 14.dp,
+                            size = 14.dp
                         )
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
@@ -178,14 +172,16 @@ fun PlayersScreen(
                                 } else {
                                     row.player.name
                                 },
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleSmall
                             )
                             Text(
                                 text = stringResource(
-                                    R.string.players_stats, row.plays, row.wins,
+                                    R.string.players_stats,
+                                    row.plays,
+                                    row.wins
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         TextButton(onClick = { editing = row.player }) {
@@ -205,7 +201,7 @@ fun PlayersScreen(
                 viewModel.add(name, colour)
                 addOpen = false
             },
-            onDelete = null,
+            onDelete = null
         )
     }
 
@@ -215,7 +211,7 @@ fun PlayersScreen(
             onDismiss = { editing = null },
             onSave = { name, colour, archived ->
                 viewModel.update(
-                    player.copy(name = name, colorHex = colour, archived = archived),
+                    player.copy(name = name, colorHex = colour, archived = archived)
                 )
                 editing = null
             },
@@ -228,7 +224,7 @@ fun PlayersScreen(
                     blocked = BlockedDelete(player.name, appearances)
                 }
                 editing = null
-            },
+            }
         )
     }
 
@@ -239,15 +235,17 @@ fun PlayersScreen(
             text = {
                 Text(
                     stringResource(
-                        R.string.players_cannot_delete, refusal.name, refusal.appearances,
-                    ),
+                        R.string.players_cannot_delete,
+                        refusal.name,
+                        refusal.appearances
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = { blocked = null }) {
                     Text(stringResource(R.string.action_close))
                 }
-            },
+            }
         )
     }
 }
@@ -258,7 +256,7 @@ private fun PlayerDialog(
     onDismiss: () -> Unit,
     onSave: (String, String?, Boolean) -> Unit,
     onSetSelf: (() -> Unit)? = null,
-    onDelete: (() -> Unit)?,
+    onDelete: (() -> Unit)?
 ) {
     var name by remember { mutableStateOf(initial?.name.orEmpty()) }
     var colour by remember { mutableStateOf(initial?.colorHex.orEmpty()) }
@@ -273,20 +271,20 @@ private fun PlayerDialog(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.players_name)) },
-                    singleLine = true,
+                    singleLine = true
                 )
                 OutlinedTextField(
                     value = colour,
                     onValueChange = { colour = it },
                     label = { Text(stringResource(R.string.players_colour)) },
                     placeholder = { Text(stringResource(R.string.players_colour_hint)) },
-                    singleLine = true,
+                    singleLine = true
                 )
                 if (initial != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = stringResource(R.string.players_archived),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                         Switch(checked = archived, onCheckedChange = { archived = it })
                     }
@@ -301,7 +299,7 @@ private fun PlayerDialog(
         confirmButton = {
             TextButton(
                 onClick = { onSave(name.trim(), colour.trim().ifBlank { null }, archived) },
-                enabled = name.isNotBlank(),
+                enabled = name.isNotBlank()
             ) { Text(stringResource(R.string.action_save)) }
         },
         dismissButton = {
@@ -310,12 +308,12 @@ private fun PlayerDialog(
                     TextButton(onClick = onDelete) {
                         Text(
                             text = stringResource(R.string.action_delete),
-                            color = MaterialTheme.colorScheme.error,
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
             }
-        },
+        }
     )
 }

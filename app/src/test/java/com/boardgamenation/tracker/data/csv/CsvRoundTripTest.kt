@@ -63,7 +63,7 @@ class CsvRoundTripTest {
             achievementDao = db.achievementDao(),
             timerDao = db.timerDao(),
             bggCacheDao = db.bggCacheDao(),
-            io = dispatcher,
+            io = dispatcher
         )
         exporter = CsvExporter(
             context = context,
@@ -74,7 +74,7 @@ class CsvRoundTripTest {
             rubricDao = db.rubricDao(),
             achievementDao = db.achievementDao(),
             clock = DatabaseTestFixture.clock,
-            io = dispatcher,
+            io = dispatcher
         )
         importer = CsvImporter(
             context = context,
@@ -86,7 +86,7 @@ class CsvRoundTripTest {
             rubricDao = db.rubricDao(),
             achievementDao = db.achievementDao(),
             maintenance = maintenance,
-            io = dispatcher,
+            io = dispatcher
         )
     }
 
@@ -96,21 +96,21 @@ class CsvRoundTripTest {
     /** A collection with something in every table, so nothing is untested by omission. */
     private suspend fun populate() {
         val catan = db.gameDao().insert(
-            DatabaseTestFixture.game("Catan", bggId = 13, price = 120.0),
+            DatabaseTestFixture.game("Catan", bggId = 13, price = 120.0)
         )
         val seafarers = db.gameDao().insert(
             DatabaseTestFixture.game(
                 "Catan: Seafarers",
                 bggId = 325,
                 isExpansion = true,
-                baseGameId = catan,
-            ),
+                baseGameId = catan
+            )
         )
         val wingspan = db.gameDao().insert(
-            DatabaseTestFixture.game("Wingspan, Oceania", price = 90.0),
+            DatabaseTestFixture.game("Wingspan, Oceania", price = 90.0)
         )
         db.gameDao().insert(
-            DatabaseTestFixture.game("Wanted \"badly\"", status = GameStatus.WISHLIST),
+            DatabaseTestFixture.game("Wanted \"badly\"", status = GameStatus.WISHLIST)
         )
 
         val trading = db.tagDao().upsertByName("Trading", TagKind.MECHANIC)
@@ -119,8 +119,8 @@ class CsvRoundTripTest {
             listOf(
                 GameTagCrossRef(catan, trading),
                 GameTagCrossRef(catan, economic),
-                GameTagCrossRef(wingspan, economic),
-            ),
+                GameTagCrossRef(wingspan, economic)
+            )
         )
 
         val me = db.playerDao().insert(DatabaseTestFixture.player("Muhammad", isSelf = true))
@@ -133,44 +133,44 @@ class CsvRoundTripTest {
                     gameId = catan,
                     playedOn = date,
                     durationMinutes = 75 + index * 10,
-                    playerCount = 3,
-                ),
+                    playerCount = 3
+                )
             )
             db.sessionDao().insertParticipants(
                 listOf(
                     DatabaseTestFixture.participant(sessionId, me, 9.0 + index, index == 0, 1, 2),
                     DatabaseTestFixture.participant(sessionId, ben, 7.0, index != 0, 2, 1),
                     // Left out of the turn order: a partial one has to survive too.
-                    DatabaseTestFixture.participant(sessionId, aina, 5.0, false, 3),
-                ),
+                    DatabaseTestFixture.participant(sessionId, aina, 5.0, false, 3)
+                )
             )
             if (index == 2) {
                 db.sessionDao().insertExpansions(
-                    listOf(SessionExpansionEntity(sessionId = sessionId, gameId = seafarers)),
+                    listOf(SessionExpansionEntity(sessionId = sessionId, gameId = seafarers))
                 )
             }
         }
 
         db.sessionDao().insertSession(
-            DatabaseTestFixture.session(wingspan, "2026-02-10", durationMinutes = 55),
+            DatabaseTestFixture.session(wingspan, "2026-02-10", durationMinutes = 55)
         )
         db.sessionDao().insertSession(
             DatabaseTestFixture.session(
                 gameId = catan,
                 playedOn = "2026-02-14",
                 durationMinutes = 45,
-                isCooperative = true,
-            ).copy(mode = "5 epidemics + mutation"),
+                isCooperative = true
+            ).copy(mode = "5 epidemics + mutation")
         )
 
         val rubricId = db.rubricDao().insertRubric(
-            RubricEntity(name = "Strategy", description = "Decisions, mostly"),
+            RubricEntity(name = "Strategy", description = "Decisions, mostly")
         )
         val depth = db.rubricDao().insertCriterion(
-            RubricCriterionEntity(rubricId = rubricId, name = "Depth", weight = 1.5, sortOrder = 0),
+            RubricCriterionEntity(rubricId = rubricId, name = "Depth", weight = 1.5, sortOrder = 0)
         )
         val replay = db.rubricDao().insertCriterion(
-            RubricCriterionEntity(rubricId = rubricId, name = "Replayability", sortOrder = 1),
+            RubricCriterionEntity(rubricId = rubricId, name = "Replayability", sortOrder = 1)
         )
         val ratingId = db.rubricDao().insertRating(
             GameRatingEntity(
@@ -178,14 +178,14 @@ class CsvRoundTripTest {
                 rubricId = rubricId,
                 ratedOn = "2026-02-15",
                 computedScore = 7.4,
-                notes = "Holds up",
-            ),
+                notes = "Holds up"
+            )
         )
         db.rubricDao().insertScores(
             listOf(
                 GameRatingScoreEntity(gameRatingId = ratingId, criterionId = depth, score = 7.0),
-                GameRatingScoreEntity(gameRatingId = ratingId, criterionId = replay, score = 8.0),
-            ),
+                GameRatingScoreEntity(gameRatingId = ratingId, criterionId = replay, score = 8.0)
+            )
         )
 
         db.achievementDao().insertDefinitions(
@@ -196,17 +196,17 @@ class CsvRoundTripTest {
                     description = "Log your first play.",
                     icon = "Casino",
                     category = "Milestones",
-                    ruleJson = """{"type":"COUNT_THRESHOLD","metric":"TOTAL_PLAYS","target":1}""",
-                ),
-            ),
+                    ruleJson = """{"type":"COUNT_THRESHOLD","metric":"TOTAL_PLAYS","target":1}"""
+                )
+            )
         )
         val achievementId = db.achievementDao().findByCode("first_play")!!.id
         db.achievementDao().insertUnlock(
             AchievementUnlockEntity(
                 achievementId = achievementId,
                 unlockedAt = DatabaseTestFixture.NOW,
-                progressValue = 4.0,
-            ),
+                progressValue = 4.0
+            )
         )
     }
 
@@ -224,7 +224,7 @@ class CsvRoundTripTest {
         "standings" to db.statsDao().observeStandings(null).first()
             .map { listOf(it.playerName, it.plays, it.wins) },
         "mostPlayed" to db.statsDao().observeMostPlayed(10).first()
-            .map { it.label to it.value },
+            .map { it.label to it.value }
     )
 
     private suspend fun unlockCodes(): List<String> {
@@ -281,7 +281,7 @@ class CsvRoundTripTest {
         assertEquals(3, rows.count { it.playerId == ben.id && it.turnOrder == 1 })
         assertTrue(
             "a player left out of the order comes back left out of it",
-            rows.filter { it.playerId == aina.id }.all { it.turnOrder == null },
+            rows.filter { it.playerId == aina.id }.all { it.turnOrder == null }
         )
     }
 
@@ -335,9 +335,9 @@ class CsvRoundTripTest {
                     playerId = participant.playerId,
                     score = participant.score,
                     isWinner = index == 0,
-                    placement = participant.placement ?: 1,
+                    placement = participant.placement ?: 1
                 ).copy(team = if (index == 0) "Liberals" else "Fascists")
-            },
+            }
         )
         val files = exporter.buildFiles()
         maintenance.wipeUserData()
@@ -347,7 +347,7 @@ class CsvRoundTripTest {
         val restored = db.sessionDao().getParticipants(sessionId)
         assertEquals(
             listOf("Liberals"),
-            restored.filter { it.isWinner }.map { it.team },
+            restored.filter { it.isWinner }.map { it.team }
         )
         assertTrue("every side comes back", restored.all { !it.team.isNullOrBlank() })
     }

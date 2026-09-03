@@ -9,13 +9,13 @@ import com.boardgamenation.tracker.domain.model.TagKind
 
 @Entity(
     tableName = "tags",
-    indices = [Index(value = ["name", "kind"], unique = true)],
+    indices = [Index(value = ["name", "kind"], unique = true)]
 )
 data class TagEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id") val id: Long = 0,
     @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "kind") val kind: TagKind,
+    @ColumnInfo(name = "kind") val kind: TagKind
 )
 
 @Entity(
@@ -26,18 +26,15 @@ data class TagEntity(
             entity = GameEntity::class,
             parentColumns = ["id"],
             childColumns = ["game_id"],
-            onDelete = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = TagEntity::class,
             parentColumns = ["id"],
             childColumns = ["tag_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
-    indices = [Index(value = ["tag_id"])],
+    indices = [Index(value = ["tag_id"])]
 )
-data class GameTagCrossRef(
-    @ColumnInfo(name = "game_id") val gameId: Long,
-    @ColumnInfo(name = "tag_id") val tagId: Long,
-)
+data class GameTagCrossRef(@ColumnInfo(name = "game_id") val gameId: Long, @ColumnInfo(name = "tag_id") val tagId: Long)

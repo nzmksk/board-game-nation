@@ -72,7 +72,7 @@ class CsvTest {
     fun `quoted fields keep their commas`() {
         assertEquals(
             listOf("Wingspan, Oceania", "2019"),
-            CsvParser.parseLine("\"Wingspan, Oceania\",2019"),
+            CsvParser.parseLine("\"Wingspan, Oceania\",2019")
         )
     }
 

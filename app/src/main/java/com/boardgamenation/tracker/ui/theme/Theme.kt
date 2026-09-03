@@ -18,11 +18,7 @@ import com.boardgamenation.tracker.domain.model.ThemeMode
 val LocalChartColors = staticCompositionLocalOf { ChartTheme.colorsFor(darkTheme = false) }
 
 @Composable
-fun BoardGameNationTheme(
-    themeMode: ThemeMode = ThemeMode.SYSTEM,
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit,
-) {
+fun BoardGameNationTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, dynamicColor: Boolean = true, content: @Composable () -> Unit) {
     val darkTheme = when (themeMode) {
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
@@ -35,7 +31,9 @@ fun BoardGameNationTheme(
         // out of it; see ChartColors.
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+
         darkTheme -> DarkColors
+
         else -> LightColors
     }
 

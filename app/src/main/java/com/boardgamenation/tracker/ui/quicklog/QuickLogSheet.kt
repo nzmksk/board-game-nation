@@ -38,8 +38,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.core.time.AppClock
 import com.boardgamenation.tracker.core.time.DateUtils
@@ -56,13 +56,13 @@ import com.boardgamenation.tracker.domain.model.TurnOrder
 import com.boardgamenation.tracker.domain.usecase.SaveSessionUseCase
 import com.boardgamenation.tracker.ui.components.IsoDateField
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import javax.inject.Inject
 
 data class QuickLogState(
     val games: List<GameEntity> = emptyList(),
@@ -77,7 +77,7 @@ data class QuickLogState(
     val firstPlayerId: Long? = null,
 
     val savedUnlocks: List<String>? = null,
-    val isSaving: Boolean = false,
+    val isSaving: Boolean = false
 ) {
     val canSave: Boolean
         get() = form.gameId != 0L && form.participants.isNotEmpty() && !isSaving
@@ -96,7 +96,7 @@ class QuickLogViewModel @Inject constructor(
     private val saveSession: SaveSessionUseCase,
     private val playerRepository: PlayerRepository,
     gameRepository: GameRepository,
-    clock: AppClock,
+    clock: AppClock
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(QuickLogState(form = SessionForm(playedOn = clock.today())))
@@ -106,7 +106,7 @@ class QuickLogViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(
                 games = gameRepository.observeBaseGames().first(),
-                players = playerRepository.observeByRecency().first(),
+                players = playerRepository.observeByRecency().first()
             )
         }
     }
@@ -121,7 +121,7 @@ class QuickLogViewModel @Inject constructor(
                 // duration are: those are safe to be wrong about, a configuration is
                 // the thing that makes the result mean what it means.
                 previousModes = sessionRepository.observeModesFor(gameId).first(),
-                firstPlayerId = null,
+                firstPlayerId = null
             )
         }
     }
@@ -137,13 +137,13 @@ class QuickLogViewModel @Inject constructor(
                     form.participants + ParticipantForm(
                         playerId = player.id,
                         playerName = player.name,
-                        colorHex = player.colorHex,
+                        colorHex = player.colorHex
                     )
-                },
+                }
             ),
             winnerIds = _state.value.winnerIds - player.id,
             // Someone who is not at the table cannot have started the game.
-            firstPlayerId = _state.value.firstPlayerId?.takeIf { it != player.id },
+            firstPlayerId = _state.value.firstPlayerId?.takeIf { it != player.id }
         )
     }
 
@@ -153,7 +153,7 @@ class QuickLogViewModel @Inject constructor(
             val id = playerRepository.findOrCreate(name)
             val player = playerRepository.getPlayer(id) ?: return@launch
             _state.value = _state.value.copy(
-                players = playerRepository.observeByRecency().first(),
+                players = playerRepository.observeByRecency().first()
             )
             togglePlayer(player)
         }
@@ -163,7 +163,7 @@ class QuickLogViewModel @Inject constructor(
     fun toggleWinner(playerId: Long) {
         val current = _state.value.winnerIds
         _state.value = _state.value.copy(
-            winnerIds = if (playerId in current) current - playerId else current + playerId,
+            winnerIds = if (playerId in current) current - playerId else current + playerId
         )
     }
 
@@ -180,7 +180,7 @@ class QuickLogViewModel @Inject constructor(
     /** Tapping the chosen player again clears it: who started is not always known. */
     fun setFirstPlayer(playerId: Long) {
         _state.value = _state.value.copy(
-            firstPlayerId = playerId.takeIf { it != _state.value.firstPlayerId },
+            firstPlayerId = playerId.takeIf { it != _state.value.firstPlayerId }
         )
     }
 
@@ -222,13 +222,13 @@ class QuickLogViewModel @Inject constructor(
                     current.form.participants.map {
                         it.copy(isWinner = it.playerId in current.winnerIds)
                     },
-                    current.firstPlayerId,
-                ),
+                    current.firstPlayerId
+                )
             )
             val result = saveSession(form)
             _state.value = _state.value.copy(
                 isSaving = false,
-                savedUnlocks = result.newlyUnlocked.map { it.name },
+                savedUnlocks = result.newlyUnlocked.map { it.name }
             )
         }
     }
@@ -240,7 +240,7 @@ fun QuickLogSheet(
     onDismiss: () -> Unit,
     onSaved: (List<String>) -> Unit,
     onOpenFullForm: (Long) -> Unit,
-    viewModel: QuickLogViewModel = hiltViewModel(),
+    viewModel: QuickLogViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -257,23 +257,23 @@ fun QuickLogSheet(
                 .padding(bottom = 24.dp)
                 .heightIn(max = 560.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = stringResource(R.string.quick_log_title),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge
             )
 
             Text(
                 text = stringResource(R.string.session_edit_game),
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelLarge
             )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 state.games.forEach { game ->
                     FilterChip(
                         selected = state.form.gameId == game.id,
                         onClick = { viewModel.selectGame(game.id) },
-                        label = { Text(game.title) },
+                        label = { Text(game.title) }
                     )
                 }
             }
@@ -286,7 +286,7 @@ fun QuickLogSheet(
                         onChange = { value ->
                             DateUtils.parseIsoOrNull(value)?.let(viewModel::setDate)
                         },
-                        modifier = Modifier.weight(1.3f),
+                        modifier = Modifier.weight(1.3f)
                     )
                     OutlinedTextField(
                         value = state.form.durationMinutes.toString(),
@@ -296,20 +296,20 @@ fun QuickLogSheet(
                         label = { Text(stringResource(R.string.session_edit_duration)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
                 Text(
                     text = stringResource(R.string.session_edit_players),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     state.players.forEach { player ->
                         FilterChip(
                             selected = state.form.participants.any { it.playerId == player.id },
                             onClick = { viewModel.togglePlayer(player) },
-                            label = { Text(player.name) },
+                            label = { Text(player.name) }
                         )
                     }
                 }
@@ -320,7 +320,7 @@ fun QuickLogSheet(
                         onValueChange = { newPlayerName = it },
                         label = { Text(stringResource(R.string.session_edit_new_player_hint)) },
                         singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     Spacer(Modifier.width(8.dp))
                     OutlinedButton(
@@ -328,21 +328,21 @@ fun QuickLogSheet(
                             viewModel.addPlayer(newPlayerName)
                             newPlayerName = ""
                         },
-                        enabled = newPlayerName.isNotBlank(),
+                        enabled = newPlayerName.isNotBlank()
                     ) { Text(stringResource(R.string.action_add)) }
                 }
 
                 if (state.form.participants.isNotEmpty()) {
                     Text(
                         text = stringResource(R.string.quick_log_who_won),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelLarge
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.form.participants.forEach { participant ->
                             FilterChip(
                                 selected = participant.playerId in state.winnerIds,
                                 onClick = { viewModel.toggleWinner(participant.playerId) },
-                                label = { Text(participant.playerName) },
+                                label = { Text(participant.playerName) }
                             )
                         }
                     }
@@ -352,14 +352,14 @@ fun QuickLogSheet(
                     // season of plays and one built on the few that got the full form.
                     Text(
                         text = stringResource(R.string.quick_log_who_went_first),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelLarge
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.form.participants.forEach { participant ->
                             FilterChip(
                                 selected = participant.playerId == state.firstPlayerId,
                                 onClick = { viewModel.setFirstPlayer(participant.playerId) },
-                                label = { Text(participant.playerName) },
+                                label = { Text(participant.playerName) }
                             )
                         }
                     }
@@ -370,7 +370,7 @@ fun QuickLogSheet(
                 // a table that keeps playing Catan with Seafarers taps it once.
                 Text(
                     text = stringResource(R.string.session_edit_mode),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge
                 )
                 if (state.previousModes.isNotEmpty()) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -378,7 +378,7 @@ fun QuickLogSheet(
                             FilterChip(
                                 selected = state.form.mode == mode,
                                 onClick = { viewModel.toggleMode(mode) },
-                                label = { Text(mode) },
+                                label = { Text(mode) }
                             )
                         }
                     }
@@ -388,25 +388,25 @@ fun QuickLogSheet(
                     onValueChange = { value -> viewModel.setMode(value) },
                     placeholder = { Text(stringResource(R.string.session_edit_mode_hint)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
                     onClick = viewModel::save,
                     enabled = state.canSave,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 ) { Text(stringResource(R.string.action_save)) }
 
                 // The escape hatch to scores, factions, expansions and notes.
                 TextButton(
                     onClick = { onOpenFullForm(state.form.gameId) },
-                    enabled = state.form.gameId != 0L,
+                    enabled = state.form.gameId != 0L
                 ) { Text(stringResource(R.string.session_edit_full_form)) }
             }
 

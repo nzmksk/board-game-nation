@@ -1,12 +1,12 @@
 package com.boardgamenation.tracker.ui.timer
 
 import android.app.Activity
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.media.AudioManager
-import android.media.ToneGenerator
 import android.view.WindowManager
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -81,7 +81,7 @@ import com.boardgamenation.tracker.ui.theme.TimerSecondaryStyle
 fun TimerRunningScreen(
     onExit: () -> Unit,
     onSaveSession: (gameId: Long, sessionId: Long) -> Unit,
-    viewModel: TimerViewModel = hiltViewModel(),
+    viewModel: TimerViewModel = hiltViewModel()
 ) {
     val projection by viewModel.projection.collectAsStateWithLifecycle()
     val summary by viewModel.summary.collectAsStateWithLifecycle()
@@ -89,8 +89,11 @@ fun TimerRunningScreen(
     var stopPromptOpen by remember { mutableStateOf(false) }
 
     KeepScreenOn(enabled = setup.keepScreenOn && projection != null)
-    TimerFeedback(viewModel, soundEnabled = projection?.state?.config?.soundEnabled ?: false,
-        hapticsEnabled = projection?.state?.config?.hapticsEnabled ?: false)
+    TimerFeedback(
+        viewModel,
+        soundEnabled = projection?.state?.config?.soundEnabled ?: false,
+        hapticsEnabled = projection?.state?.config?.hapticsEnabled ?: false
+    )
 
     val current = projection
     if (current == null) {
@@ -108,7 +111,7 @@ fun TimerRunningScreen(
             onStop = {
                 viewModel.stop()
                 stopPromptOpen = true
-            },
+            }
         )
         StopPrompt(
             open = stopPromptOpen,
@@ -127,7 +130,7 @@ fun TimerRunningScreen(
                 stopPromptOpen = false
                 viewModel.discard()
                 onExit()
-            },
+            }
         )
         return
     }
@@ -142,13 +145,13 @@ fun TimerRunningScreen(
             onStop = {
                 viewModel.stop()
                 stopPromptOpen = true
-            },
+            }
         )
 
         if (landscape) {
             Row(
                 modifier = Modifier.fillMaxSize().padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 current.seats.forEachIndexed { index, seat ->
                     PlayerZone(
@@ -159,14 +162,14 @@ fun TimerRunningScreen(
                             if (seat.isActive) viewModel.passTurn() else viewModel.selectSeat(index)
                         },
                         onLongPress = { viewModel.toggleSkip(index) },
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        modifier = Modifier.weight(1f).fillMaxHeight()
                     )
                 }
             }
         } else {
             Column(
                 modifier = Modifier.fillMaxSize().padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 current.seats.forEachIndexed { index, seat ->
                     PlayerZone(
@@ -177,7 +180,7 @@ fun TimerRunningScreen(
                             if (seat.isActive) viewModel.passTurn() else viewModel.selectSeat(index)
                         },
                         onLongPress = { viewModel.toggleSkip(index) },
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        modifier = Modifier.weight(1f).fillMaxWidth()
                     )
                 }
             }
@@ -201,7 +204,7 @@ fun TimerRunningScreen(
             stopPromptOpen = false
             viewModel.discard()
             onExit()
-        },
+        }
     )
 }
 
@@ -213,7 +216,7 @@ private fun StopPrompt(
     onDismiss: () -> Unit,
     onSave: (TimerSummary) -> Unit,
     onExit: () -> Unit,
-    onDiscard: () -> Unit,
+    onDiscard: () -> Unit
 ) {
     if (!open) return
     val played = summary?.durationMinutes ?: 0
@@ -226,17 +229,17 @@ private fun StopPrompt(
                 onClick = {
                     val stopped = summary
                     if (stopped != null) onSave(stopped) else onExit()
-                },
+                }
             ) { Text(stringResource(R.string.timer_stop_save)) }
         },
         dismissButton = {
             TextButton(onClick = onDiscard) {
                 Text(
                     text = stringResource(R.string.timer_stop_discard),
-                    color = MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
-        },
+        }
     )
 }
 
@@ -247,12 +250,7 @@ private fun StopPrompt(
  * tap through: the game is either running or paused, and it ends when somebody says so.
  */
 @Composable
-private fun CountUpBoard(
-    projection: TimerProjection,
-    onPause: () -> Unit,
-    onResume: () -> Unit,
-    onStop: () -> Unit,
-) {
+private fun CountUpBoard(projection: TimerProjection, onPause: () -> Unit, onResume: () -> Unit, onStop: () -> Unit) {
     val running = projection.state.isRunning
     Column(
         modifier = Modifier
@@ -260,24 +258,24 @@ private fun CountUpBoard(
             .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = stringResource(R.string.timer_count_up_elapsed),
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = DurationFormat.longClock(projection.elapsedPlayMs),
             style = TimerDisplayStyle,
             color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
         if (!running) {
             Text(
                 text = stringResource(R.string.timer_paused),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.tertiary,
+                color = MaterialTheme.colorScheme.tertiary
             )
         }
 
@@ -287,15 +285,15 @@ private fun CountUpBoard(
                 Icon(
                     imageVector = if (running) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     contentDescription = stringResource(
-                        if (running) R.string.timer_action_pause else R.string.timer_action_resume,
-                    ),
+                        if (running) R.string.timer_action_pause else R.string.timer_action_resume
+                    )
                 )
             }
             IconButton(onClick = onStop) {
                 Icon(
                     Icons.Filled.Stop,
                     contentDescription = stringResource(R.string.timer_action_stop),
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -305,12 +303,12 @@ private fun CountUpBoard(
             Text(
                 text = stringResource(R.string.timer_count_up_at_table),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = projection.seats.joinToString(", ") { it.name },
                 style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -323,52 +321,52 @@ private fun ControlBar(
     onResume: () -> Unit,
     onUndo: () -> Unit,
     onReverse: () -> Unit,
-    onStop: () -> Unit,
+    onStop: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         val running = projection.state.isRunning
         IconButton(onClick = if (running) onPause else onResume) {
             Icon(
                 imageVector = if (running) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                 contentDescription = stringResource(
-                    if (running) R.string.timer_action_pause else R.string.timer_action_resume,
-                ),
+                    if (running) R.string.timer_action_pause else R.string.timer_action_resume
+                )
             )
         }
         IconButton(
             onClick = onUndo,
-            enabled = projection.state.undoSnapshot != null,
+            enabled = projection.state.undoSnapshot != null
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.Undo,
-                contentDescription = stringResource(R.string.timer_action_undo),
+                contentDescription = stringResource(R.string.timer_action_undo)
             )
         }
         IconButton(onClick = onReverse) {
             Icon(
                 Icons.Filled.SwapHoriz,
-                contentDescription = stringResource(R.string.timer_action_reverse),
+                contentDescription = stringResource(R.string.timer_action_reverse)
             )
         }
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = stringResource(
                     R.string.timer_elapsed,
-                    DurationFormat.longClock(projection.elapsedPlayMs),
+                    DurationFormat.longClock(projection.elapsedPlayMs)
                 ),
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium
             )
             if (!running) {
                 Text(
                     text = stringResource(R.string.timer_paused),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.tertiary,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }
@@ -376,7 +374,7 @@ private fun ControlBar(
             Icon(
                 Icons.Filled.Stop,
                 contentDescription = stringResource(R.string.timer_action_stop),
-                tint = MaterialTheme.colorScheme.error,
+                tint = MaterialTheme.colorScheme.error
             )
         }
     }
@@ -389,7 +387,7 @@ private fun PlayerZone(
     projection: TimerProjection,
     onTap: () -> Unit,
     onLongPress: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val chartColors = LocalChartColors.current
     val playerColor = chartColors.forPlayer(seat.colorHex, index)
@@ -406,11 +404,14 @@ private fun PlayerZone(
             warning -> chartColors.warning
             else -> playerColor
         },
-        label = "zoneBackground",
+        label = "zoneBackground"
     )
 
-    val onBackground = if (seat.isActive) contrastingInk(background) else
+    val onBackground = if (seat.isActive) {
+        contrastingInk(background)
+    } else {
         MaterialTheme.colorScheme.onSurface
+    }
 
     Box(
         modifier = modifier
@@ -419,16 +420,16 @@ private fun PlayerZone(
             .border(
                 width = if (seat.isActive) 0.dp else 2.dp,
                 color = playerColor,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(16.dp)
             )
             .clickable(onClick = onTap)
             .semantics {
                 contentDescription = "${seat.name}, ${DurationFormat.clock(
-                    if (seat.isActive) projection.displayMs else seat.turnRemainingMs,
+                    if (seat.isActive) projection.displayMs else seat.turnRemainingMs
                 )}"
             }
             .padding(12.dp),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -437,7 +438,7 @@ private fun PlayerZone(
                 color = onBackground,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(4.dp))
 
@@ -445,7 +446,7 @@ private fun PlayerZone(
                 Text(
                     text = DurationFormat.clock(projection.displayMs),
                     style = TimerDisplayStyle,
-                    color = onBackground,
+                    color = onBackground
                 )
                 Text(
                     text = stringResource(
@@ -453,16 +454,16 @@ private fun PlayerZone(
                             ActiveClock.TURN -> R.string.timer_clock_turn
                             ActiveClock.BANK -> R.string.timer_clock_bank
                             ActiveClock.OVERTIME -> R.string.timer_clock_overtime
-                        },
+                        }
                     ),
                     style = MaterialTheme.typography.labelMedium,
-                    color = onBackground,
+                    color = onBackground
                 )
             } else {
                 Text(
                     text = DurationFormat.clock(seat.turnRemainingMs.coerceAtLeast(0)),
                     style = TimerSecondaryStyle,
-                    color = onBackground,
+                    color = onBackground
                 )
             }
 
@@ -470,29 +471,29 @@ private fun PlayerZone(
             Text(
                 text = stringResource(
                     R.string.timer_bank_label,
-                    DurationFormat.longClock(seat.bankRemainingMs),
+                    DurationFormat.longClock(seat.bankRemainingMs)
                 ),
                 style = MaterialTheme.typography.labelSmall,
-                color = onBackground,
+                color = onBackground
             )
             Text(
                 text = stringResource(R.string.timer_turns_taken, seat.turnsTaken),
                 style = MaterialTheme.typography.labelSmall,
-                color = onBackground,
+                color = onBackground
             )
 
             if (seat.skipped) {
                 Text(
                     text = stringResource(R.string.timer_skipped),
                     style = MaterialTheme.typography.labelSmall,
-                    color = onBackground,
+                    color = onBackground
                 )
             }
             if (timedOut) {
                 Text(
                     text = stringResource(R.string.timer_timed_out),
                     style = MaterialTheme.typography.labelSmall,
-                    color = onBackground,
+                    color = onBackground
                 )
             }
         }
@@ -500,8 +501,7 @@ private fun PlayerZone(
 }
 
 /** Picks black or white ink for whatever colour the player happens to have chosen. */
-private fun contrastingInk(background: Color): Color =
-    if (background.luminance() > 0.5f) Color.Black else Color.White
+private fun contrastingInk(background: Color): Color = if (background.luminance() > 0.5f) Color.Black else Color.White
 
 /**
  * Sound and vibration for the warning threshold and for a bank running out.
@@ -510,11 +510,7 @@ private fun contrastingInk(background: Color): Color =
  * table aid, not something that should override the phone's own settings.
  */
 @Composable
-private fun TimerFeedback(
-    viewModel: TimerViewModel,
-    soundEnabled: Boolean,
-    hapticsEnabled: Boolean,
-) {
+private fun TimerFeedback(viewModel: TimerViewModel, soundEnabled: Boolean, hapticsEnabled: Boolean) {
     val context = LocalContext.current
     LaunchedEffect(soundEnabled, hapticsEnabled) {
         viewModel.events.collect { event ->
@@ -539,7 +535,7 @@ private fun TimerFeedback(
                         context.getSystemService(Vibrator::class.java)
                     }
                     vibrator?.vibrate(
-                        VibrationEffect.createOneShot(pattern, VibrationEffect.DEFAULT_AMPLITUDE),
+                        VibrationEffect.createOneShot(pattern, VibrationEffect.DEFAULT_AMPLITUDE)
                     )
                 }
             }

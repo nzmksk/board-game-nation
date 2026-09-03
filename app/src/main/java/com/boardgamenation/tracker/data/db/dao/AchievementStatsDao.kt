@@ -25,7 +25,7 @@ interface AchievementStatsDao {
         SELECT (SELECT COUNT(*) FROM sessions) + (SELECT COUNT(*) FROM session_players)
              + (SELECT COUNT(*) FROM games) + (SELECT COUNT(*) FROM game_tags)
              + (SELECT COUNT(*) FROM game_ratings)
-        """,
+        """
     )
     fun observeInvalidationToken(): Flow<Int>
 
@@ -47,7 +47,7 @@ interface AchievementStatsDao {
         JOIN game_tags gt ON gt.tag_id = t.id
         WHERE t.kind = 'MECHANIC'
           AND EXISTS (SELECT 1 FROM sessions s WHERE s.game_id = gt.game_id AND s.is_draft = 0)
-        """,
+        """
     )
     suspend fun distinctMechanicsPlayed(): Int
 
@@ -60,7 +60,7 @@ interface AchievementStatsDao {
               SELECT 1 FROM session_players sp
               WHERE sp.session_id = s.id AND sp.is_new_player = 1
           )
-        """,
+        """
     )
     suspend fun gamesTaught(): Int
 
@@ -71,7 +71,7 @@ interface AchievementStatsDao {
         """
         SELECT COUNT(DISTINCT sp.player_id) FROM session_players sp
         JOIN sessions s ON s.id = sp.session_id AND s.is_draft = 0
-        """,
+        """
     )
     suspend fun distinctPlayers(): Int
 
@@ -80,7 +80,7 @@ interface AchievementStatsDao {
         SELECT COALESCE(MAX(c), 0) FROM (
             SELECT COUNT(*) AS c FROM sessions WHERE is_draft = 0 GROUP BY game_id
         )
-        """,
+        """
     )
     suspend fun maxPlaysOfSingleGame(): Int
 
@@ -89,7 +89,7 @@ interface AchievementStatsDao {
         SELECT COALESCE(MAX(c), 0) FROM (
             SELECT COUNT(*) AS c FROM sessions WHERE is_draft = 0 GROUP BY played_on
         )
-        """,
+        """
     )
     suspend fun maxPlaysInOneDay(): Int
 
@@ -99,7 +99,7 @@ interface AchievementStatsDao {
             SELECT COUNT(*) AS c FROM sessions WHERE is_draft = 0
             GROUP BY strftime('%Y-%W', played_on)
         )
-        """,
+        """
     )
     suspend fun maxPlaysInOneWeek(): Int
 
@@ -109,7 +109,7 @@ interface AchievementStatsDao {
             SELECT COUNT(*) AS c FROM sessions WHERE is_draft = 0
             GROUP BY strftime('%Y-%m', played_on)
         )
-        """,
+        """
     )
     suspend fun maxPlaysInOneMonth(): Int
 
@@ -124,7 +124,7 @@ interface AchievementStatsDao {
         SELECT COALESCE(MAX(g.weight), 0) FROM games g
         WHERE g.weight IS NOT NULL
           AND EXISTS (SELECT 1 FROM sessions s WHERE s.game_id = g.id AND s.is_draft = 0)
-        """,
+        """
     )
     suspend fun maxWeightPlayed(): Double
 
@@ -139,7 +139,7 @@ interface AchievementStatsDao {
             GROUP BY s.game_id
             HAVING COUNT(*) >= :minPlays
         )
-        """,
+        """
     )
     suspend fun bestWinRate(minPlays: Int): Double
 
@@ -148,7 +148,7 @@ interface AchievementStatsDao {
         SELECT COUNT(*) FROM games g
         WHERE g.status IN ('OWNED', 'LENT_OUT')
           AND NOT EXISTS (SELECT 1 FROM sessions s WHERE s.game_id = g.id AND s.is_draft = 0)
-        """,
+        """
     )
     suspend fun unplayedOwnedCount(): Int
 
@@ -162,7 +162,7 @@ interface AchievementStatsDao {
             GROUP BY g.id
             HAVING COUNT(s.id) > 0
         )
-        """,
+        """
     )
     suspend fun lowestCostPerPlay(): Double
 
@@ -185,7 +185,7 @@ interface AchievementStatsDao {
                 ) THEN 0 ELSE 1 END
             ) = 0
         )
-        """,
+        """
     )
     suspend fun fullyPlayedMechanicCount(minGames: Int): Int
 
@@ -200,7 +200,7 @@ interface AchievementStatsDao {
         """
         SELECT DISTINCT strftime('%Y-%W', played_on) AS wk
         FROM sessions WHERE is_draft = 0 ORDER BY wk
-        """,
+        """
     )
     suspend fun playWeeks(): List<String>
 
@@ -209,7 +209,7 @@ interface AchievementStatsDao {
         """
         SELECT DISTINCT strftime('%Y-%m', played_on) AS mo
         FROM sessions WHERE is_draft = 0 ORDER BY mo
-        """,
+        """
     )
     suspend fun playMonths(): List<String>
 
@@ -224,7 +224,7 @@ interface AchievementStatsDao {
         JOIN players p ON p.id = sp.player_id AND p.is_self = 1
         JOIN sessions s ON s.id = sp.session_id AND s.is_draft = 0 AND s.is_cooperative = 0
         ORDER BY s.played_on, s.id
-        """,
+        """
     )
     suspend fun selfResultsInOrder(): List<Boolean>
 }

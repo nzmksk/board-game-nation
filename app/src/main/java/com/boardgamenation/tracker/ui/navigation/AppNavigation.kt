@@ -56,7 +56,7 @@ fun AppNavigation(
     bggEnabled: Boolean,
     onboardingComplete: Boolean,
     announceAchievements: Boolean,
-    navController: NavHostController = rememberNavController(),
+    navController: NavHostController = rememberNavController()
 ) {
     val backStack by navController.currentBackStackEntryAsState()
     val snackbarHost = remember { SnackbarHostState() }
@@ -109,19 +109,19 @@ fun AppNavigation(
                             icon = {
                                 Icon(destination.icon, contentDescription = null)
                             },
-                            label = { Text(stringResource(destination.labelRes)) },
+                            label = { Text(stringResource(destination.labelRes)) }
                         )
                     }
                 }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHost) },
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             NavHost(
                 navController = navController,
-                startDestination = if (onboardingComplete) Route.Collection else Route.Onboarding,
+                startDestination = if (onboardingComplete) Route.Collection else Route.Onboarding
             ) {
                 composable<Route.Onboarding> {
                     OnboardingScreen(
@@ -129,7 +129,7 @@ fun AppNavigation(
                             navController.navigate(Route.Collection) {
                                 popUpTo(Route.Onboarding) { inclusive = true }
                             }
-                        },
+                        }
                     )
                 }
 
@@ -143,14 +143,14 @@ fun AppNavigation(
                         onOpenSession = { navController.navigate(Route.SessionEdit(sessionId = it)) },
                         onOpenSessions = { navController.navigate(Route.Sessions()) },
                         onOpenAchievements = { navController.navigate(Route.Achievements) },
-                        onResumeDraft = { navController.navigate(Route.SessionEdit(sessionId = it)) },
+                        onResumeDraft = { navController.navigate(Route.SessionEdit(sessionId = it)) }
                     )
                 }
 
                 composable<Route.Collection> {
                     CollectionScreen(
                         onOpenGame = { navController.navigate(Route.GameDetail(it)) },
-                        onAddGame = { navController.navigate(Route.GameEdit()) },
+                        onAddGame = { navController.navigate(Route.GameEdit()) }
                     )
                 }
 
@@ -162,7 +162,7 @@ fun AppNavigation(
                         onStartTimer = { navController.navigate(Route.TimerSetup(it)) },
                         onOpenSession = { navController.navigate(Route.SessionEdit(sessionId = it)) },
                         onOpenGame = { navController.navigate(Route.GameDetail(it)) },
-                        onRate = { navController.navigate(Route.RateGame(it)) },
+                        onRate = { navController.navigate(Route.RateGame(it)) }
                     )
                 }
 
@@ -175,7 +175,7 @@ fun AppNavigation(
                             }
                         },
                         onSearchBgg = { navController.navigate(Route.BggSearch) },
-                        bggEnabled = bggEnabled,
+                        bggEnabled = bggEnabled
                     )
                 }
 
@@ -186,7 +186,7 @@ fun AppNavigation(
                             navController.navigate(Route.GameDetail(id)) {
                                 popUpTo(Route.Collection)
                             }
-                        },
+                        }
                     )
                 }
 
@@ -197,7 +197,7 @@ fun AppNavigation(
                 composable<Route.Sessions> {
                     SessionListScreen(
                         onOpenSession = { navController.navigate(Route.SessionEdit(sessionId = it)) },
-                        onNewSession = { navController.navigate(Route.SessionEdit()) },
+                        onNewSession = { navController.navigate(Route.SessionEdit()) }
                     )
                 }
 
@@ -207,7 +207,7 @@ fun AppNavigation(
                         onSaved = { _, unlocked ->
                             navController.popBackStack()
                             announceUnlocks(unlocked)
-                        },
+                        }
                     )
                 }
 
@@ -217,7 +217,7 @@ fun AppNavigation(
                             navController.navigate(Route.TimerRunning) {
                                 launchSingleTop = true
                             }
-                        },
+                        }
                     )
                 }
 
@@ -230,11 +230,11 @@ fun AppNavigation(
                         },
                         onSaveSession = { gameId, sessionId ->
                             navController.navigate(
-                                Route.SessionEdit(sessionId = sessionId, gameId = gameId),
+                                Route.SessionEdit(sessionId = sessionId, gameId = gameId)
                             ) {
                                 popUpTo(Route.TimerRunning) { inclusive = true }
                             }
-                        },
+                        }
                     )
                 }
 
@@ -247,14 +247,14 @@ fun AppNavigation(
                 composable<Route.Players> {
                     PlayersScreen(
                         onBack = navController::popBackStack,
-                        onOpenPlayer = { navController.navigate(Route.PlayerDetail(it)) },
+                        onOpenPlayer = { navController.navigate(Route.PlayerDetail(it)) }
                     )
                 }
 
                 composable<Route.PlayerDetail> {
                     PlayerDetailScreen(
                         onBack = navController::popBackStack,
-                        onOpenSession = { navController.navigate(Route.SessionEdit(sessionId = it)) },
+                        onOpenSession = { navController.navigate(Route.SessionEdit(sessionId = it)) }
                     )
                 }
 
@@ -274,7 +274,7 @@ fun AppNavigation(
                         onPlayers = { navController.navigate(Route.Players) },
                         onRubrics = { navController.navigate(Route.Rubrics) },
                         onBggImport = { navController.navigate(Route.BggImport) },
-                        onSettings = { navController.navigate(Route.Settings) },
+                        onSettings = { navController.navigate(Route.Settings) }
                     )
                 }
 
@@ -284,7 +284,7 @@ fun AppNavigation(
                         onOpenPlayers = { navController.navigate(Route.Players) },
                         onOpenRubrics = { navController.navigate(Route.Rubrics) },
                         onOpenAchievements = { navController.navigate(Route.Achievements) },
-                        onOpenBggImport = { navController.navigate(Route.BggImport) },
+                        onOpenBggImport = { navController.navigate(Route.BggImport) }
                     )
                 }
             }
@@ -293,13 +293,15 @@ fun AppNavigation(
 }
 
 /** Matches a destination against a bottom-bar tab, including nested routes. */
-private fun androidx.navigation.NavDestination.hierarchyContains(
-    destination: TopLevelDestination,
-): Boolean = when (destination) {
+private fun androidx.navigation.NavDestination.hierarchyContains(destination: TopLevelDestination): Boolean = when (destination) {
     TopLevelDestination.COLLECTION -> hasRoute(Route.Collection::class)
+
     TopLevelDestination.SESSIONS -> hasRoute(Route.Sessions::class)
+
     TopLevelDestination.TIMER ->
         hasRoute(Route.TimerSetup::class) || hasRoute(Route.TimerRunning::class)
+
     TopLevelDestination.STATS -> hasRoute(Route.Stats::class)
+
     TopLevelDestination.MORE -> hasRoute(Route.More::class)
 }

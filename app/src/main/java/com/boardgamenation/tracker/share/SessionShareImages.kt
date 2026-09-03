@@ -11,11 +11,11 @@ import com.boardgamenation.tracker.core.time.DateUtils
 import com.boardgamenation.tracker.di.IoDispatcher
 import com.boardgamenation.tracker.domain.share.ShareCard
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 
 /**
  * Turns a card into a file another app can read.
@@ -33,7 +33,7 @@ import javax.inject.Singleton
 class SessionShareImages @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val renderer: ShareCardRenderer,
-    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) {
 
     /** Renders the card, writes it, and returns the uri to grant. */

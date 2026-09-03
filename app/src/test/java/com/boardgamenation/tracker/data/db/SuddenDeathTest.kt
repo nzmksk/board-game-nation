@@ -6,6 +6,7 @@ import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.SessionForm
+import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -17,7 +18,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.time.LocalDate
 
 /**
  * Plays that end the moment a condition is met, and the rule that recording one must not
@@ -43,13 +43,13 @@ class SuddenDeathTest {
             sessionDao = db.sessionDao(),
             gameDao = db.gameDao(),
             playerDao = db.playerDao(),
-            clock = DatabaseTestFixture.clock,
+            clock = DatabaseTestFixture.clock
         )
         gameId = db.gameDao().insert(
             DatabaseTestFixture.game("7 Wonders Duel").copy(
                 scoringMode = ScoringMode.RANKED_SCORES,
-                suddenDeathPossible = true,
-            ),
+                suddenDeathPossible = true
+            )
         )
         me = db.playerDao().insert(DatabaseTestFixture.player("Hafiz", isSelf = true))
         opponent = db.playerDao().insert(DatabaseTestFixture.player("Aisyah"))
@@ -62,7 +62,7 @@ class SuddenDeathTest {
         players: List<Pair<Long, Double?>>,
         endCondition: SessionEndCondition? = null,
         endReason: String? = null,
-        mode: ScoringMode = ScoringMode.RANKED_SCORES,
+        mode: ScoringMode = ScoringMode.RANKED_SCORES
     ) = SessionForm(
         gameId = gameId,
         playedOn = LocalDate.parse("2026-02-01"),
@@ -72,7 +72,7 @@ class SuddenDeathTest {
         endReason = endReason,
         participants = players.map { (playerId, score) ->
             ParticipantForm(playerId = playerId, playerName = "p$playerId", score = score)
-        },
+        }
     )
 
     @Test
@@ -81,8 +81,8 @@ class SuddenDeathTest {
             form(
                 players = listOf(me to null, opponent to null),
                 endCondition = SessionEndCondition.SUDDEN_DEATH,
-                endReason = "Military supremacy",
-            ),
+                endReason = "Military supremacy"
+            )
         )
 
         val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
@@ -109,25 +109,24 @@ class SuddenDeathTest {
     }
 
     @Test
-    fun `a partial score entered on a sudden-death play is kept but does not decide it`() =
-        runTest {
-            // The player placed second has the higher number: the game ended before that
-            // number meant anything.
-            val id = repository.save(
-                form(
-                    players = listOf(me to 12.0, opponent to 40.0),
-                    endCondition = SessionEndCondition.SUDDEN_DEATH,
-                    endReason = "Scientific supremacy",
-                ),
+    fun `a partial score entered on a sudden-death play is kept but does not decide it`() = runTest {
+        // The player placed second has the higher number: the game ended before that
+        // number meant anything.
+        val id = repository.save(
+            form(
+                players = listOf(me to 12.0, opponent to 40.0),
+                endCondition = SessionEndCondition.SUDDEN_DEATH,
+                endReason = "Scientific supremacy"
             )
+        )
 
-            val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
+        val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
 
-            assertEquals(1, rows[me]!!.placement)
-            assertTrue(rows[me]!!.isWinner)
-            assertEquals(12.0, rows[me]!!.score!!, 0.001)
-            assertFalse("the higher score did not win", rows[opponent]!!.isWinner)
-        }
+        assertEquals(1, rows[me]!!.placement)
+        assertTrue(rows[me]!!.isWinner)
+        assertEquals(12.0, rows[me]!!.score!!, 0.001)
+        assertFalse("the higher score did not win", rows[opponent]!!.isWinner)
+    }
 
     @Test
     fun `the end condition and its reason are persisted`() = runTest {
@@ -135,8 +134,8 @@ class SuddenDeathTest {
             form(
                 players = listOf(me to null, opponent to null),
                 endCondition = SessionEndCondition.SUDDEN_DEATH,
-                endReason = "Military supremacy",
-            ),
+                endReason = "Military supremacy"
+            )
         )
 
         val session = db.sessionDao().getSession(id)!!
@@ -153,8 +152,8 @@ class SuddenDeathTest {
             form(
                 players = listOf(me to 20.0, opponent to 15.0),
                 endCondition = null,
-                endReason = "Military supremacy",
-            ),
+                endReason = "Military supremacy"
+            )
         )
 
         assertNull(db.sessionDao().getSession(id)!!.endReason)
@@ -166,13 +165,13 @@ class SuddenDeathTest {
             form(
                 players = listOf(me to null, opponent to null),
                 endCondition = SessionEndCondition.SUDDEN_DEATH,
-                endReason = "Military supremacy",
-            ),
+                endReason = "Military supremacy"
+            )
         )
 
         assertEquals(
             listOf("Military supremacy"),
-            repository.observeEndReasonsFor(gameId).first(),
+            repository.observeEndReasonsFor(gameId).first()
         )
     }
 
@@ -184,8 +183,8 @@ class SuddenDeathTest {
             form(
                 players = listOf(me to null, opponent to null),
                 endCondition = SessionEndCondition.SUDDEN_DEATH,
-                endReason = "Military supremacy",
-            ),
+                endReason = "Military supremacy"
+            )
         )
 
         assertEquals(ScoringMode.RANKED_SCORES, db.gameDao().getGame(gameId)!!.scoringMode)
@@ -203,9 +202,9 @@ class SuddenDeathTest {
                 derivePlacements = false,
                 participants = listOf(
                     ParticipantForm(playerId = me, playerName = "me", isWinner = true),
-                    ParticipantForm(playerId = opponent, playerName = "them"),
-                ),
-            ),
+                    ParticipantForm(playerId = opponent, playerName = "them")
+                )
+            )
         )
 
         assertEquals(ScoringMode.RANKED_SCORES, db.gameDao().getGame(gameId)!!.scoringMode)
@@ -218,9 +217,9 @@ class SuddenDeathTest {
                 derivePlacements = false,
                 participants = listOf(
                     ParticipantForm(playerId = me, playerName = "me", isWinner = true),
-                    ParticipantForm(playerId = opponent, playerName = "them"),
-                ),
-            ),
+                    ParticipantForm(playerId = opponent, playerName = "them")
+                )
+            )
         )
 
         val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
@@ -236,7 +235,7 @@ class SuddenDeathTest {
     @Test
     fun `a co-op loss marks nobody a winner`() = runTest {
         val coopGame = db.gameDao().insert(
-            DatabaseTestFixture.game("Pandemic").copy(scoringMode = ScoringMode.COOPERATIVE),
+            DatabaseTestFixture.game("Pandemic").copy(scoringMode = ScoringMode.COOPERATIVE)
         )
         val id = repository.save(
             SessionForm(
@@ -247,9 +246,9 @@ class SuddenDeathTest {
                 coopOutcome = CoopOutcome.LOSS,
                 participants = listOf(
                     ParticipantForm(playerId = me, playerName = "me"),
-                    ParticipantForm(playerId = opponent, playerName = "them"),
-                ),
-            ),
+                    ParticipantForm(playerId = opponent, playerName = "them")
+                )
+            )
         )
 
         assertTrue(db.sessionDao().getParticipants(id).none { it.isWinner })

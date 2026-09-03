@@ -65,14 +65,10 @@ sealed interface Route {
 }
 
 /** The five bottom-bar destinations. */
-enum class TopLevelDestination(
-    val route: Route,
-    @param:StringRes val labelRes: Int,
-    val icon: ImageVector,
-) {
+enum class TopLevelDestination(val route: Route, @param:StringRes val labelRes: Int, val icon: ImageVector) {
     COLLECTION(Route.Collection, R.string.nav_collection, Icons.Filled.GridView),
     SESSIONS(Route.Sessions(), R.string.nav_sessions, Icons.AutoMirrored.Filled.List),
     TIMER(Route.TimerSetup(), R.string.nav_timer, Icons.Filled.Timer),
     STATS(Route.Stats, R.string.nav_stats, Icons.Filled.BarChart),
-    MORE(Route.More, R.string.nav_more, Icons.Filled.MoreHoriz),
+    MORE(Route.More, R.string.nav_more, Icons.Filled.MoreHoriz)
 }

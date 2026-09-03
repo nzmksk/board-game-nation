@@ -16,8 +16,7 @@ class TurnOrderTest {
         ParticipantForm(playerId = index + 1L, playerName = name, turnOrder = seat)
     }
 
-    private fun seatsOf(participants: List<ParticipantForm>) =
-        participants.associate { it.playerName to it.turnOrder }
+    private fun seatsOf(participants: List<ParticipantForm>) = participants.associate { it.playerName to it.turnOrder }
 
     @Test
     fun `naming players in sequence numbers them from one`() {
@@ -33,12 +32,12 @@ class TurnOrderTest {
     fun `removing a player from the middle closes the gap behind them`() {
         val table = TurnOrder.toggle(
             table("Hafiz" to 1, "Aina" to 2, "Ben" to 3, "Sara" to 4),
-            playerId = 2,
+            playerId = 2
         )
 
         assertEquals(
             mapOf("Hafiz" to 1, "Aina" to null, "Ben" to 2, "Sara" to 3),
-            seatsOf(table),
+            seatsOf(table)
         )
     }
 
@@ -81,11 +80,11 @@ class TurnOrderTest {
     fun `no first player at all is a legitimate answer`() {
         assertEquals(
             mapOf("Hafiz" to null, "Aina" to null),
-            seatsOf(TurnOrder.firstOnly(table("Hafiz" to 1, "Aina" to 2), playerId = null)),
+            seatsOf(TurnOrder.firstOnly(table("Hafiz" to 1, "Aina" to 2), playerId = null))
         )
         assertEquals(
             mapOf("Hafiz" to null, "Aina" to null),
-            seatsOf(TurnOrder.clear(table("Hafiz" to 1, "Aina" to 2))),
+            seatsOf(TurnOrder.clear(table("Hafiz" to 1, "Aina" to 2)))
         )
     }
 
@@ -93,7 +92,7 @@ class TurnOrderTest {
     fun `the first player is the head of the order`() {
         val form = SessionForm(
             playedOn = java.time.LocalDate.parse("2026-02-01"),
-            participants = table("Hafiz" to 2, "Aina" to 1),
+            participants = table("Hafiz" to 2, "Aina" to 1)
         )
 
         assertEquals("Aina", form.firstPlayer?.playerName)

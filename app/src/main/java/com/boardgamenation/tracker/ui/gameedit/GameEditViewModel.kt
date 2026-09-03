@@ -14,12 +14,12 @@ import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * The edit form as plain text fields.
@@ -58,7 +58,7 @@ data class GameEditState(
     val baseGameOptions: List<GameEntity> = emptyList(),
     val isNew: Boolean = true,
     val isSaving: Boolean = false,
-    val titleError: Boolean = false,
+    val titleError: Boolean = false
 ) {
     val canSave: Boolean get() = title.isNotBlank() && !isSaving
 }
@@ -68,7 +68,7 @@ class GameEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val gameRepository: GameRepository,
     private val settingsRepository: SettingsRepository,
-    private val clock: AppClock,
+    private val clock: AppClock
 ) : ViewModel() {
 
     private val gameId: Long = savedStateHandle.toRoute<Route.GameEdit>().gameId
@@ -89,7 +89,7 @@ class GameEditViewModel @Inject constructor(
                     dateAdded = DateUtils.toIso(clock.today()),
                     currency = defaultCurrency,
                     baseGameOptions = bases,
-                    isNew = true,
+                    isNew = true
                 )
             } else {
                 val game = gameRepository.getGame(gameId)
@@ -124,7 +124,7 @@ class GameEditViewModel @Inject constructor(
                         designers = tags.filter { it.kind == TagKind.DESIGNER }.map { it.name },
                         // A game cannot be its own base game.
                         baseGameOptions = bases.filter { it.id != game.id },
-                        isNew = false,
+                        isNew = false
                     )
                 }
             }
@@ -149,10 +149,7 @@ class GameEditViewModel @Inject constructor(
         _state.value = _state.value.mapTags(kind) { it - name }
     }
 
-    private fun GameEditState.mapTags(
-        kind: TagKind,
-        block: (List<String>) -> List<String>,
-    ): GameEditState = when (kind) {
+    private fun GameEditState.mapTags(kind: TagKind, block: (List<String>) -> List<String>): GameEditState = when (kind) {
         TagKind.MECHANIC -> copy(mechanics = block(mechanics))
         TagKind.CATEGORY -> copy(categories = block(categories))
         TagKind.DESIGNER -> copy(designers = block(designers))
@@ -201,7 +198,7 @@ class GameEditViewModel @Inject constructor(
                 suddenDeathPossible = current.suddenDeathPossible,
                 notes = current.notes.trim().ifBlank { null },
                 createdAt = now,
-                updatedAt = now,
+                updatedAt = now
             )
 
             val mechanicIds = gameRepository.resolveTags(current.mechanics, TagKind.MECHANIC)

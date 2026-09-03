@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.boardgamenation.tracker.domain.share.ShareCard
 import com.boardgamenation.tracker.domain.share.ShareResult
 import com.boardgamenation.tracker.domain.share.ShareStanding
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -13,7 +14,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.GraphicsMode
-import java.time.LocalDate
 
 /**
  * The card is drawn once and then leaves the app, so there is no screen to notice it
@@ -38,7 +38,7 @@ class ShareCardRendererTest {
         faction: String? = null,
         team: String? = null,
         isWinner: Boolean = false,
-        isNewPlayer: Boolean = false,
+        isNewPlayer: Boolean = false
     ) = ShareStanding(
         rank = rank,
         name = name,
@@ -46,7 +46,7 @@ class ShareCardRendererTest {
         team = team,
         score = score,
         isWinner = isWinner,
-        isNewPlayer = isNewPlayer,
+        isNewPlayer = isNewPlayer
     )
 
     private fun card(
@@ -58,7 +58,7 @@ class ShareCardRendererTest {
         endReason: String? = null,
         turnOrder: List<String> = emptyList(),
         isIncomplete: Boolean = false,
-        isTeachingGame: Boolean = false,
+        isTeachingGame: Boolean = false
     ) = ShareCard(
         gameTitle = gameTitle,
         playedOn = LocalDate.of(2026, 9, 2),
@@ -70,7 +70,7 @@ class ShareCardRendererTest {
         endReason = endReason,
         turnOrder = turnOrder,
         isIncomplete = isIncomplete,
-        isTeachingGame = isTeachingGame,
+        isTeachingGame = isTeachingGame
     )
 
     /** Gold is the card's one accent, and it is spent only on winners and the rule. */
@@ -100,7 +100,7 @@ class ShareCardRendererTest {
     @Test
     fun `the card comes out at story proportions`() {
         val bitmap = renderer.render(
-            card(standings = listOf(standing("Aina", rank = 1, score = 94.0, isWinner = true))),
+            card(standings = listOf(standing("Aina", rank = 1, score = 94.0, isWinner = true)))
         )
 
         assertEquals(1080, bitmap.width)
@@ -115,9 +115,9 @@ class ShareCardRendererTest {
             card(
                 standings = listOf(
                     standing("Aina", rank = 1, score = 94.0, isWinner = true),
-                    standing("Hafiz", rank = 2, score = 71.0),
-                ),
-            ),
+                    standing("Hafiz", rank = 2, score = 71.0)
+                )
+            )
         )
 
         assertTrue(distinctColours(bitmap) > 20)
@@ -131,12 +131,12 @@ class ShareCardRendererTest {
                 standings = listOf(
                     standing("Aina", rank = 1, score = 94.0, isWinner = true),
                     standing("Hafiz", rank = 2, score = 71.0),
-                    standing("Ben", rank = 3, score = 60.0),
-                ),
-            ),
+                    standing("Ben", rank = 3, score = 60.0)
+                )
+            )
         )
         val unresolved = renderer.render(
-            card(result = ShareResult.UNRESOLVED, standings = players),
+            card(result = ShareResult.UNRESOLVED, standings = players)
         )
 
         assertTrue(goldPixels(won) > goldPixels(unresolved))
@@ -149,8 +149,8 @@ class ShareCardRendererTest {
                 standings = (1..12).map { seat ->
                     standing("Player $seat", rank = seat, score = seat.toDouble())
                 },
-                turnOrder = (1..12).map { "Player $it" },
-            ),
+                turnOrder = (1..12).map { "Player $it" }
+            )
         )
 
         assertEquals(1920, bitmap.height)
@@ -169,15 +169,15 @@ class ShareCardRendererTest {
                         score = 1234.5,
                         faction = "A faction with a similarly unreasonable name ".repeat(2),
                         team = "And a side as well",
-                        isWinner = true,
-                    ),
+                        isWinner = true
+                    )
                 ),
                 mode = "Every module, every expansion, and a house rule nobody remembers",
                 endReason = "Military supremacy",
                 turnOrder = listOf("Aina", "Hafiz"),
                 isIncomplete = true,
-                isTeachingGame = true,
-            ),
+                isTeachingGame = true
+            )
         )
 
         assertEquals(1080, bitmap.width)
@@ -192,8 +192,8 @@ class ShareCardRendererTest {
                 result = ShareResult.COOP_WIN,
                 standings = listOf(
                     standing("Aina", isWinner = true),
-                    standing("Hafiz", isWinner = true),
-                ),
+                    standing("Hafiz", isWinner = true)
+                )
             ),
             card(result = ShareResult.COOP_LOSS, standings = listOf(standing("Aina"))),
             card(
@@ -201,10 +201,10 @@ class ShareCardRendererTest {
                 winningTeam = "Liberals",
                 standings = listOf(
                     standing("Aina", team = "Liberals", faction = "President", isWinner = true),
-                    standing("Hafiz", team = "Fascists", faction = "Hitler"),
-                ),
+                    standing("Hafiz", team = "Fascists", faction = "Hitler")
+                )
             ),
-            card(result = ShareResult.UNRESOLVED, standings = listOf(standing("Aina"))),
+            card(result = ShareResult.UNRESOLVED, standings = listOf(standing("Aina")))
         )
 
         results.forEach { assertEquals(1920, renderer.render(it).height) }
@@ -220,7 +220,7 @@ class ShareCardRendererTest {
         val standings = { isNew: Boolean ->
             listOf(
                 standing("Aina", rank = 1, score = 94.0, isWinner = true),
-                standing("Hafiz", rank = 2, score = 71.0, isNewPlayer = isNew),
+                standing("Hafiz", rank = 2, score = 71.0, isNewPlayer = isNew)
             )
         }
 
@@ -259,11 +259,11 @@ class ShareCardRendererTest {
                         faction = "Peregrine Falcon",
                         team = "The side with the long name as well",
                         isWinner = true,
-                        isNewPlayer = true,
+                        isNewPlayer = true
                     ),
-                    standing("Hafiz", rank = 2, score = 71.0, isNewPlayer = true),
-                ),
-            ),
+                    standing("Hafiz", rank = 2, score = 71.0, isNewPlayer = true)
+                )
+            )
         )
 
         assertEquals(1080, bitmap.width)
@@ -278,8 +278,8 @@ class ShareCardRendererTest {
                 result = ShareResult.COOP_WIN,
                 standings = (1..12).map { seat ->
                     standing("Player $seat", isWinner = true, isNewPlayer = true)
-                },
-            ),
+                }
+            )
         )
 
         assertEquals(1920, bitmap.height)
@@ -289,7 +289,7 @@ class ShareCardRendererTest {
     @Test
     fun `a play with nobody on it renders rather than failing`() {
         val bitmap = renderer.render(
-            card(gameTitle = "", result = ShareResult.UNRESOLVED, standings = emptyList()),
+            card(gameTitle = "", result = ShareResult.UNRESOLVED, standings = emptyList())
         )
 
         assertEquals(1080, bitmap.width)

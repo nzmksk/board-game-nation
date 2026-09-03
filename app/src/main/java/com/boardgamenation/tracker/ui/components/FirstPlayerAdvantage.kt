@@ -36,7 +36,7 @@ fun FirstPlayerAdvantage(record: FirstPlayerRecord, modifier: Modifier = Modifie
             text = stringResource(R.string.stats_first_player_empty),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = modifier,
+            modifier = modifier
         )
         return
     }
@@ -45,28 +45,34 @@ fun FirstPlayerAdvantage(record: FirstPlayerRecord, modifier: Modifier = Modifie
         HorizontalBarChart(
             data = listOf(
                 stringResource(R.string.stats_first_player_actual) to record.winPercent.toDouble(),
-                stringResource(R.string.stats_first_player_chance) to expected.toDouble(),
+                stringResource(R.string.stats_first_player_chance) to expected.toDouble()
             ),
             valueLabels = listOf(
                 stringResource(R.string.stats_first_player_percent, record.winPercent),
-                stringResource(R.string.stats_first_player_percent, expected),
+                stringResource(R.string.stats_first_player_percent, expected)
             ),
             valueWidth = 40.dp,
-            scaleMax = 100.0,
+            scaleMax = 100.0
         )
         Spacer(Modifier.height(8.dp))
         Text(
             text = when {
                 edge > 0 -> stringResource(
-                    R.string.stats_first_player_edge_ahead, edge, record.plays,
+                    R.string.stats_first_player_edge_ahead,
+                    edge,
+                    record.plays
                 )
+
                 edge < 0 -> stringResource(
-                    R.string.stats_first_player_edge_behind, edge, record.plays,
+                    R.string.stats_first_player_edge_behind,
+                    edge,
+                    record.plays
                 )
+
                 else -> stringResource(R.string.stats_first_player_edge_level, record.plays)
             },
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

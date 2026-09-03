@@ -18,19 +18,19 @@ import androidx.room.PrimaryKey
             entity = SessionEntity::class,
             parentColumns = ["id"],
             childColumns = ["session_id"],
-            onDelete = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = PlayerEntity::class,
             parentColumns = ["id"],
             childColumns = ["player_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
     indices = [
         Index(value = ["session_id", "player_id"], unique = true),
-        Index(value = ["player_id"]),
-    ],
+        Index(value = ["player_id"])
+    ]
 )
 data class SessionPlayerEntity(
     @PrimaryKey(autoGenerate = true)
@@ -74,5 +74,5 @@ data class SessionPlayerEntity(
     @ColumnInfo(name = "turn_time_ms") val turnTimeMs: Long? = null,
 
     /** Bank left when the timer stopped; negative means overtime. Timer only. */
-    @ColumnInfo(name = "bank_time_remaining_ms") val bankTimeRemainingMs: Long? = null,
+    @ColumnInfo(name = "bank_time_remaining_ms") val bankTimeRemainingMs: Long? = null
 )

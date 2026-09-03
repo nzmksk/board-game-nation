@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
  */
 @Entity(
     tableName = "players",
-    indices = [Index(value = ["name"], unique = true)],
+    indices = [Index(value = ["name"], unique = true)]
 )
 data class PlayerEntity(
     @PrimaryKey(autoGenerate = true)
@@ -26,5 +26,5 @@ data class PlayerEntity(
     @ColumnInfo(name = "notes") val notes: String? = null,
 
     /** Hidden from pickers but kept so historical sessions stay intact. */
-    @ColumnInfo(name = "archived", defaultValue = "0") val archived: Boolean = false,
+    @ColumnInfo(name = "archived", defaultValue = "0") val archived: Boolean = false
 )

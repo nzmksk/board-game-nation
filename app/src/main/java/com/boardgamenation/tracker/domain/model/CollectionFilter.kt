@@ -5,11 +5,18 @@ enum class PlaytimeBucket(val minMinutes: Int, val maxMinutes: Int) {
     UNDER_30(0, 29),
     THIRTY_TO_60(30, 60),
     SIXTY_TO_120(61, 120),
-    OVER_120(121, Int.MAX_VALUE),
+    OVER_120(121, Int.MAX_VALUE)
 }
 
 enum class CollectionSort {
-    TITLE, DATE_ADDED, PLAY_COUNT, RATING, PRICE, COST_PER_PLAY, LAST_PLAYED, WEIGHT
+    TITLE,
+    DATE_ADDED,
+    PLAY_COUNT,
+    RATING,
+    PRICE,
+    COST_PER_PLAY,
+    LAST_PLAYED,
+    WEIGHT
 }
 
 /** How the collection list is displayed. */
@@ -36,7 +43,7 @@ data class CollectionFilter(
     val includeExpansions: Boolean = true,
 
     val sort: CollectionSort = CollectionSort.TITLE,
-    val ascending: Boolean = true,
+    val ascending: Boolean = true
 ) {
     val isActive: Boolean
         get() = search.isNotBlank() || statuses.isNotEmpty() || playerCount != null ||
@@ -52,6 +59,6 @@ data class CollectionFilter(
             tagIds.isNotEmpty(),
             rated != null,
             inPossessionOnly,
-            !includeExpansions,
+            !includeExpansions
         ).count { it }
 }

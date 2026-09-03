@@ -55,7 +55,7 @@ class TimerControllerTest {
             sessionDao = db.sessionDao(),
             gameDao = db.gameDao(),
             playerDao = db.playerDao(),
-            clock = DatabaseTestFixture.clock,
+            clock = DatabaseTestFixture.clock
         )
         controller = TimerController(
             context = ApplicationProvider.getApplicationContext<Context>(),
@@ -63,12 +63,12 @@ class TimerControllerTest {
                 timerDao = db.timerDao(),
                 playerDao = db.playerDao(),
                 clock = DatabaseTestFixture.clock,
-                elapsed = elapsed,
+                elapsed = elapsed
             ),
             sessionRepository = sessionRepository,
             elapsed = elapsed,
             clock = DatabaseTestFixture.clock,
-            scope = appScope,
+            scope = appScope
         )
         gameId = db.gameDao().insert(DatabaseTestFixture.game("Catan"))
         me = db.playerDao().let { dao ->
@@ -90,7 +90,7 @@ class TimerControllerTest {
         controller.setUp(
             gameId = gameId,
             players = listOf(me, ben),
-            config = TimerConfig(turnMs = 60_000, bankMs = 600_000),
+            config = TimerConfig(turnMs = 60_000, bankMs = 600_000)
         )
         controller.start()
         elapsed.advance(90_000)
@@ -128,7 +128,7 @@ class TimerControllerTest {
         // A 60s turn clock covers the first minute; the rest comes out of the bank.
         assertEquals(
             listOf(570_000L, 510_000L),
-            form.participants.map { it.bankTimeRemainingMs },
+            form.participants.map { it.bankTimeRemainingMs }
         )
     }
 
@@ -168,7 +168,7 @@ class TimerControllerTest {
         assertNotNull(sessionRepository.loadForm(draft.id))
         assertEquals(
             listOf(me.id, ben.id),
-            db.sessionDao().getParticipants(draft.id).map { it.playerId },
+            db.sessionDao().getParticipants(draft.id).map { it.playerId }
         )
 
         controller.discard()

@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardgamenation.tracker.R
@@ -63,10 +63,7 @@ import com.boardgamenation.tracker.ui.theme.LocalChartColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun TimerSetupScreen(
-    onStarted: () -> Unit,
-    viewModel: TimerViewModel = hiltViewModel(),
-) {
+fun TimerSetupScreen(onStarted: () -> Unit, viewModel: TimerViewModel = hiltViewModel()) {
     val state by viewModel.setupState.collectAsStateWithLifecycle()
     val projection by viewModel.projection.collectAsStateWithLifecycle()
     var presetDialogOpen by remember { mutableStateOf(false) }
@@ -78,14 +75,14 @@ fun TimerSetupScreen(
      * depend on it — so a refusal starts the clock anyway rather than blocking the game.
      */
     val notificationPermission = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
+        ActivityResultContracts.RequestPermission()
     ) { viewModel.start(onStarted) }
 
     fun startTimer() {
         val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.POST_NOTIFICATIONS,
+                Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         if (needsPermission) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -99,12 +96,12 @@ fun TimerSetupScreen(
     LaunchedEffect(projection) { if (projection != null) onStarted() }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.timer_setup_title)) }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.timer_setup_title)) }) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item { SectionHeader(stringResource(R.string.timer_setup_game)) }
             item { GameDropdown(state, viewModel::selectGame) }
@@ -118,21 +115,21 @@ fun TimerSetupScreen(
                             onClick = {
                                 viewModel.updateSetup { it.copy(mode = TimerMode.TURN_BASED) }
                             },
-                            label = { Text(stringResource(R.string.timer_mode_turn_based)) },
+                            label = { Text(stringResource(R.string.timer_mode_turn_based)) }
                         )
                         FilterChip(
                             selected = state.isCountUp,
                             onClick = {
                                 viewModel.updateSetup { it.copy(mode = TimerMode.COUNT_UP) }
                             },
-                            label = { Text(stringResource(R.string.timer_mode_count_up)) },
+                            label = { Text(stringResource(R.string.timer_mode_count_up)) }
                         )
                     }
                     if (state.isCountUp) {
                         Text(
                             text = stringResource(R.string.timer_mode_count_up_help),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -145,7 +142,7 @@ fun TimerSetupScreen(
                         FilterChip(
                             selected = state.seating.any { it.id == player.id },
                             onClick = { viewModel.togglePlayer(player) },
-                            label = { Text(player.name) },
+                            label = { Text(player.name) }
                         )
                     }
                 }
@@ -158,18 +155,18 @@ fun TimerSetupScreen(
                 val chartColors = LocalChartColors.current
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = stringResource(R.string.timer_seat_position, index + 1),
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(Modifier.width(8.dp))
                         PlayerDot(chartColors.forPlayer(player.colorHex, index))
@@ -178,13 +175,13 @@ fun TimerSetupScreen(
                         IconButton(onClick = { viewModel.movePlayer(player.id, -1) }) {
                             Icon(
                                 Icons.Filled.ArrowUpward,
-                                contentDescription = stringResource(R.string.session_edit_move_up),
+                                contentDescription = stringResource(R.string.session_edit_move_up)
                             )
                         }
                         IconButton(onClick = { viewModel.movePlayer(player.id, 1) }) {
                             Icon(
                                 Icons.Filled.ArrowDownward,
-                                contentDescription = stringResource(R.string.session_edit_move_down),
+                                contentDescription = stringResource(R.string.session_edit_move_down)
                             )
                         }
                     }
@@ -201,13 +198,13 @@ fun TimerSetupScreen(
                             FilterChip(
                                 selected = false,
                                 onClick = { viewModel.applyPreset(preset.id) },
-                                label = { Text(preset.name) },
+                                label = { Text(preset.name) }
                             )
                         }
                         FilterChip(
                             selected = false,
                             onClick = { presetDialogOpen = true },
-                            label = { Text(stringResource(R.string.timer_setup_save_preset)) },
+                            label = { Text(stringResource(R.string.timer_setup_save_preset)) }
                         )
                     }
                 }
@@ -218,13 +215,13 @@ fun TimerSetupScreen(
                             value = state.turnSeconds,
                             label = stringResource(R.string.timer_setup_turn_seconds),
                             onChange = { value -> viewModel.updateSetup { it.copy(turnSeconds = value) } },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                         SecondsField(
                             value = state.bankSeconds,
                             label = stringResource(R.string.timer_setup_bank_seconds),
                             onChange = { value -> viewModel.updateSetup { it.copy(bankSeconds = value) } },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                         SecondsField(
                             value = state.warningSeconds,
@@ -232,7 +229,7 @@ fun TimerSetupScreen(
                             onChange = { value ->
                                 viewModel.updateSetup { it.copy(warningSeconds = value) }
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -241,13 +238,13 @@ fun TimerSetupScreen(
             item {
                 ToggleRow(
                     stringResource(R.string.timer_setup_sound),
-                    state.soundEnabled,
+                    state.soundEnabled
                 ) { value -> viewModel.updateSetup { it.copy(soundEnabled = value) } }
             }
             item {
                 ToggleRow(
                     stringResource(R.string.timer_setup_haptics),
-                    state.hapticsEnabled,
+                    state.hapticsEnabled
                 ) { value -> viewModel.updateSetup { it.copy(hapticsEnabled = value) } }
             }
             if (!state.isCountUp) {
@@ -255,12 +252,12 @@ fun TimerSetupScreen(
                     Column {
                         ToggleRow(
                             stringResource(R.string.timer_setup_auto_pass),
-                            state.autoPass,
+                            state.autoPass
                         ) { value -> viewModel.updateSetup { it.copy(autoPass = value) } }
                         Text(
                             text = stringResource(R.string.timer_setup_auto_pass_help),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -269,7 +266,7 @@ fun TimerSetupScreen(
                 ToggleRow(
                     stringResource(R.string.timer_keep_screen_on),
                     state.keepScreenOn,
-                    viewModel::setKeepScreenOn,
+                    viewModel::setKeepScreenOn
                 )
             }
 
@@ -277,7 +274,7 @@ fun TimerSetupScreen(
                 Button(
                     onClick = ::startTimer,
                     enabled = state.canStart,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 ) { Text(stringResource(R.string.timer_setup_start)) }
             }
 
@@ -289,10 +286,10 @@ fun TimerSetupScreen(
                                 state.gameId == 0L -> R.string.timer_no_game
                                 state.isCountUp -> R.string.timer_setup_needs_player
                                 else -> R.string.timer_setup_needs_players
-                            },
+                            }
                         ),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -311,7 +308,7 @@ fun TimerSetupScreen(
                     value = name,
                     onValueChange = { name = it },
                     singleLine = true,
-                    label = { Text(stringResource(R.string.timer_setup_preset_name)) },
+                    label = { Text(stringResource(R.string.timer_setup_preset_name)) }
                 )
             },
             confirmButton = {
@@ -320,14 +317,14 @@ fun TimerSetupScreen(
                         viewModel.savePreset(name)
                         presetDialogOpen = false
                     },
-                    enabled = name.isNotBlank(),
+                    enabled = name.isNotBlank()
                 ) { Text(stringResource(R.string.action_save)) }
             },
             dismissButton = {
                 TextButton(onClick = { presetDialogOpen = false }) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 }
@@ -346,7 +343,7 @@ private fun GameDropdown(state: TimerSetupState, onSelect: (Long) -> Unit) {
                     onClick = {
                         onSelect(game.id)
                         open = false
-                    },
+                    }
                 )
             }
         }
@@ -354,12 +351,7 @@ private fun GameDropdown(state: TimerSetupState, onSelect: (Long) -> Unit) {
 }
 
 @Composable
-private fun SecondsField(
-    value: Int,
-    label: String,
-    onChange: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun SecondsField(value: Int, label: String, onChange: (Int) -> Unit, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = value.toString(),
         onValueChange = { input ->
@@ -368,7 +360,7 @@ private fun SecondsField(
         label = { Text(label) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = modifier,
+        modifier = modifier
     )
 }
 

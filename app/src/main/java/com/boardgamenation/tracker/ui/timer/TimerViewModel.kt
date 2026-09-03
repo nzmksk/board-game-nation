@@ -20,6 +20,7 @@ import com.boardgamenation.tracker.timer.TimerEvent
 import com.boardgamenation.tracker.timer.TimerSummary
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,7 +30,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class TimerSetupState(
     val games: List<GameEntity> = emptyList(),
@@ -48,7 +48,7 @@ data class TimerSetupState(
     val soundEnabled: Boolean = true,
     val hapticsEnabled: Boolean = true,
     val autoPass: Boolean = false,
-    val keepScreenOn: Boolean = true,
+    val keepScreenOn: Boolean = true
 ) {
     val isCountUp: Boolean get() = mode == TimerMode.COUNT_UP
 
@@ -68,7 +68,7 @@ class TimerViewModel @Inject constructor(
     private val timerRepository: TimerRepository,
     private val settingsRepository: SettingsRepository,
     gameRepository: GameRepository,
-    playerRepository: PlayerRepository,
+    playerRepository: PlayerRepository
 ) : ViewModel() {
 
     private val initialGameId: Long =
@@ -81,13 +81,13 @@ class TimerViewModel @Inject constructor(
         playerRepository.observeByRecency(),
         timerRepository.observePresets(),
         settingsRepository.settings,
-        local,
+        local
     ) { games, players, presets, settings, current ->
         current.copy(
             games = games,
             players = players,
             presets = presets,
-            keepScreenOn = settings.keepScreenOnDuringTimer,
+            keepScreenOn = settings.keepScreenOnDuringTimer
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimerSetupState())
 
@@ -118,7 +118,7 @@ class TimerViewModel @Inject constructor(
                     warningSeconds = preset.warningThresholdSeconds,
                     soundEnabled = preset.soundEnabled,
                     hapticsEnabled = preset.hapticsEnabled,
-                    autoPass = preset.autoPassOnBankEmpty,
+                    autoPass = preset.autoPassOnBankEmpty
                 )
             }
         }
@@ -131,7 +131,7 @@ class TimerViewModel @Inject constructor(
                 current.filterNot { it.id == player.id }
             } else {
                 current + player
-            },
+            }
         )
     }
 
@@ -153,7 +153,7 @@ class TimerViewModel @Inject constructor(
                 warningSeconds = preset.warningThresholdSeconds,
                 soundEnabled = preset.soundEnabled,
                 hapticsEnabled = preset.hapticsEnabled,
-                autoPass = preset.autoPassOnBankEmpty,
+                autoPass = preset.autoPassOnBankEmpty
             )
         }
     }
@@ -178,8 +178,8 @@ class TimerViewModel @Inject constructor(
                     soundEnabled = current.soundEnabled,
                     hapticsEnabled = current.hapticsEnabled,
                     autoPassOnBankEmpty = current.autoPass,
-                    gameId = current.gameId.takeIf { it != 0L },
-                ),
+                    gameId = current.gameId.takeIf { it != 0L }
+                )
             )
         }
     }
@@ -202,8 +202,8 @@ class TimerViewModel @Inject constructor(
                         BankExhaustedBehaviour.AUTO_PASS
                     } else {
                         BankExhaustedBehaviour.FLAG_AND_OVERTIME
-                    },
-                ),
+                    }
+                )
             )
             controller.start()
             onStarted()

@@ -12,12 +12,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Qualifier
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import javax.inject.Qualifier
-import javax.inject.Singleton
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -63,13 +63,11 @@ abstract class AppModule {
         @Provides
         @Singleton
         @ApplicationScope
-        fun provideApplicationScope(
-            @DefaultDispatcher dispatcher: CoroutineDispatcher,
-        ): CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
+        fun provideApplicationScope(@DefaultDispatcher dispatcher: CoroutineDispatcher): CoroutineScope =
+            CoroutineScope(SupervisorJob() + dispatcher)
 
         @Provides
         @Singleton
-        fun provideWorkManager(@ApplicationContext context: Context): WorkManager =
-            WorkManager.getInstance(context)
+        fun provideWorkManager(@ApplicationContext context: Context): WorkManager = WorkManager.getInstance(context)
     }
 }

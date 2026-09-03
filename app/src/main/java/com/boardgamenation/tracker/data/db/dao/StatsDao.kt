@@ -36,7 +36,7 @@ interface StatsDao {
         """
         SELECT COALESCE(SUM(price), 0) FROM games
         WHERE status IN ('OWNED', 'LENT_OUT') AND price IS NOT NULL
-        """,
+        """
     )
     fun observeCollectionValue(): Flow<Double>
 
@@ -50,7 +50,7 @@ interface StatsDao {
         GROUP BY t.id
         ORDER BY value DESC, t.name COLLATE NOCASE
         LIMIT :limit
-        """,
+        """
     )
     fun observeTagDistribution(kind: String, limit: Int): Flow<List<LabelledValue>>
 
@@ -71,7 +71,7 @@ interface StatsDao {
         WHERE weight IS NOT NULL AND status IN ('OWNED', 'LENT_OUT')
         GROUP BY label
         ORDER BY label
-        """,
+        """
     )
     fun observeWeightDistribution(): Flow<List<LabelledValue>>
 
@@ -92,7 +92,7 @@ interface StatsDao {
             UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
         ) n
         ORDER BY n.c
-        """,
+        """
     )
     fun observePlayerCountCoverage(): Flow<List<LabelledValue>>
 
@@ -104,7 +104,7 @@ interface StatsDao {
         WHERE g.status IN ('OWNED', 'LENT_OUT')
           AND NOT EXISTS (SELECT 1 FROM sessions s WHERE s.game_id = g.id AND s.is_draft = 0)
         ORDER BY g.date_added ASC
-        """,
+        """
     )
     fun observeUnplayedGames(): Flow<List<LabelledValue>>
 
@@ -113,7 +113,7 @@ interface StatsDao {
         SELECT COUNT(*) FROM games g
         WHERE g.status IN ('OWNED', 'LENT_OUT')
           AND NOT EXISTS (SELECT 1 FROM game_ratings r WHERE r.game_id = g.id)
-        """,
+        """
     )
     fun observeUnratedOwnedCount(): Flow<Int>
 
@@ -133,7 +133,7 @@ interface StatsDao {
         SELECT strftime('%Y-%m', played_on) AS label, COUNT(*) * 1.0 AS value
         FROM sessions WHERE is_draft = 0
         GROUP BY label ORDER BY label
-        """,
+        """
     )
     fun observePlaysByMonth(): Flow<List<LabelledValue>>
 
@@ -142,7 +142,7 @@ interface StatsDao {
         SELECT strftime('%w', played_on) AS label, COUNT(*) * 1.0 AS value
         FROM sessions WHERE is_draft = 0
         GROUP BY label ORDER BY label
-        """,
+        """
     )
     fun observePlaysByDayOfWeek(): Flow<List<LabelledValue>>
 
@@ -153,7 +153,7 @@ interface StatsDao {
         WHERE s.is_draft = 0
         GROUP BY g.id ORDER BY value DESC, g.title COLLATE NOCASE
         LIMIT :limit
-        """,
+        """
     )
     fun observeMostPlayed(limit: Int): Flow<List<LabelledValue>>
 
@@ -173,7 +173,7 @@ interface StatsDao {
         WHERE s.is_draft = 0 AND s.is_incomplete = 0
         ORDER BY CASE WHEN :longest = 1 THEN -s.duration_minutes ELSE s.duration_minutes END
         LIMIT :limit
-        """,
+        """
     )
     fun observeExtremeSessions(longest: Boolean, limit: Int): Flow<List<SessionListItem>>
 
@@ -196,7 +196,7 @@ interface StatsDao {
         ORDER BY ABS(AVG(s.duration_minutes) -
                      (g.min_playtime_minutes + g.max_playtime_minutes) / 2.0) DESC
         LIMIT :limit
-        """,
+        """
     )
     fun observeDurationVsExpected(minPlays: Int, limit: Int): Flow<List<DurationVsExpectedRow>>
 
@@ -206,7 +206,7 @@ interface StatsDao {
         SELECT DISTINCT strftime('%Y-%W', played_on) AS label, 1.0 AS value
         FROM sessions WHERE is_draft = 0
         ORDER BY label DESC
-        """,
+        """
     )
     fun observeWeeksWithPlays(): Flow<List<LabelledValue>>
 
@@ -215,7 +215,7 @@ interface StatsDao {
         SELECT DISTINCT played_on AS label, 1.0 AS value
         FROM sessions WHERE is_draft = 0
         ORDER BY label DESC
-        """,
+        """
     )
     fun observeDaysWithPlays(): Flow<List<LabelledValue>>
 
@@ -236,7 +236,7 @@ interface StatsDao {
             ) t2
             WHERE t2.plays2 >= t.plays
         )
-        """,
+        """
     )
     fun observeHIndex(): Flow<Int>
 
@@ -278,7 +278,7 @@ interface StatsDao {
                AND COUNT(*) > 1
                AND SUM(sp.is_winner) > 0
         ) t
-        """,
+        """
     )
     fun observeFirstPlayerRecord(gameId: Long?): Flow<FirstPlayerRecord>
 
@@ -298,7 +298,7 @@ interface StatsDao {
         ORDER BY CASE WHEN :cheapestFirst = 1 THEN g.price / COUNT(s.id)
                       ELSE -(g.price / COUNT(s.id)) END
         LIMIT :limit
-        """,
+        """
     )
     fun observeCostPerPlay(cheapestFirst: Boolean, limit: Int): Flow<List<CostPerPlayRow>>
 
@@ -312,7 +312,7 @@ interface StatsDao {
                       AND g2.status IN ('OWNED', 'LENT_OUT')), 0)
         FROM games g
         WHERE g.price IS NOT NULL AND g.status IN ('OWNED', 'LENT_OUT')
-        """,
+        """
     )
     fun observeOverallCostPerPlay(): Flow<Double?>
 
@@ -322,7 +322,7 @@ interface StatsDao {
         FROM games
         WHERE price IS NOT NULL AND status IN ('OWNED', 'LENT_OUT', 'SOLD')
         GROUP BY label ORDER BY label
-        """,
+        """
     )
     fun observeSpendByYear(): Flow<List<LabelledValue>>
 
@@ -335,7 +335,7 @@ interface StatsDao {
           AND NOT EXISTS (SELECT 1 FROM sessions s WHERE s.game_id = g.id AND s.is_draft = 0)
         ORDER BY g.price DESC
         LIMIT :limit
-        """,
+        """
     )
     fun observeDeadWeight(limit: Int): Flow<List<LabelledValue>>
 
@@ -355,7 +355,7 @@ interface StatsDao {
         GROUP BY p.id
         HAVING COUNT(sp.id) > 0
         ORDER BY wins * 1.0 / COUNT(sp.id) DESC, plays DESC
-        """,
+        """
     )
     fun observeStandings(gameId: Long?): Flow<List<PlayerStandingRow>>
 
@@ -383,7 +383,7 @@ interface StatsDao {
         WHERE p.is_self = 0
         GROUP BY p.id
         ORDER BY self_wins DESC, opponent_wins ASC, p.name COLLATE NOCASE
-        """,
+        """
     )
     fun observeHeadToHead(): Flow<List<HeadToHeadRow>>
 
@@ -403,7 +403,7 @@ interface StatsDao {
         GROUP BY g.id
         ORDER BY value DESC
         LIMIT :limit
-        """,
+        """
     )
     fun observeAverageScoreByGame(playerId: Long, limit: Int): Flow<List<LabelledValue>>
 
@@ -432,7 +432,7 @@ interface StatsDao {
         WHERE sp.player_id = :playerId
         GROUP BY g.id
         ORDER BY win_rate DESC, plays DESC, title COLLATE NOCASE
-        """,
+        """
     )
     fun observeWinRateByGame(playerId: Long): Flow<List<GameWinRateRow>>
 }

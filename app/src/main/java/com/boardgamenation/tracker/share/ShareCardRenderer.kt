@@ -49,9 +49,7 @@ import kotlin.math.min
  * a density would only move the layout around for no gain.
  */
 @Singleton
-class ShareCardRenderer @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-) {
+class ShareCardRenderer @Inject constructor(@param:ApplicationContext private val context: Context) {
 
     fun render(card: ShareCard): Bitmap {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
@@ -77,7 +75,7 @@ class ShareCardRenderer @Inject constructor(
                 HEIGHT.toFloat(),
                 BACKGROUND_TOP,
                 BACKGROUND_BOTTOM,
-                Shader.TileMode.CLAMP,
+                Shader.TileMode.CLAMP
             )
         }
         canvas.drawRect(0f, 0f, WIDTH.toFloat(), HEIGHT.toFloat(), felt)
@@ -104,7 +102,7 @@ class ShareCardRenderer @Inject constructor(
             paint = titlePaint,
             x = MARGIN,
             top = y,
-            maxLines = 3,
+            maxLines = 3
         )
         y += 28f
 
@@ -113,8 +111,8 @@ class ShareCardRenderer @Inject constructor(
             context.resources.getQuantityString(
                 R.plurals.share_card_players,
                 card.playerCount,
-                card.playerCount,
-            ),
+                card.playerCount
+            )
         ).joinToString(SEPARATOR)
         val figuresPaint = text(size = 42f, color = MUTED)
         canvas.drawText(figures, MARGIN, y + figuresPaint.textSize, figuresPaint)
@@ -124,7 +122,7 @@ class ShareCardRenderer @Inject constructor(
             card.mode,
             card.endReason,
             context.getString(R.string.session_incomplete).takeIf { card.isIncomplete },
-            context.getString(R.string.session_teaching).takeIf { card.isTeachingGame },
+            context.getString(R.string.session_teaching).takeIf { card.isTeachingGame }
         )
         if (badges.isNotEmpty()) y += drawBadges(canvas, badges, y) + 20f
 
@@ -136,7 +134,7 @@ class ShareCardRenderer @Inject constructor(
                 paint = text(size = 64f, color = GOLD, bold = true),
                 x = MARGIN,
                 top = y,
-                maxLines = 2,
+                maxLines = 2
             )
         }
 
@@ -149,12 +147,18 @@ class ShareCardRenderer @Inject constructor(
      */
     private fun headline(card: ShareCard): String? = when (card.result) {
         ShareResult.COOP_WIN -> context.getString(R.string.session_coop_win)
+
         ShareResult.COOP_LOSS -> context.getString(R.string.session_coop_loss)
-        ShareResult.TEAMS -> card.winningTeam
-            ?.let { context.getString(R.string.session_team_won, it) }
-        ShareResult.RANKED -> card.winners
-            .takeIf { it.isNotEmpty() }
-            ?.let { context.getString(R.string.session_winner, it.joinToString(", ")) }
+
+        ShareResult.TEAMS ->
+            card.winningTeam
+                ?.let { context.getString(R.string.session_team_won, it) }
+
+        ShareResult.RANKED ->
+            card.winners
+                .takeIf { it.isNotEmpty() }
+                ?.let { context.getString(R.string.session_winner, it.joinToString(", ")) }
+
         ShareResult.UNRESOLVED -> null
     }
 
@@ -178,7 +182,7 @@ class ShareCardRenderer @Inject constructor(
                 RectF(x, y, x + width, y + height),
                 height / 2,
                 height / 2,
-                fill(BADGE_FILL),
+                fill(BADGE_FILL)
             )
             canvas.drawText(label, x + padding, baselineIn(y, y + height, paint), paint)
             x += width + gap
@@ -224,13 +228,12 @@ class ShareCardRenderer @Inject constructor(
                 context.getString(R.string.share_card_more_players, remaining),
                 MARGIN + 32f,
                 baselineIn(y, y + OVERFLOW_HEIGHT, paint),
-                paint,
+                paint
             )
         }
     }
 
-    private fun rowsWithin(height: Float): Int =
-        ((height + ROW_GAP) / (MIN_ROW_HEIGHT + ROW_GAP)).toInt()
+    private fun rowsWithin(height: Float): Int = ((height + ROW_GAP) / (MIN_ROW_HEIGHT + ROW_GAP)).toInt()
 
     private fun drawStanding(canvas: Canvas, standing: ShareStanding, top: Float, height: Float) {
         val bottom = top + height
@@ -252,14 +255,14 @@ class ShareCardRenderer @Inject constructor(
             badgeCentre,
             (top + bottom) / 2,
             badgeRadius,
-            fill(if (standing.isWinner) GOLD else BADGE_FILL),
+            fill(if (standing.isWinner) GOLD else BADGE_FILL)
         )
         val badge = standing.rank?.toString() ?: initialOf(standing.name)
         if (badge.isNotEmpty()) {
             val paint = text(
                 size = badgeRadius * 1.05f,
                 color = if (standing.isWinner) BACKGROUND_BOTTOM else INK,
-                bold = true,
+                bold = true
             ).apply { textAlign = Paint.Align.CENTER }
             canvas.drawText(badge, badgeCentre, baselineIn(top, bottom, paint), paint)
         }
@@ -267,7 +270,7 @@ class ShareCardRenderer @Inject constructor(
         val scorePaint = text(
             size = (height * 0.36f).coerceIn(38f, 56f),
             color = if (standing.isWinner) GOLD else INK,
-            bold = true,
+            bold = true
         ).apply { textAlign = Paint.Align.RIGHT }
         val scoreRight = WIDTH - MARGIN - 40f
         val scoreWidth = standing.scoreText
@@ -311,7 +314,7 @@ class ShareCardRenderer @Inject constructor(
                 ellipsised(detail, detailPaint, nameWidth),
                 nameX,
                 top + height * 0.79f,
-                detailPaint,
+                detailPaint
             )
         }
 
@@ -323,7 +326,7 @@ class ShareCardRenderer @Inject constructor(
                 x = nameX + namePaint.measureText(name) + TAG_GAP,
                 // Centred on the name, not on the row: a row-centred tag would drift
                 // away from the word it belongs to as soon as a faction appeared below.
-                centreY = nameBaseline + (namePaint.descent() + namePaint.ascent()) / 2,
+                centreY = nameBaseline + (namePaint.descent() + namePaint.ascent()) / 2
             )
         }
     }
@@ -337,13 +340,7 @@ class ShareCardRenderer @Inject constructor(
      * of white and disappears. The outline is [MUTED] rather than [GOLD] -- the accent
      * is what marks a winner, and a tag borrowing it would announce the wrong thing.
      */
-    private fun drawTag(
-        canvas: Canvas,
-        label: String,
-        paint: TextPaint,
-        x: Float,
-        centreY: Float,
-    ) {
+    private fun drawTag(canvas: Canvas, label: String, paint: TextPaint, x: Float, centreY: Float) {
         val height = paint.textSize + 22f
         val top = centreY - height / 2
         val width = paint.measureText(label) + TAG_PADDING * 2
@@ -398,7 +395,7 @@ class ShareCardRenderer @Inject constructor(
                 context.getString(R.string.session_edit_turn_order).uppercase(),
                 MARGIN,
                 top + labelPaint.textSize,
-                labelPaint,
+                labelPaint
             )
         }
         canvas.withTranslation(MARGIN, top + labelHeight) { layout.draw(this) }
@@ -419,7 +416,7 @@ class ShareCardRenderer @Inject constructor(
             RectF(WIDTH / 2f - 54f, ruleY, WIDTH / 2f + 54f, ruleY + 8f),
             4f,
             4f,
-            fill(GOLD),
+            fill(GOLD)
         )
         canvas.drawText(context.getString(R.string.app_name), WIDTH / 2f, baseline, paint)
 
@@ -440,7 +437,7 @@ class ShareCardRenderer @Inject constructor(
     }
 
     private fun text(size: Float, color: Int, bold: Boolean = false) = TextPaint(
-        Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG,
+        Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG
     ).apply {
         this.color = color
         textSize = size
@@ -448,31 +445,22 @@ class ShareCardRenderer @Inject constructor(
     }
 
     /** The baseline that centres a single line of text between two edges. */
-    private fun baselineIn(top: Float, bottom: Float, paint: Paint): Float =
-        (top + bottom) / 2 - (paint.descent() + paint.ascent()) / 2
+    private fun baselineIn(top: Float, bottom: Float, paint: Paint): Float = (top + bottom) / 2 - (paint.descent() + paint.ascent()) / 2
 
     private fun ellipsised(value: String, paint: TextPaint, width: Float): String =
         TextUtils.ellipsize(value, paint, max(0f, width), TextUtils.TruncateAt.END).toString()
 
-    private fun layout(value: String, paint: TextPaint, maxLines: Int): StaticLayout =
-        StaticLayout.Builder
-            .obtain(value, 0, value.length, paint, CONTENT_WIDTH.toInt())
-            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
-            .setLineSpacing(0f, 0.96f)
-            .setIncludePad(false)
-            .setMaxLines(maxLines)
-            .setEllipsize(TextUtils.TruncateAt.END)
-            .build()
+    private fun layout(value: String, paint: TextPaint, maxLines: Int): StaticLayout = StaticLayout.Builder
+        .obtain(value, 0, value.length, paint, CONTENT_WIDTH.toInt())
+        .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+        .setLineSpacing(0f, 0.96f)
+        .setIncludePad(false)
+        .setMaxLines(maxLines)
+        .setEllipsize(TextUtils.TruncateAt.END)
+        .build()
 
     /** Draws wrapping text and reports the height it took, for the caller's cursor. */
-    private fun wrapped(
-        canvas: Canvas,
-        value: String,
-        paint: TextPaint,
-        x: Float,
-        top: Float,
-        maxLines: Int,
-    ): Float {
+    private fun wrapped(canvas: Canvas, value: String, paint: TextPaint, x: Float, top: Float, maxLines: Int): Float {
         val layout = layout(value, paint, maxLines)
         canvas.withTranslation(x, top) { layout.draw(this) }
         return layout.height.toFloat()

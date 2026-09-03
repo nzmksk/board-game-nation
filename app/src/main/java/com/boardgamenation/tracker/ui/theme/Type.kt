@@ -13,11 +13,11 @@ val TimerDisplayStyle = TextStyle(
     fontFamily = FontFamily.Monospace,
     fontWeight = FontWeight.Bold,
     fontSize = 56.sp,
-    letterSpacing = (-1).sp,
+    letterSpacing = (-1).sp
 )
 
 val TimerSecondaryStyle = TextStyle(
     fontFamily = FontFamily.Monospace,
     fontWeight = FontWeight.Medium,
-    fontSize = 20.sp,
+    fontSize = 20.sp
 )

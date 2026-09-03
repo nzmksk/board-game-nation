@@ -67,19 +67,15 @@ import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.share.shareImageChooser
 import com.boardgamenation.tracker.ui.components.ConfirmDialog
-import com.boardgamenation.tracker.ui.components.PlayerDot
 import com.boardgamenation.tracker.ui.components.IsoDateField
+import com.boardgamenation.tracker.ui.components.PlayerDot
 import com.boardgamenation.tracker.ui.components.SectionHeader
 import com.boardgamenation.tracker.ui.gameedit.labelRes
 import com.boardgamenation.tracker.ui.theme.LocalChartColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun SessionEditScreen(
-    onBack: () -> Unit,
-    onSaved: (Long, List<String>) -> Unit,
-    viewModel: SessionEditViewModel = hiltViewModel(),
-) {
+fun SessionEditScreen(onBack: () -> Unit, onSaved: (Long, List<String>) -> Unit, viewModel: SessionEditViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var deleteOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -93,13 +89,13 @@ fun SessionEditScreen(
     // The photo picker hands back a uri the app can only read while the permission
     // lasts, so the read grant is persisted before the uri is stored.
     val photoPicker = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickVisualMedia(),
+        ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         runCatching {
             context.contentResolver.takePersistableUriPermission(
                 uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
         }
         viewModel.update { it.copy(photoUri = uri.toString()) }
@@ -109,10 +105,13 @@ fun SessionEditScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is SessionEditEvent.Saved -> onSaved(event.sessionId, event.unlockedNames)
+
                 SessionEditEvent.Deleted -> onBack()
+
                 is SessionEditEvent.ShareReady -> context.startActivity(
-                    shareImageChooser(event.image, event.label, chooserTitle),
+                    shareImageChooser(event.image, event.label, chooserTitle)
                 )
+
                 // A snackbar rather than a dialog: nothing was lost, the picture simply
                 // did not get made, and the play is still sitting there to try again on.
                 SessionEditEvent.ShareFailed -> snackbarHost.showSnackbar(shareFailed)
@@ -126,16 +125,19 @@ fun SessionEditScreen(
                 title = {
                     Text(
                         stringResource(
-                            if (state.isNew) R.string.session_edit_new
-                            else R.string.session_edit_existing,
-                        ),
+                            if (state.isNew) {
+                                R.string.session_edit_new
+                            } else {
+                                R.string.session_edit_existing
+                            }
+                        )
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
                 },
@@ -144,35 +146,35 @@ fun SessionEditScreen(
                         IconButton(onClick = viewModel::share, enabled = !state.isSharing) {
                             Icon(
                                 Icons.Filled.Share,
-                                contentDescription = stringResource(R.string.action_share),
+                                contentDescription = stringResource(R.string.action_share)
                             )
                         }
                         IconButton(onClick = { deleteOpen = true }) {
                             Icon(
                                 Icons.Filled.Delete,
-                                contentDescription = stringResource(R.string.action_delete),
+                                contentDescription = stringResource(R.string.action_delete)
                             )
                         }
                     }
                     Button(onClick = viewModel::save, enabled = !state.isSaving) {
                         Text(stringResource(R.string.action_save))
                     }
-                },
+                }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHost) },
+        snackbarHost = { SnackbarHost(snackbarHost) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             state.validationError?.let { messageRes ->
                 item {
                     Text(
                         text = stringResource(messageRes),
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -189,7 +191,7 @@ fun SessionEditScreen(
                                 viewModel.update { it.copy(playedOn = date) }
                             }
                         },
-                        modifier = Modifier.weight(1.3f),
+                        modifier = Modifier.weight(1.3f)
                     )
                     OutlinedTextField(
                         value = state.form.durationMinutes.toString(),
@@ -200,7 +202,7 @@ fun SessionEditScreen(
                         label = { Text(stringResource(R.string.session_edit_duration)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -211,7 +213,7 @@ fun SessionEditScreen(
                     onValueChange = { value -> viewModel.update { it.copy(location = value) } },
                     label = { Text(stringResource(R.string.session_edit_location)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -222,7 +224,7 @@ fun SessionEditScreen(
                         FilterChip(
                             selected = state.form.scoringMode == mode,
                             onClick = { viewModel.update { it.copy(scoringMode = mode) } },
-                            label = { Text(stringResource(mode.labelRes())) },
+                            label = { Text(stringResource(mode.labelRes())) }
                         )
                     }
                 }
@@ -234,12 +236,12 @@ fun SessionEditScreen(
                         FilterChip(
                             selected = state.form.coopOutcome == CoopOutcome.WIN,
                             onClick = { viewModel.setCoopOutcome(CoopOutcome.WIN) },
-                            label = { Text(stringResource(R.string.session_edit_coop_win)) },
+                            label = { Text(stringResource(R.string.session_edit_coop_win)) }
                         )
                         FilterChip(
                             selected = state.form.coopOutcome == CoopOutcome.LOSS,
                             onClick = { viewModel.setCoopOutcome(CoopOutcome.LOSS) },
-                            label = { Text(stringResource(R.string.session_edit_coop_loss)) },
+                            label = { Text(stringResource(R.string.session_edit_coop_loss)) }
                         )
                     }
                 }
@@ -258,19 +260,19 @@ fun SessionEditScreen(
                         label = { Text(stringResource(R.string.session_edit_mode)) },
                         placeholder = { Text(stringResource(R.string.session_edit_mode_hint)) },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     )
                     if (state.previousModes.isNotEmpty()) {
                         Text(
                             text = stringResource(R.string.session_edit_mode_previous),
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall
                         )
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             state.previousModes.forEach { mode ->
                                 FilterChip(
                                     selected = state.form.mode == mode,
                                     onClick = { viewModel.update { it.copy(mode = mode) } },
-                                    label = { Text(mode) },
+                                    label = { Text(mode) }
                                 )
                             }
                         }
@@ -290,10 +292,10 @@ fun SessionEditScreen(
                         if (teams.isEmpty()) {
                             Text(
                                 text = stringResource(
-                                    R.string.session_edit_winning_team_help,
+                                    R.string.session_edit_winning_team_help
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
                             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -301,7 +303,7 @@ fun SessionEditScreen(
                                     FilterChip(
                                         selected = state.form.winningTeam == team,
                                         onClick = { viewModel.setWinningTeam(team) },
-                                        label = { Text(team) },
+                                        label = { Text(team) }
                                     )
                                 }
                             }
@@ -321,7 +323,7 @@ fun SessionEditScreen(
                         FilterChip(
                             selected = !state.form.isSuddenDeath,
                             onClick = { viewModel.setEndCondition(null) },
-                            label = { Text(stringResource(R.string.session_edit_ended_scoring)) },
+                            label = { Text(stringResource(R.string.session_edit_ended_scoring)) }
                         )
                         FilterChip(
                             selected = state.form.isSuddenDeath,
@@ -330,7 +332,7 @@ fun SessionEditScreen(
                             },
                             label = {
                                 Text(stringResource(R.string.session_edit_ended_sudden_death))
-                            },
+                            }
                         )
                     }
                 }
@@ -341,7 +343,7 @@ fun SessionEditScreen(
                             Text(
                                 text = stringResource(R.string.session_edit_sudden_death_help),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             OutlinedTextField(
                                 value = state.form.endReason.orEmpty(),
@@ -355,14 +357,14 @@ fun SessionEditScreen(
                                     Text(stringResource(R.string.session_edit_end_reason_hint))
                                 },
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
                             )
                             if (state.previousEndReasons.isNotEmpty()) {
                                 Text(
                                     text = stringResource(
-                                        R.string.session_edit_end_reason_previous,
+                                        R.string.session_edit_end_reason_previous
                                     ),
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = MaterialTheme.typography.labelSmall
                                 )
                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     state.previousEndReasons.forEach { reason ->
@@ -371,7 +373,7 @@ fun SessionEditScreen(
                                             onClick = {
                                                 viewModel.update { it.copy(endReason = reason) }
                                             },
-                                            label = { Text(reason) },
+                                            label = { Text(reason) }
                                         )
                                     }
                                 }
@@ -413,7 +415,7 @@ fun SessionEditScreen(
                         }
                     },
                     onMove = { delta -> viewModel.moveParticipant(participant.playerId, delta) },
-                    onRemove = { viewModel.removeParticipant(participant.playerId) },
+                    onRemove = { viewModel.removeParticipant(participant.playerId) }
                 )
             }
 
@@ -427,7 +429,7 @@ fun SessionEditScreen(
                     TurnOrderPicker(
                         participants = state.form.participants,
                         onToggle = viewModel::toggleTurnOrder,
-                        onClear = viewModel::clearTurnOrder,
+                        onClear = viewModel::clearTurnOrder
                     )
                 }
             }
@@ -440,7 +442,7 @@ fun SessionEditScreen(
                             FilterChip(
                                 selected = expansion.id in state.form.expansionIds,
                                 onClick = { viewModel.toggleExpansion(expansion.id) },
-                                label = { Text(expansion.title) },
+                                label = { Text(expansion.title) }
                             )
                         }
                     }
@@ -451,7 +453,7 @@ fun SessionEditScreen(
                 ToggleRow(
                     label = stringResource(R.string.session_edit_incomplete),
                     checked = state.form.isIncomplete,
-                    onChange = { value -> viewModel.update { it.copy(isIncomplete = value) } },
+                    onChange = { value -> viewModel.update { it.copy(isIncomplete = value) } }
                 )
             }
 
@@ -459,7 +461,7 @@ fun SessionEditScreen(
                 ToggleRow(
                     label = stringResource(R.string.session_edit_teaching),
                     checked = state.form.isTeachingGame,
-                    onChange = { value -> viewModel.update { it.copy(isTeachingGame = value) } },
+                    onChange = { value -> viewModel.update { it.copy(isTeachingGame = value) } }
                 )
             }
 
@@ -469,14 +471,14 @@ fun SessionEditScreen(
                     onValueChange = { value -> viewModel.update { it.copy(notes = value) } },
                     label = { Text(stringResource(R.string.session_edit_notes)) },
                     minLines = 3,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
             item {
                 Row(
                     Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = stringResource(
@@ -484,24 +486,24 @@ fun SessionEditScreen(
                                 R.string.session_edit_photo
                             } else {
                                 R.string.session_edit_photo_attached
-                            },
+                            }
                         ),
                         style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     if (!state.form.photoUri.isNullOrBlank()) {
                         TextButton(
-                            onClick = { viewModel.update { it.copy(photoUri = null) } },
+                            onClick = { viewModel.update { it.copy(photoUri = null) } }
                         ) { Text(stringResource(R.string.session_edit_remove_photo)) }
                     }
                     OutlinedButton(
                         onClick = {
                             photoPicker.launch(
                                 PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                ),
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
                             )
-                        },
+                        }
                     ) { Text(stringResource(R.string.action_add)) }
                 }
             }
@@ -520,7 +522,7 @@ fun SessionEditScreen(
                 deleteOpen = false
                 viewModel.delete()
             },
-            onDismiss = { deleteOpen = false },
+            onDismiss = { deleteOpen = false }
         )
     }
 }
@@ -540,7 +542,7 @@ private fun GamePicker(state: SessionEditUiState, onSelect: (Long) -> Unit) {
                     onClick = {
                         onSelect(game.id)
                         open = false
-                    },
+                    }
                 )
             }
         }
@@ -566,7 +568,7 @@ private fun PlayerPicker(state: SessionEditUiState, viewModel: SessionEditViewMo
                             viewModel.addPlayer(player)
                         }
                     },
-                    label = { Text(player.name) },
+                    label = { Text(player.name) }
                 )
             }
         }
@@ -576,7 +578,7 @@ private fun PlayerPicker(state: SessionEditUiState, viewModel: SessionEditViewMo
                 onValueChange = { newName = it },
                 label = { Text(stringResource(R.string.session_edit_new_player_hint)) },
                 singleLine = true,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(8.dp))
             OutlinedButton(
@@ -584,7 +586,7 @@ private fun PlayerPicker(state: SessionEditUiState, viewModel: SessionEditViewMo
                     viewModel.addNewPlayer(newName)
                     newName = ""
                 },
-                enabled = newName.isNotBlank(),
+                enabled = newName.isNotBlank()
             ) { Text(stringResource(R.string.action_add)) }
         }
     }
@@ -597,16 +599,12 @@ private fun PlayerPicker(state: SessionEditUiState, viewModel: SessionEditViewMo
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TurnOrderPicker(
-    participants: List<ParticipantForm>,
-    onToggle: (Long) -> Unit,
-    onClear: () -> Unit,
-) {
+private fun TurnOrderPicker(participants: List<ParticipantForm>, onToggle: (Long) -> Unit, onClear: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.session_edit_turn_order_help),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             participants.forEach { participant ->
@@ -622,11 +620,11 @@ private fun TurnOrderPicker(
                                 stringResource(
                                     R.string.session_edit_turn_order_seat,
                                     seat,
-                                    participant.playerName,
+                                    participant.playerName
                                 )
-                            },
+                            }
                         )
-                    },
+                    }
                 )
             }
         }
@@ -653,14 +651,14 @@ private fun ParticipantCard(
     onToggleWinner: () -> Unit,
     onToggleNew: () -> Unit,
     onMove: (Int) -> Unit,
-    onRemove: () -> Unit,
+    onRemove: () -> Unit
 ) {
     val chartColors = LocalChartColors.current
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -669,19 +667,19 @@ private fun ParticipantCard(
                 Text(
                     text = participant.playerName,
                     style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
                 if (showOrdering) {
                     IconButton(onClick = { onMove(-1) }) {
                         Icon(
                             Icons.Filled.ArrowUpward,
-                            contentDescription = stringResource(R.string.session_edit_move_up),
+                            contentDescription = stringResource(R.string.session_edit_move_up)
                         )
                     }
                     IconButton(onClick = { onMove(1) }) {
                         Icon(
                             Icons.Filled.ArrowDownward,
-                            contentDescription = stringResource(R.string.session_edit_move_down),
+                            contentDescription = stringResource(R.string.session_edit_move_down)
                         )
                     }
                 }
@@ -694,14 +692,14 @@ private fun ParticipantCard(
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
-                            },
+                            }
                         )
                     }
                 }
                 IconButton(onClick = onRemove) {
                     Icon(
                         Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.session_edit_remove_player),
+                        contentDescription = stringResource(R.string.session_edit_remove_player)
                     )
                 }
             }
@@ -718,7 +716,7 @@ private fun ParticipantCard(
                         label = { Text(stringResource(R.string.session_edit_score)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
                 OutlinedTextField(
@@ -726,7 +724,7 @@ private fun ParticipantCard(
                     onValueChange = onFaction,
                     label = { Text(stringResource(R.string.session_edit_faction)) },
                     singleLine = true,
-                    modifier = Modifier.weight(1.4f),
+                    modifier = Modifier.weight(1.4f)
                 )
             }
 
@@ -736,7 +734,7 @@ private fun ParticipantCard(
                     onValueChange = onTeam,
                     label = { Text(stringResource(R.string.session_edit_team)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
                 if (previousTeams.isNotEmpty()) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -744,7 +742,7 @@ private fun ParticipantCard(
                             FilterChip(
                                 selected = participant.team == team,
                                 onClick = { onTeam(team) },
-                                label = { Text(team) },
+                                label = { Text(team) }
                             )
                         }
                     }
@@ -755,7 +753,7 @@ private fun ParticipantCard(
                 Text(
                     text = stringResource(R.string.session_edit_first_time),
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
                 Switch(checked = participant.isNewPlayer, onCheckedChange = { onToggleNew() })
             }
@@ -764,7 +762,7 @@ private fun ParticipantCard(
                 Text(
                     text = com.boardgamenation.tracker.core.time.DurationFormat.longClock(turnMs),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

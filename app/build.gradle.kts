@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
+    alias(libs.plugins.ktlint)
 }
 
 /**
@@ -24,8 +25,10 @@ val bggToken: String = Properties().apply {
  * -PversionName=v0.2.0 or VERSION_NAME in the environment; every other build -- local, and
  * every CI debug build -- gets the value below, which is what the app has always reported.
  */
-val appVersionName: String = (providers.gradleProperty("versionName").orNull
-    ?: providers.environmentVariable("VERSION_NAME").orNull)
+val appVersionName: String = (
+    providers.gradleProperty("versionName").orNull
+        ?: providers.environmentVariable("VERSION_NAME").orNull
+    )
     ?.trim()?.removePrefix("v")?.takeIf { it.isNotEmpty() }
     ?: "0.1.0-alpha"
 
@@ -121,6 +124,24 @@ android {
         buildConfig = true
     }
 
+    lint {
+        // Errors fail the build; the 111 warnings do not, so adopting lint does not mean
+        // stopping everything to clear them first.
+        abortOnError = true
+        warningsAsErrors = false
+        // The errors lint finds today predate it being run at all. They are recorded in
+        // lint-baseline.xml so CI enforces "no new errors" from here rather than blocking
+        // on a backlog; delete entries from that file as they are fixed.
+        baseline = file("lint-baseline.xml")
+        // PropertyEscape fires on local.properties, which is git-ignored, machine-specific
+        // and never read by anything that cares about the escaping.
+        disable += "PropertyEscape"
+        // A reviewer reads the HTML; the SARIF is what CI turns into annotations.
+        htmlReport = true
+        sarifReport = true
+        xmlReport = false
+    }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -132,13 +153,29 @@ android {
         resources.excludes += setOf(
             "/META-INF/{AL2.0,LGPL2.1}",
             "/META-INF/LICENSE.md",
-            "/META-INF/LICENSE-notice.md",
+            "/META-INF/LICENSE-notice.md"
         )
     }
 }
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+/**
+ * Rules themselves are configured in .editorconfig, which the IDE reads too, so this
+ * block only says what to lint and how to report it.
+ */
+ktlint {
+    version = libs.versions.ktlintCli
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        // For the artifact CI attaches to the run. Not SARIF: ktlint writes a SARIF whose
+        // %SRCROOT% is the home directory rather than the repository root, so code scanning
+        // cannot map a finding onto a file in the diff. The plain output already names the
+        // file, line and rule, which is what a formatting failure needs.
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.HTML)
+    }
 }
 
 dependencies {

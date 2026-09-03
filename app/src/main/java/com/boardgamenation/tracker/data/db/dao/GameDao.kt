@@ -32,8 +32,8 @@ interface GameDao {
             GameEntity::class,
             SessionEntity::class,
             GameRatingEntity::class,
-            GameTagCrossRef::class,
-        ],
+            GameTagCrossRef::class
+        ]
     )
     fun observeCollection(query: SupportSQLiteQuery): Flow<List<GameListItem>>
 
@@ -58,7 +58,7 @@ interface GameDao {
         SELECT * FROM games
         WHERE is_expansion = 0 AND status IN ('OWNED', 'LENT_OUT')
         ORDER BY title COLLATE NOCASE
-        """,
+        """
     )
     fun observeBaseGames(): Flow<List<GameEntity>>
 
@@ -98,7 +98,7 @@ interface GameDao {
             )), 0) AS self_plays
         FROM sessions s
         WHERE s.game_id = :gameId AND s.is_draft = 0
-        """,
+        """
     )
     fun observeAggregates(gameId: Long): Flow<GameAggregates>
 
@@ -129,7 +129,7 @@ interface GameDao {
           AND sp.faction IS NOT NULL AND trim(sp.faction) <> ''
         GROUP BY sp.faction COLLATE NOCASE
         ORDER BY (wins * 1.0 / plays) DESC, plays DESC, faction COLLATE NOCASE
-        """,
+        """
     )
     fun observeFactionRecords(gameId: Long): Flow<List<FactionRecord>>
 
@@ -138,7 +138,7 @@ interface GameDao {
         SELECT * FROM games
         WHERE in_possession = 0 AND lent_date IS NOT NULL
         ORDER BY lent_date ASC
-        """,
+        """
     )
     fun observeLentOut(): Flow<List<GameEntity>>
 
@@ -151,7 +151,7 @@ interface GameDao {
         SELECT * FROM games
         WHERE in_possession = 0 AND lent_date IS NOT NULL AND lent_date <= :cutoffIsoDate
         ORDER BY lent_date ASC
-        """,
+        """
     )
     suspend fun getLoansOlderThan(cutoffIsoDate: String): List<GameEntity>
 
@@ -182,7 +182,7 @@ interface GameDao {
         SET in_possession = 0, lent_to = :person, lent_date = :isoDate,
             status = 'LENT_OUT', updated_at = :now
         WHERE id = :gameId
-        """,
+        """
     )
     suspend fun markLent(gameId: Long, person: String, isoDate: String, now: Long)
 
@@ -192,7 +192,7 @@ interface GameDao {
         SET in_possession = 1, lent_to = NULL, lent_date = NULL,
             status = 'OWNED', updated_at = :now
         WHERE id = :gameId
-        """,
+        """
     )
     suspend fun markReturned(gameId: Long, now: Long)
 

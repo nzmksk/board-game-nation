@@ -1,0 +1,34 @@
+# Shared by ktlint (which reads its rule configuration from here) and by the IDE, so the
+# formatting CI enforces is the formatting Android Studio applies as you type.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{kt,kts}]
+# android_studio rather than the stricter ktlint_official: it is the style the IDE this
+# project is developed in already produces, so a file saved in Android Studio and a file
+# ktlint accepts are the same file. ktlint_official disagrees with the IDE about argument
+# wrapping and would leave every Compose tree reflowed one argument per line.
+ktlint_code_style = android_studio
+max_line_length = 140
+# Compose composables are PascalCase by convention; the naming rule does not know that
+# unless told which annotation marks them. @Preview functions are composables too.
+ktlint_function_naming_ignore_when_annotated_with = Composable, Preview
+
+[*.{yml,yaml,json,toml}]
+indent_size = 2
+
+[*.xml]
+indent_size = 4
+
+[*.gradle.kts]
+# The build scripts document non-obvious decisions on the vals they belong to. The kdoc
+# rule allows KDoc only on declarations a doc tool would publish, which a build script has
+# none of, so it would force every one of those comments down to a bare // block.
+ktlint_standard_kdoc = disabled

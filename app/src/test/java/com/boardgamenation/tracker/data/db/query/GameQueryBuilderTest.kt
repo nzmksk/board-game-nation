@@ -58,7 +58,7 @@ class GameQueryBuilderTest {
     @Test
     fun `a status filter produces one placeholder per status`() {
         val query = GameQueryBuilder.build(
-            CollectionFilter(statuses = setOf(GameStatus.OWNED, GameStatus.WISHLIST)),
+            CollectionFilter(statuses = setOf(GameStatus.OWNED, GameStatus.WISHLIST))
         )
         assertTrue(query.sql.contains("g.status IN (?, ?)"))
     }
@@ -88,11 +88,11 @@ class GameQueryBuilderTest {
     fun `rated and unrated are opposite subqueries`() {
         assertTrue(
             GameQueryBuilder.build(CollectionFilter(rated = true))
-                .sql.contains("EXISTS (SELECT 1 FROM game_ratings"),
+                .sql.contains("EXISTS (SELECT 1 FROM game_ratings")
         )
         assertTrue(
             GameQueryBuilder.build(CollectionFilter(rated = false))
-                .sql.contains("NOT EXISTS (SELECT 1 FROM game_ratings"),
+                .sql.contains("NOT EXISTS (SELECT 1 FROM game_ratings")
         )
     }
 
@@ -109,7 +109,7 @@ class GameQueryBuilderTest {
     @Test
     fun `nulls sort last`() {
         val query = GameQueryBuilder.build(
-            CollectionFilter(sort = CollectionSort.COST_PER_PLAY, ascending = true),
+            CollectionFilter(sort = CollectionSort.COST_PER_PLAY, ascending = true)
         )
         assertTrue(query.sql.contains("cost_per_play IS NULL, cost_per_play ASC"))
     }
@@ -120,7 +120,7 @@ class GameQueryBuilderTest {
             val query = GameQueryBuilder.build(CollectionFilter(sort = sort))
             assertTrue(
                 "sort $sort should tie-break on title",
-                query.sql.contains("g.title COLLATE NOCASE ASC"),
+                query.sql.contains("g.title COLLATE NOCASE ASC")
             )
         }
     }
@@ -128,7 +128,7 @@ class GameQueryBuilderTest {
     @Test
     fun `descending is honoured`() {
         val query = GameQueryBuilder.build(
-            CollectionFilter(sort = CollectionSort.PLAY_COUNT, ascending = false),
+            CollectionFilter(sort = CollectionSort.PLAY_COUNT, ascending = false)
         )
         assertTrue(query.sql.contains("play_count DESC"))
     }
@@ -137,11 +137,11 @@ class GameQueryBuilderTest {
     fun `hiding expansions adds the flag check`() {
         assertTrue(
             GameQueryBuilder.build(CollectionFilter(includeExpansions = false))
-                .sql.contains("g.is_expansion = 0"),
+                .sql.contains("g.is_expansion = 0")
         )
         assertFalse(
             GameQueryBuilder.build(CollectionFilter(includeExpansions = true))
-                .sql.contains("g.is_expansion = 0"),
+                .sql.contains("g.is_expansion = 0")
         )
     }
 
@@ -156,8 +156,8 @@ class GameQueryBuilderTest {
                 search = "a",
                 statuses = setOf(GameStatus.OWNED),
                 playerCount = 2,
-                inPossessionOnly = true,
-            ),
+                inPossessionOnly = true
+            )
         )
         // One for the search term, one for the status, two for the player count; the
         // in-possession flag is a literal.
@@ -165,15 +165,14 @@ class GameQueryBuilderTest {
     }
 
     /** Everything after the fixed FROM/JOIN block: the part the builder assembles. */
-    private fun androidx.sqlite.db.SupportSQLiteQuery.appendedClause(): String =
-        sql.substringAfter("pc ON pc.game_id = g.id")
+    private fun androidx.sqlite.db.SupportSQLiteQuery.appendedClause(): String = sql.substringAfter("pc ON pc.game_id = g.id")
 
     @Test
     fun `the active filter count matches what the chips show`() {
         val filter = CollectionFilter(
             statuses = setOf(GameStatus.OWNED),
             playerCount = 4,
-            inPossessionOnly = true,
+            inPossessionOnly = true
         )
         assertEquals(3, filter.activeCount)
         assertTrue(filter.isActive)

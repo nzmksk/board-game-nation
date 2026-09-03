@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit
 data class StreakResult(
     /** The run that is still alive as of the reference date, zero if it has lapsed. */
     val current: Int,
-    val longest: Int,
+    val longest: Int
 )
 
 /**
@@ -77,10 +77,7 @@ object Streaks {
      * the run still open at the end, and the last anchor seen. Whether that trailing run
      * is still *current* depends on the period, so each caller decides that itself.
      */
-    private fun run(
-        sorted: List<LocalDate>,
-        isConsecutive: (LocalDate, LocalDate) -> Boolean,
-    ): Triple<Int, Int, LocalDate?> {
+    private fun run(sorted: List<LocalDate>, isConsecutive: (LocalDate, LocalDate) -> Boolean): Triple<Int, Int, LocalDate?> {
         var longest = 0
         var tail = 0
         var previous: LocalDate? = null

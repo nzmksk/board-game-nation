@@ -24,7 +24,7 @@ interface TagDao {
         SELECT t.* FROM tags t
         WHERE EXISTS (SELECT 1 FROM game_tags gt WHERE gt.tag_id = t.id)
         ORDER BY t.kind, t.name COLLATE NOCASE
-        """,
+        """
     )
     fun observeInUse(): Flow<List<TagEntity>>
 
@@ -40,7 +40,7 @@ interface TagDao {
         JOIN game_tags gt ON gt.tag_id = t.id
         WHERE gt.game_id = :gameId
         ORDER BY t.kind, t.name COLLATE NOCASE
-        """,
+        """
     )
     fun observeForGame(gameId: Long): Flow<List<TagEntity>>
 
@@ -50,7 +50,7 @@ interface TagDao {
         JOIN game_tags gt ON gt.tag_id = t.id
         WHERE gt.game_id = :gameId
         ORDER BY t.kind, t.name COLLATE NOCASE
-        """,
+        """
     )
     suspend fun getForGame(gameId: Long): List<TagEntity>
 

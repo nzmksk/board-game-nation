@@ -11,10 +11,10 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.boardgamenation.tracker.domain.model.CollectionLayout
 import com.boardgamenation.tracker.domain.model.ThemeMode
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -33,13 +33,11 @@ data class AppSettings(
     val backupsToKeep: Int = 8,
     val lastBackupAt: Long = 0,
     val lendingReminderDays: Int = 30,
-    val onboardingComplete: Boolean = false,
+    val onboardingComplete: Boolean = false
 )
 
 @Singleton
-class SettingsRepository @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-) {
+class SettingsRepository @Inject constructor(@param:ApplicationContext private val context: Context) {
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
         AppSettings(
@@ -60,7 +58,7 @@ class SettingsRepository @Inject constructor(
             backupsToKeep = prefs[Keys.BACKUPS_TO_KEEP] ?: 8,
             lastBackupAt = prefs[Keys.LAST_BACKUP]?.toLongOrNull() ?: 0L,
             lendingReminderDays = prefs[Keys.LENDING_DAYS] ?: 30,
-            onboardingComplete = prefs[Keys.ONBOARDING_DONE] ?: false,
+            onboardingComplete = prefs[Keys.ONBOARDING_DONE] ?: false
         )
     }
 
@@ -72,27 +70,23 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setBggUsername(name: String) = put { it[Keys.BGG_USERNAME] = name.trim() }
 
-    suspend fun setCollectionLayout(layout: CollectionLayout) =
-        put { it[Keys.GRID_LAYOUT] = layout == CollectionLayout.GRID }
+    suspend fun setCollectionLayout(layout: CollectionLayout) = put { it[Keys.GRID_LAYOUT] = layout == CollectionLayout.GRID }
 
     suspend fun setDefaultTimerPreset(id: Long) = put { it[Keys.DEFAULT_PRESET] = id.toInt() }
 
     suspend fun setKeepScreenOn(enabled: Boolean) = put { it[Keys.KEEP_SCREEN_ON] = enabled }
 
-    suspend fun setAchievementNotifications(enabled: Boolean) =
-        put { it[Keys.ACHIEVEMENT_NOTIFICATIONS] = enabled }
+    suspend fun setAchievementNotifications(enabled: Boolean) = put { it[Keys.ACHIEVEMENT_NOTIFICATIONS] = enabled }
 
     suspend fun setBackupDirectory(uri: String) = put { it[Keys.BACKUP_DIR] = uri }
 
     suspend fun setScheduledBackup(enabled: Boolean) = put { it[Keys.BACKUP_SCHEDULED] = enabled }
 
-    suspend fun setBackupsToKeep(count: Int) =
-        put { it[Keys.BACKUPS_TO_KEEP] = count.coerceIn(1, 52) }
+    suspend fun setBackupsToKeep(count: Int) = put { it[Keys.BACKUPS_TO_KEEP] = count.coerceIn(1, 52) }
 
     suspend fun setLastBackupAt(millis: Long) = put { it[Keys.LAST_BACKUP] = millis.toString() }
 
-    suspend fun setLendingReminderDays(days: Int) =
-        put { it[Keys.LENDING_DAYS] = days.coerceIn(1, 365) }
+    suspend fun setLendingReminderDays(days: Int) = put { it[Keys.LENDING_DAYS] = days.coerceIn(1, 365) }
 
     suspend fun setOnboardingComplete(done: Boolean) = put { it[Keys.ONBOARDING_DONE] = done }
 

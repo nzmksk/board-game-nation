@@ -13,10 +13,10 @@ import com.boardgamenation.tracker.core.time.AppClock
 import com.boardgamenation.tracker.data.prefs.SettingsRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.flow.first
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.first
 
 /**
  * The weekly backup.
@@ -31,7 +31,7 @@ class BackupWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val dbBackup: DbBackup,
     private val settingsRepository: SettingsRepository,
-    private val clock: AppClock,
+    private val clock: AppClock
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
@@ -65,16 +65,14 @@ class BackupWorker @AssistedInject constructor(
 
 /** Owns the WorkManager registration so the settings screen has one thing to call. */
 @Singleton
-class BackupScheduler @Inject constructor(
-    private val workManager: WorkManager,
-) {
+class BackupScheduler @Inject constructor(private val workManager: WorkManager) {
 
     fun enable() {
         val request = PeriodicWorkRequestBuilder<BackupWorker>(7, TimeUnit.DAYS)
             .setConstraints(
                 Constraints.Builder()
                     .setRequiresBatteryNotLow(true)
-                    .build(),
+                    .build()
             )
             .setBackoffCriteria(androidx.work.BackoffPolicy.EXPONENTIAL, 1, TimeUnit.HOURS)
             .build()
@@ -84,7 +82,7 @@ class BackupScheduler @Inject constructor(
         workManager.enqueueUniquePeriodicWork(
             BackupWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
-            request,
+            request
         )
     }
 

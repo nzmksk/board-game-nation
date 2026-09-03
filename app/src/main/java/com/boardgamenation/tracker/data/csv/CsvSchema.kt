@@ -27,7 +27,7 @@ object CsvSchema {
     val ALL_FILES = listOf(
         GAMES, TAGS, GAME_TAGS, PLAYERS, SESSIONS, SESSION_PLAYERS, SESSION_EXPANSIONS,
         RUBRICS, RUBRIC_CRITERIA, GAME_RATINGS, GAME_RATING_SCORES, ACHIEVEMENT_UNLOCKS,
-        MANIFEST,
+        MANIFEST
     )
 
     /**
@@ -36,7 +36,7 @@ object CsvSchema {
      */
     val IMPORT_ORDER = listOf(
         GAMES, TAGS, GAME_TAGS, PLAYERS, SESSIONS, SESSION_PLAYERS, SESSION_EXPANSIONS,
-        RUBRICS, RUBRIC_CRITERIA, GAME_RATINGS, GAME_RATING_SCORES, ACHIEVEMENT_UNLOCKS,
+        RUBRICS, RUBRIC_CRITERIA, GAME_RATINGS, GAME_RATING_SCORES, ACHIEVEMENT_UNLOCKS
     )
 
     val gameColumns = listOf(
@@ -45,7 +45,7 @@ object CsvSchema {
         "bgg_rating", "publisher", "thumbnail_path", "date_added", "price",
         "currency", "purchase_note", "status", "wishlist_priority", "in_possession",
         "lent_to", "lent_date", "is_expansion", "base_game_id", "scoring_mode",
-        "high_score_wins", "sudden_death_possible", "notes", "created_at", "updated_at",
+        "high_score_wins", "sudden_death_possible", "notes", "created_at", "updated_at"
     )
 
     val tagColumns = listOf("id", "name", "kind")
@@ -58,12 +58,12 @@ object CsvSchema {
         "id", "game_id", "played_on", "started_at", "ended_at", "duration_minutes",
         "player_count", "location", "is_cooperative", "coop_outcome", "mode",
         "end_condition", "end_reason", "is_incomplete", "is_teaching_game", "paused_ms",
-        "photo_uri", "notes", "created_at", "updated_at",
+        "photo_uri", "notes", "created_at", "updated_at"
     )
 
     val sessionPlayerColumns = listOf(
         "id", "session_id", "player_id", "score", "placement", "is_winner", "faction",
-        "turn_order", "team", "is_new_player", "turn_time_ms", "bank_time_remaining_ms",
+        "turn_order", "team", "is_new_player", "turn_time_ms", "bank_time_remaining_ms"
     )
 
     val sessionExpansionColumns = listOf("session_id", "game_id")
@@ -71,11 +71,22 @@ object CsvSchema {
     val rubricColumns = listOf("id", "name", "description", "archived")
 
     val rubricCriterionColumns = listOf(
-        "id", "rubric_id", "name", "description", "weight", "max_score", "sort_order",
+        "id",
+        "rubric_id",
+        "name",
+        "description",
+        "weight",
+        "max_score",
+        "sort_order"
     )
 
     val gameRatingColumns = listOf(
-        "id", "game_id", "rubric_id", "rated_on", "computed_score", "notes",
+        "id",
+        "game_id",
+        "rubric_id",
+        "rated_on",
+        "computed_score",
+        "notes"
     )
 
     val gameRatingScoreColumns = listOf("id", "game_rating_id", "criterion_id", "score")
@@ -85,7 +96,10 @@ object CsvSchema {
      * versions and installs; the numeric id is an implementation detail of one database.
      */
     val achievementUnlockColumns = listOf(
-        "achievement_code", "unlocked_at", "progress_value", "session_id",
+        "achievement_code",
+        "unlocked_at",
+        "progress_value",
+        "session_id"
     )
 
     val manifestColumns = listOf("key", "value")

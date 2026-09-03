@@ -10,12 +10,12 @@ import com.boardgamenation.tracker.data.repository.BggImportProgress
 import com.boardgamenation.tracker.data.repository.BggRepository
 import com.boardgamenation.tracker.data.repository.GameRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * Errors are carried as a message plus a retryable flag rather than as a thrown
@@ -36,14 +36,14 @@ data class BggUiState(
     val progress: Pair<Int, Int>? = null,
     val errorMessage: String? = null,
     val errorRetryable: Boolean = false,
-    val importedCount: Int? = null,
+    val importedCount: Int? = null
 )
 
 @HiltViewModel
 class BggViewModel @Inject constructor(
     private val bggRepository: BggRepository,
     private val gameRepository: GameRepository,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BggUiState(configured = bggRepository.isConfigured))
@@ -52,7 +52,7 @@ class BggViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _state.value = _state.value.copy(
-                username = settingsRepository.settings.first().bggUsername,
+                username = settingsRepository.settings.first().bggUsername
             )
         }
     }
@@ -85,11 +85,13 @@ class BggViewModel @Inject constructor(
             val items = bggRepository.fetchCollection(username) { progress ->
                 when (progress) {
                     is BggImportProgress.Queued -> _state.value = _state.value.copy(
-                        queuedRetrySeconds = progress.retryInSeconds,
+                        queuedRetrySeconds = progress.retryInSeconds
                     )
+
                     is BggImportProgress.Fetching -> _state.value = _state.value.copy(
-                        queuedRetrySeconds = null,
+                        queuedRetrySeconds = null
                     )
+
                     else -> Unit
                 }
             }
@@ -102,7 +104,7 @@ class BggViewModel @Inject constructor(
                 // Anything not already in the collection starts ticked, since importing
                 // the new ones is what the screen is for.
                 selected = items.map { it.bggId }.toSet() - owned,
-                queuedRetrySeconds = null,
+                queuedRetrySeconds = null
             )
         }
     }
@@ -110,13 +112,13 @@ class BggViewModel @Inject constructor(
     fun toggleSelection(bggId: Long) {
         val current = _state.value.selected
         _state.value = _state.value.copy(
-            selected = if (bggId in current) current - bggId else current + bggId,
+            selected = if (bggId in current) current - bggId else current + bggId
         )
     }
 
     fun selectAll() {
         _state.value = _state.value.copy(
-            selected = _state.value.collectionItems.map { it.bggId }.toSet(),
+            selected = _state.value.collectionItems.map { it.bggId }.toSet()
         )
     }
 
@@ -156,19 +158,21 @@ class BggViewModel @Inject constructor(
     private fun run(block: suspend () -> Unit) {
         viewModelScope.launch {
             _state.value = _state.value.copy(
-                isBusy = true, errorMessage = null, errorRetryable = false,
+                isBusy = true,
+                errorMessage = null,
+                errorRetryable = false
             )
             try {
                 block()
             } catch (e: BggError) {
                 _state.value = _state.value.copy(
                     errorMessage = e.message,
-                    errorRetryable = e.retryable,
+                    errorRetryable = e.retryable
                 )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     errorMessage = e.message ?: e::class.simpleName,
-                    errorRetryable = true,
+                    errorRetryable = true
                 )
             } finally {
                 _state.value = _state.value.copy(isBusy = false, queuedRetrySeconds = null)

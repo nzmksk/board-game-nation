@@ -45,7 +45,7 @@ object DatabaseTestFixture {
         weight: Double? = 2.5,
         isExpansion: Boolean = false,
         baseGameId: Long? = null,
-        dateAdded: String = "2026-01-01",
+        dateAdded: String = "2026-01-01"
     ) = GameEntity(
         id = id,
         bggId = bggId,
@@ -61,11 +61,10 @@ object DatabaseTestFixture {
         isExpansion = isExpansion,
         baseGameId = baseGameId,
         createdAt = NOW,
-        updatedAt = NOW,
+        updatedAt = NOW
     )
 
-    fun player(name: String, id: Long = 0, isSelf: Boolean = false) =
-        PlayerEntity(id = id, name = name, isSelf = isSelf)
+    fun player(name: String, id: Long = 0, isSelf: Boolean = false) = PlayerEntity(id = id, name = name, isSelf = isSelf)
 
     fun session(
         gameId: Long,
@@ -76,7 +75,7 @@ object DatabaseTestFixture {
         isIncomplete: Boolean = false,
         isTeaching: Boolean = false,
         isDraft: Boolean = false,
-        isCooperative: Boolean = false,
+        isCooperative: Boolean = false
     ) = SessionEntity(
         id = id,
         gameId = gameId,
@@ -88,7 +87,7 @@ object DatabaseTestFixture {
         isDraft = isDraft,
         isCooperative = isCooperative,
         createdAt = NOW,
-        updatedAt = NOW,
+        updatedAt = NOW
     )
 
     fun participant(
@@ -97,13 +96,13 @@ object DatabaseTestFixture {
         score: Double? = null,
         isWinner: Boolean = false,
         placement: Int? = null,
-        turnOrder: Int? = null,
+        turnOrder: Int? = null
     ) = SessionPlayerEntity(
         sessionId = sessionId,
         playerId = playerId,
         score = score,
         isWinner = isWinner,
         placement = placement,
-        turnOrder = turnOrder,
+        turnOrder = turnOrder
     )
 }

@@ -16,7 +16,7 @@ data class RubricEntity(
     @ColumnInfo(name = "id") val id: Long = 0,
     @ColumnInfo(name = "name") val name: String,
     @ColumnInfo(name = "description") val description: String? = null,
-    @ColumnInfo(name = "archived", defaultValue = "0") val archived: Boolean = false,
+    @ColumnInfo(name = "archived", defaultValue = "0") val archived: Boolean = false
 )
 
 @Entity(
@@ -26,10 +26,10 @@ data class RubricEntity(
             entity = RubricEntity::class,
             parentColumns = ["id"],
             childColumns = ["rubric_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
-    indices = [Index(value = ["rubric_id"])],
+    indices = [Index(value = ["rubric_id"])]
 )
 data class RubricCriterionEntity(
     @PrimaryKey(autoGenerate = true)
@@ -39,7 +39,7 @@ data class RubricCriterionEntity(
     @ColumnInfo(name = "description") val description: String? = null,
     @ColumnInfo(name = "weight", defaultValue = "1.0") val weight: Double = 1.0,
     @ColumnInfo(name = "max_score", defaultValue = "10.0") val maxScore: Double = 10.0,
-    @ColumnInfo(name = "sort_order", defaultValue = "0") val sortOrder: Int = 0,
+    @ColumnInfo(name = "sort_order", defaultValue = "0") val sortOrder: Int = 0
 )
 
 /**
@@ -54,16 +54,16 @@ data class RubricCriterionEntity(
             entity = GameEntity::class,
             parentColumns = ["id"],
             childColumns = ["game_id"],
-            onDelete = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = RubricEntity::class,
             parentColumns = ["id"],
             childColumns = ["rubric_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
-    indices = [Index(value = ["game_id"]), Index(value = ["rubric_id"])],
+    indices = [Index(value = ["game_id"]), Index(value = ["rubric_id"])]
 )
 data class GameRatingEntity(
     @PrimaryKey(autoGenerate = true)
@@ -76,7 +76,7 @@ data class GameRatingEntity(
 
     /** Normalised to a 0-10 scale and stored so list sorting needs no aggregate join. */
     @ColumnInfo(name = "computed_score") val computedScore: Double,
-    @ColumnInfo(name = "notes") val notes: String? = null,
+    @ColumnInfo(name = "notes") val notes: String? = null
 )
 
 @Entity(
@@ -86,24 +86,24 @@ data class GameRatingEntity(
             entity = GameRatingEntity::class,
             parentColumns = ["id"],
             childColumns = ["game_rating_id"],
-            onDelete = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = RubricCriterionEntity::class,
             parentColumns = ["id"],
             childColumns = ["criterion_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
     indices = [
         Index(value = ["game_rating_id"]),
-        Index(value = ["criterion_id"]),
-    ],
+        Index(value = ["criterion_id"])
+    ]
 )
 data class GameRatingScoreEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id") val id: Long = 0,
     @ColumnInfo(name = "game_rating_id") val gameRatingId: Long,
     @ColumnInfo(name = "criterion_id") val criterionId: Long,
-    @ColumnInfo(name = "score") val score: Double,
+    @ColumnInfo(name = "score") val score: Double
 )

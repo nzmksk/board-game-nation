@@ -14,8 +14,8 @@ import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.usecase.SaveSessionUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -58,7 +58,7 @@ class QuickLogViewModelTest {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         db = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            AppDatabase::class.java,
+            AppDatabase::class.java
         )
             .allowMainThreadQueries()
             .setQueryExecutor { it.run() }
@@ -71,7 +71,7 @@ class QuickLogViewModelTest {
             sessionDao = db.sessionDao(),
             gameDao = db.gameDao(),
             playerDao = db.playerDao(),
-            clock = clock,
+            clock = clock
         )
         val achievements = AchievementRepository(
             context = ApplicationProvider.getApplicationContext(),
@@ -80,19 +80,19 @@ class QuickLogViewModelTest {
             evaluator = AchievementEvaluator(
                 achievementDao = db.achievementDao(),
                 statsDao = db.achievementStatsDao(),
-                clock = clock,
+                clock = clock
             ),
-            io = dispatcher,
+            io = dispatcher
         )
 
         scoredGame = db.gameDao().insert(
             DatabaseTestFixture.game("7 Wonders Duel").copy(
                 scoringMode = ScoringMode.RANKED_SCORES,
-                highScoreWins = true,
-            ),
+                highScoreWins = true
+            )
         )
         coopGame = db.gameDao().insert(
-            DatabaseTestFixture.game("Pandemic").copy(scoringMode = ScoringMode.COOPERATIVE),
+            DatabaseTestFixture.game("Pandemic").copy(scoringMode = ScoringMode.COOPERATIVE)
         )
         me = db.playerDao().insert(DatabaseTestFixture.player("Hafiz", isSelf = true))
         friend = db.playerDao().insert(DatabaseTestFixture.player("Aisyah"))
@@ -105,9 +105,9 @@ class QuickLogViewModelTest {
                 gameDao = db.gameDao(),
                 tagDao = db.tagDao(),
                 sessionDao = db.sessionDao(),
-                clock = clock,
+                clock = clock
             ),
-            clock = clock,
+            clock = clock
         )
     }
 
@@ -129,7 +129,7 @@ class QuickLogViewModelTest {
         assertEquals(
             "a quick log must not rewrite how the game is scored",
             ScoringMode.RANKED_SCORES,
-            db.gameDao().getGame(scoredGame)!!.scoringMode,
+            db.gameDao().getGame(scoredGame)!!.scoringMode
         )
     }
 
@@ -219,17 +219,16 @@ class QuickLogViewModelTest {
      * setup is one tap rather than retyping it inside a bottom sheet.
      */
     @Test
-    fun `configurations from earlier plays are offered when the game is picked`() =
-        runBlocking {
-            viewModel.selectGame(scoredGame)
-            viewModel.setMode("Pantheon")
-            viewModel.toggleWinner(me)
-            viewModel.save()
+    fun `configurations from earlier plays are offered when the game is picked`() = runBlocking {
+        viewModel.selectGame(scoredGame)
+        viewModel.setMode("Pantheon")
+        viewModel.toggleWinner(me)
+        viewModel.save()
 
-            viewModel.selectGame(scoredGame)
+        viewModel.selectGame(scoredGame)
 
-            assertEquals(listOf("Pantheon"), viewModel.state.value.previousModes)
-        }
+        assertEquals(listOf("Pantheon"), viewModel.state.value.previousModes)
+    }
 
     /** Picking a different game must not leave the previous game's chips on screen. */
     @Test

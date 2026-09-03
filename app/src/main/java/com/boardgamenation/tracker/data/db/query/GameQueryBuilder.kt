@@ -127,6 +127,7 @@ object GameQueryBuilder {
                     append('\\')
                     append(c)
                 }
+
                 else -> append(c)
             }
         }

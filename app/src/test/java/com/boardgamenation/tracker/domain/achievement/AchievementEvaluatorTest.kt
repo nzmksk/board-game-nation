@@ -29,7 +29,7 @@ class AchievementEvaluatorTest {
         evaluator = AchievementEvaluator(
             achievementDao = db.achievementDao(),
             statsDao = db.achievementStatsDao(),
-            clock = DatabaseTestFixture.clock,
+            clock = DatabaseTestFixture.clock
         )
     }
 
@@ -47,9 +47,9 @@ class AchievementEvaluatorTest {
                     category = "Test",
                     targetValue = rule.target.takeIf { it > 0 },
                     isHidden = hidden,
-                    ruleJson = json.encodeToString(AchievementRule.serializer(), rule),
-                ),
-            ),
+                    ruleJson = json.encodeToString(AchievementRule.serializer(), rule)
+                )
+            )
         )
     }
 
@@ -58,8 +58,8 @@ class AchievementEvaluatorTest {
             db.sessionDao().insertSession(
                 DatabaseTestFixture.session(
                     gameId = gameId,
-                    playedOn = "2026-02-%02d".format(startDay + index),
-                ),
+                    playedOn = "2026-02-%02d".format(startDay + index)
+                )
             )
         }
     }
@@ -148,16 +148,16 @@ class AchievementEvaluatorTest {
         val gameId = db.gameDao().insert(DatabaseTestFixture.game("Party game"))
         define(
             "six_players",
-            AchievementRule(RuleType.ATTRIBUTE, attribute = Attribute.SESSION_PLAYER_COUNT, target = 6.0),
+            AchievementRule(RuleType.ATTRIBUTE, attribute = Attribute.SESSION_PLAYER_COUNT, target = 6.0)
         )
 
         db.sessionDao().insertSession(
-            DatabaseTestFixture.session(gameId, "2026-02-01", playerCount = 5),
+            DatabaseTestFixture.session(gameId, "2026-02-01", playerCount = 5)
         )
         assertTrue(evaluator.evaluate().isEmpty())
 
         db.sessionDao().insertSession(
-            DatabaseTestFixture.session(gameId, "2026-02-02", playerCount = 7),
+            DatabaseTestFixture.session(gameId, "2026-02-02", playerCount = 7)
         )
         assertEquals(listOf("six_players"), evaluator.evaluate().map { it.code })
     }
@@ -170,12 +170,12 @@ class AchievementEvaluatorTest {
             AchievementRule(
                 RuleType.ATTRIBUTE,
                 attribute = Attribute.SESSION_DURATION_HOURS,
-                target = 3.0,
-            ),
+                target = 3.0
+            )
         )
 
         db.sessionDao().insertSession(
-            DatabaseTestFixture.session(gameId, "2026-02-01", durationMinutes = 200),
+            DatabaseTestFixture.session(gameId, "2026-02-01", durationMinutes = 200)
         )
         assertEquals(listOf("three_hours"), evaluator.evaluate().map { it.code })
     }
@@ -189,8 +189,8 @@ class AchievementEvaluatorTest {
                 RuleType.COLLECTION,
                 scope = Scope.COST_PER_PLAY_UNDER,
                 target = 20.0,
-                comparison = Comparison.AT_MOST,
-            ),
+                comparison = Comparison.AT_MOST
+            )
         )
 
         logPlays(4, gameId)
@@ -210,8 +210,8 @@ class AchievementEvaluatorTest {
                 RuleType.COLLECTION,
                 scope = Scope.COST_PER_PLAY_UNDER,
                 target = 20.0,
-                comparison = Comparison.AT_MOST,
-            ),
+                comparison = Comparison.AT_MOST
+            )
         )
         assertTrue(evaluator.evaluate().isEmpty())
     }
@@ -238,10 +238,10 @@ class AchievementEvaluatorTest {
 
         repeat(3) { index ->
             val sessionId = db.sessionDao().insertSession(
-                DatabaseTestFixture.session(gameId, "2026-02-0${index + 1}"),
+                DatabaseTestFixture.session(gameId, "2026-02-0${index + 1}")
             )
             db.sessionDao().insertParticipants(
-                listOf(DatabaseTestFixture.participant(sessionId, me, isWinner = true)),
+                listOf(DatabaseTestFixture.participant(sessionId, me, isWinner = true))
             )
         }
         // Three from three is a perfect record, but not yet a meaningful one.
@@ -249,7 +249,7 @@ class AchievementEvaluatorTest {
 
         val fourth = db.sessionDao().insertSession(DatabaseTestFixture.session(gameId, "2026-02-04"))
         db.sessionDao().insertParticipants(
-            listOf(DatabaseTestFixture.participant(fourth, me, isWinner = true)),
+            listOf(DatabaseTestFixture.participant(fourth, me, isWinner = true))
         )
         assertEquals(listOf("win_rate"), evaluator.evaluate().map { it.code })
     }

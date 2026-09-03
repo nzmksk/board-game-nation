@@ -2,15 +2,18 @@ package com.boardgamenation.tracker.domain.model
 
 /** Where a game sits in the collection lifecycle. Stored as TEXT. */
 enum class GameStatus {
-    OWNED, WISHLIST, PREORDERED, SOLD, LENT_OUT;
+    OWNED,
+    WISHLIST,
+    PREORDERED,
+    SOLD,
+    LENT_OUT;
 
     /** Statuses that count toward collection totals and monetary value. */
     val countsTowardCollection: Boolean
         get() = this == OWNED || this == LENT_OUT
 
     companion object {
-        fun fromStorage(value: String?): GameStatus =
-            entries.firstOrNull { it.name == value } ?: OWNED
+        fun fromStorage(value: String?): GameStatus = entries.firstOrNull { it.name == value } ?: OWNED
     }
 }
 
@@ -19,21 +22,24 @@ enum class GameStatus {
  * open-ended lists never force a schema migration.
  */
 enum class TagKind {
-    MECHANIC, CATEGORY, DESIGNER, CUSTOM;
+    MECHANIC,
+    CATEGORY,
+    DESIGNER,
+    CUSTOM;
 
     companion object {
-        fun fromStorage(value: String?): TagKind =
-            entries.firstOrNull { it.name == value } ?: CUSTOM
+        fun fromStorage(value: String?): TagKind = entries.firstOrNull { it.name == value } ?: CUSTOM
     }
 }
 
 /** Outcome of a cooperative game, where the table wins or loses as one. */
 enum class CoopOutcome {
-    WIN, LOSS, NA;
+    WIN,
+    LOSS,
+    NA;
 
     companion object {
-        fun fromStorage(value: String?): CoopOutcome? =
-            value?.let { v -> entries.firstOrNull { it.name == v } }
+        fun fromStorage(value: String?): CoopOutcome? = value?.let { v -> entries.firstOrNull { it.name == v } }
     }
 }
 
@@ -51,8 +57,7 @@ enum class SessionEndCondition {
     SUDDEN_DEATH;
 
     companion object {
-        fun fromStorage(value: String?): SessionEndCondition? =
-            value?.let { v -> entries.firstOrNull { it.name == v } }
+        fun fromStorage(value: String?): SessionEndCondition? = value?.let { v -> entries.firstOrNull { it.name == v } }
     }
 }
 
@@ -102,8 +107,7 @@ enum class ScoringMode {
     val recordsSides: Boolean get() = this == TEAM_BASED
 
     companion object {
-        fun fromStorage(value: String?): ScoringMode =
-            entries.firstOrNull { it.name == value } ?: RANKED_SCORES
+        fun fromStorage(value: String?): ScoringMode = entries.firstOrNull { it.name == value } ?: RANKED_SCORES
     }
 }
 
@@ -123,8 +127,7 @@ enum class TimerMode {
     COUNT_UP;
 
     companion object {
-        fun fromStorage(value: String?): TimerMode =
-            entries.firstOrNull { it.name == value } ?: TURN_BASED
+        fun fromStorage(value: String?): TimerMode = entries.firstOrNull { it.name == value } ?: TURN_BASED
     }
 }
 
@@ -137,28 +140,30 @@ enum class BankExhaustedBehaviour {
     AUTO_PASS;
 
     companion object {
-        fun fromStorage(value: String?): BankExhaustedBehaviour =
-            entries.firstOrNull { it.name == value } ?: FLAG_AND_OVERTIME
+        fun fromStorage(value: String?): BankExhaustedBehaviour = entries.firstOrNull { it.name == value } ?: FLAG_AND_OVERTIME
     }
 }
 
 /** Lifecycle of the turn timer. Persisted so a process kill is recoverable. */
 enum class TimerRunState {
-    IDLE, RUNNING, PAUSED, STOPPED;
+    IDLE,
+    RUNNING,
+    PAUSED,
+    STOPPED;
 
     companion object {
-        fun fromStorage(value: String?): TimerRunState =
-            entries.firstOrNull { it.name == value } ?: IDLE
+        fun fromStorage(value: String?): TimerRunState = entries.firstOrNull { it.name == value } ?: IDLE
     }
 }
 
 /** Which clock the active player is currently spending. */
 enum class ActiveClock {
-    TURN, BANK, OVERTIME;
+    TURN,
+    BANK,
+    OVERTIME;
 
     companion object {
-        fun fromStorage(value: String?): ActiveClock =
-            entries.firstOrNull { it.name == value } ?: TURN
+        fun fromStorage(value: String?): ActiveClock = entries.firstOrNull { it.name == value } ?: TURN
     }
 }
 
@@ -166,9 +171,12 @@ enum class ActiveClock {
 enum class ImportMode { MERGE, REPLACE }
 
 /** Theme preference. */
-enum class ThemeMode { LIGHT, DARK, SYSTEM;
+enum class ThemeMode {
+    LIGHT,
+    DARK,
+    SYSTEM;
+
     companion object {
-        fun fromStorage(value: String?): ThemeMode =
-            entries.firstOrNull { it.name == value } ?: SYSTEM
+        fun fromStorage(value: String?): ThemeMode = entries.firstOrNull { it.name == value } ?: SYSTEM
     }
 }
