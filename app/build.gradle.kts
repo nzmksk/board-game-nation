@@ -124,6 +124,24 @@ android {
         buildConfig = true
     }
 
+    lint {
+        // Errors fail the build; the 111 warnings do not, so adopting lint does not mean
+        // stopping everything to clear them first.
+        abortOnError = true
+        warningsAsErrors = false
+        // The errors lint finds today predate it being run at all. They are recorded in
+        // lint-baseline.xml so CI enforces "no new errors" from here rather than blocking
+        // on a backlog; delete entries from that file as they are fixed.
+        baseline = file("lint-baseline.xml")
+        // PropertyEscape fires on local.properties, which is git-ignored, machine-specific
+        // and never read by anything that cares about the escaping.
+        disable += "PropertyEscape"
+        // A reviewer reads the HTML; the SARIF is what CI turns into annotations.
+        htmlReport = true
+        sarifReport = true
+        xmlReport = false
+    }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
