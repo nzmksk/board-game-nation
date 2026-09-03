@@ -1,16 +1,19 @@
 package com.boardgamenation.tracker.timer
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.boardgamenation.tracker.MainActivity
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.core.time.DurationFormat
@@ -97,8 +100,18 @@ class TimerService : Service() {
 
     private fun NotificationManagerCompat.notifyIfPermitted(id: Int, notification: android.app.Notification) {
         // POST_NOTIFICATIONS may be denied on API 33+. The foreground notification itself
-        // is still shown by the system; the update is simply skipped.
-        runCatching { notify(id, notification) }
+        // is still shown by the system; the update is simply skipped. The permission is
+        // checked rather than the SecurityException caught, so that lint can see the call
+        // is guarded and so that a denied permission costs nothing to detect.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                this@TimerService,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        notify(id, notification)
     }
 
     private fun buildNotification(projection: TimerProjection?): android.app.Notification {
@@ -210,7 +223,6 @@ class TimerService : Service() {
     }
 
     private fun createChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.timer_channel_name),

@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.boardgamenation.tracker.R
@@ -55,21 +56,32 @@ fun FirstPlayerAdvantage(record: FirstPlayerRecord, modifier: Modifier = Modifie
             scaleMax = 100.0
         )
         Spacer(Modifier.height(8.dp))
+        // The run of plays is a count of its own, so it is worded first and dropped into
+        // the sentence: one plural cannot inflect two numbers.
+        val plays = pluralStringResource(R.plurals.stats_plays_value, record.plays, record.plays)
         Text(
             text = when {
-                edge > 0 -> stringResource(
-                    R.string.stats_first_player_edge_ahead,
+                edge > 0 -> pluralStringResource(
+                    R.plurals.stats_first_player_edge_ahead,
                     edge,
-                    record.plays
+                    edge,
+                    plays
                 )
 
-                edge < 0 -> stringResource(
-                    R.string.stats_first_player_edge_behind,
-                    edge,
-                    record.plays
+                // The sign is in the wording, so the count that picks the plural form and
+                // the number in it are both the size of the gap rather than -edge.
+                edge < 0 -> pluralStringResource(
+                    R.plurals.stats_first_player_edge_behind,
+                    -edge,
+                    -edge,
+                    plays
                 )
 
-                else -> stringResource(R.string.stats_first_player_edge_level, record.plays)
+                else -> pluralStringResource(
+                    R.plurals.stats_first_player_edge_level,
+                    record.plays,
+                    record.plays
+                )
             },
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant

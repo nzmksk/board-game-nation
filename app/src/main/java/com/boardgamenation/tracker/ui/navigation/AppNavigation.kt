@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -62,17 +63,20 @@ fun AppNavigation(
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Resolved at composition: the snackbar fires from a coroutine, which has no
-    // composable scope to read resources from.
-    val unlockedOne = stringResource(R.string.achievements_unlocked_toast, "%s")
-    val unlockedMany = stringResource(R.string.achievements_unlocked_multiple, 0)
+    // Held rather than read through stringResource: the snackbar fires from a coroutine,
+    // which has no composable scope, and the plural form is not known until it does.
+    val resources = LocalResources.current
 
     fun announceUnlocks(unlocked: List<String>) {
         if (unlocked.isEmpty() || !announceAchievements) return
         val text = if (unlocked.size == 1) {
-            unlockedOne.replace("%s", unlocked.first())
+            resources.getString(R.string.achievements_unlocked_toast, unlocked.first())
         } else {
-            unlockedMany.replace("0", unlocked.size.toString())
+            resources.getQuantityString(
+                R.plurals.achievements_unlocked_multiple,
+                unlocked.size,
+                unlocked.size
+            )
         }
         // A snackbar, never a modal: the play is already saved and nothing should
         // interrupt logging the next one.

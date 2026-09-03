@@ -58,9 +58,9 @@ import java.time.ZoneOffset
 @Composable
 fun EmptyState(
     title: String,
+    modifier: Modifier = Modifier,
     body: String? = null,
     icon: ImageVector? = null,
-    modifier: Modifier = Modifier,
     action: (@Composable () -> Unit)? = null
 ) {
     Column(
@@ -294,7 +294,7 @@ fun LabelledProgress(label: String, fraction: Float?, modifier: Modifier = Modif
  * flash an "empty" state that is about to be contradicted.
  */
 @Composable
-fun LoadingRows(count: Int = 5, modifier: Modifier = Modifier) {
+fun LoadingRows(modifier: Modifier = Modifier, count: Int = 5) {
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         repeat(count) {
             Box(

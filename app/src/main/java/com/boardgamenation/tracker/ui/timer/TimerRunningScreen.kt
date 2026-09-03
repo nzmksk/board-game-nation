@@ -48,8 +48,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -101,7 +102,10 @@ fun TimerRunningScreen(
         return
     }
 
-    val landscape = LocalConfiguration.current.screenWidthDp > LocalConfiguration.current.screenHeightDp
+    // The window rather than the configuration: Configuration.screenWidthDp is the whole
+    // display, which is the wrong answer in split screen or a freeform window.
+    val containerSize = LocalWindowInfo.current.containerSize
+    val landscape = containerSize.width > containerSize.height
 
     if (current.state.isCountUp) {
         CountUpBoard(
@@ -477,7 +481,11 @@ private fun PlayerZone(
                 color = onBackground
             )
             Text(
-                text = stringResource(R.string.timer_turns_taken, seat.turnsTaken),
+                text = pluralStringResource(
+                    R.plurals.timer_turns_taken,
+                    seat.turnsTaken,
+                    seat.turnsTaken
+                ),
                 style = MaterialTheme.typography.labelSmall,
                 color = onBackground
             )

@@ -44,9 +44,9 @@ import com.boardgamenation.tracker.data.db.entity.RubricEntity
 import com.boardgamenation.tracker.data.repository.AchievementRepository
 import com.boardgamenation.tracker.data.repository.GameRepository
 import com.boardgamenation.tracker.data.repository.RubricRepository
+import com.boardgamenation.tracker.ui.components.currentLocale
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -207,7 +207,7 @@ fun RateGameScreen(onBack: () -> Unit, viewModel: RateGameViewModel = hiltViewMo
                     Text(
                         text = stringResource(
                             R.string.rate_computed,
-                            String.format(Locale.getDefault(), "%.1f", state.computed)
+                            String.format(currentLocale(), "%.1f", state.computed)
                         ),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -228,7 +228,7 @@ fun RateGameScreen(onBack: () -> Unit, viewModel: RateGameViewModel = hiltViewMo
                         )
                         Text(
                             text = String.format(
-                                Locale.getDefault(),
+                                currentLocale(),
                                 "%.1f / %.0f",
                                 score,
                                 criterion.maxScore
@@ -251,7 +251,7 @@ fun RateGameScreen(onBack: () -> Unit, viewModel: RateGameViewModel = hiltViewMo
                     )
                     Text(
                         text = String.format(
-                            Locale.getDefault(),
+                            currentLocale(),
                             "%s ×%.1f",
                             stringResource(R.string.rubrics_criterion_weight),
                             criterion.weight

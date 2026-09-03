@@ -125,17 +125,18 @@ android {
     }
 
     lint {
-        // Errors fail the build; the 111 warnings do not, so adopting lint does not mean
-        // stopping everything to clear them first.
+        // The backlog lint opened with is cleared, so there is no baseline to hide it any
+        // more and a warning is now worth failing on: nothing is reported that somebody is
+        // not expected to fix in the change that introduced it.
         abortOnError = true
-        warningsAsErrors = false
-        // The errors lint finds today predate it being run at all. They are recorded in
-        // lint-baseline.xml so CI enforces "no new errors" from here rather than blocking
-        // on a backlog; delete entries from that file as they are fixed.
-        baseline = file("lint-baseline.xml")
+        warningsAsErrors = true
         // PropertyEscape fires on local.properties, which is git-ignored, machine-specific
         // and never read by anything that cares about the escaping.
         disable += "PropertyEscape"
+        // Dependency freshness is Dependabot's job, and it opens a pull request for each
+        // bump. Left on, these two report every dependency the week it falls behind, which
+        // with warningsAsErrors would fail unrelated builds until somebody merges that.
+        disable += setOf("NewerVersionAvailable", "GradleDependency")
         // A reviewer reads the HTML; the SARIF is what CI turns into annotations.
         htmlReport = true
         sarifReport = true

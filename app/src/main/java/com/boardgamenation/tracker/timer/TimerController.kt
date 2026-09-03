@@ -2,7 +2,6 @@ package com.boardgamenation.tracker.timer
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import com.boardgamenation.tracker.core.time.AppClock
 import com.boardgamenation.tracker.core.time.ElapsedTimeSource
 import com.boardgamenation.tracker.data.db.entity.PlayerEntity
@@ -339,11 +338,7 @@ class TimerController @Inject constructor(
 
     private fun startForegroundService() {
         val intent = Intent(context, TimerService::class.java).setAction(TimerService.ACTION_START)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
-        }
+        context.startForegroundService(intent)
     }
 
     private fun stopForegroundService() {

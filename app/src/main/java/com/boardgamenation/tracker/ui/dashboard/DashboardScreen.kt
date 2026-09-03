@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -212,8 +213,9 @@ fun DashboardScreen(
                     StatTile(
                         label = stringResource(R.string.dashboard_streak_title),
                         value = state.streak.current.toString(),
-                        supporting = stringResource(
-                            R.string.dashboard_streak_longest,
+                        supporting = pluralStringResource(
+                            R.plurals.dashboard_streak_longest,
+                            state.streak.longest,
                             state.streak.longest
                         ),
                         modifier = Modifier.weight(1.2f)
@@ -243,12 +245,9 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth().padding(16.dp)
                     ) {
                         Text(
-                            text = stringResource(
-                                if (state.overdueLoans == 1) {
-                                    R.string.dashboard_overdue_loans
-                                } else {
-                                    R.string.dashboard_overdue_loans_plural
-                                },
+                            text = pluralStringResource(
+                                R.plurals.dashboard_overdue_loans,
+                                state.overdueLoans,
                                 state.overdueLoans,
                                 state.lendingThresholdDays
                             ),

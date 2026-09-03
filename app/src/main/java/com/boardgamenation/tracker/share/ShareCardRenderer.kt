@@ -12,6 +12,8 @@ import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withTranslation
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.core.time.DurationFormat
 import com.boardgamenation.tracker.domain.share.ShareCard
@@ -52,7 +54,7 @@ import kotlin.math.min
 class ShareCardRenderer @Inject constructor(@param:ApplicationContext private val context: Context) {
 
     fun render(card: ShareCard): Bitmap {
-        val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(WIDTH, HEIGHT)
         val canvas = Canvas(bitmap)
 
         drawBackground(canvas)
@@ -109,7 +111,7 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
         val figures = listOf(
             DurationFormat.minutes(card.durationMinutes),
             context.resources.getQuantityString(
-                R.plurals.share_card_players,
+                R.plurals.unit_players,
                 card.playerCount,
                 card.playerCount
             )
@@ -225,7 +227,11 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
             val paint = text(size = 38f, color = MUTED)
             val y = start + visible * (height + ROW_GAP)
             canvas.drawText(
-                context.getString(R.string.share_card_more_players, remaining),
+                context.resources.getQuantityString(
+                    R.plurals.share_card_more_players,
+                    remaining,
+                    remaining
+                ),
                 MARGIN + 32f,
                 baselineIn(y, y + OVERFLOW_HEIGHT, paint),
                 paint
@@ -464,13 +470,6 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
         val layout = layout(value, paint, maxLines)
         canvas.withTranslation(x, top) { layout.draw(this) }
         return layout.height.toFloat()
-    }
-
-    private inline fun Canvas.withTranslation(x: Float, y: Float, block: Canvas.() -> Unit) {
-        val saved = save()
-        translate(x, y)
-        block()
-        restoreToCount(saved)
     }
 
     companion object {

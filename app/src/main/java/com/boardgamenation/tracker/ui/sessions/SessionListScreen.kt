@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -220,7 +221,11 @@ fun SessionRow(session: SessionListItem, showGameTitle: Boolean, onClick: () -> 
                 }
                 Text(
                     text = "${session.playedOn} · ${DurationFormat.minutes(session.durationMinutes)}" +
-                        " · ${stringResource(R.string.session_players_count, session.playerCount)}",
+                        " · ${pluralStringResource(
+                            R.plurals.unit_players,
+                            session.playerCount,
+                            session.playerCount
+                        )}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -84,7 +85,12 @@ fun AchievementsScreen(onBack: () -> Unit, viewModel: AchievementsViewModel = hi
     ) { padding ->
         Column(Modifier.padding(padding)) {
             Text(
-                text = stringResource(R.string.achievements_progress, state.unlocked, state.total),
+                text = pluralStringResource(
+                    R.plurals.achievements_progress,
+                    state.total,
+                    state.unlocked,
+                    state.total
+                ),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(16.dp)
             )

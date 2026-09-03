@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,10 +44,10 @@ import com.boardgamenation.tracker.ui.components.PlayerDot
 import com.boardgamenation.tracker.ui.components.SectionHeader
 import com.boardgamenation.tracker.ui.components.StatTile
 import com.boardgamenation.tracker.ui.components.VerticalBarChart
+import com.boardgamenation.tracker.ui.components.currentLocale
 import com.boardgamenation.tracker.ui.theme.LocalChartColors
 import java.time.DayOfWeek
 import java.time.format.TextStyle
-import java.util.Locale
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +89,7 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
 @Composable
 private fun CollectionTab(viewModel: StatsViewModel) {
     val stats by viewModel.collection.collectAsStateWithLifecycle()
+    val locale = currentLocale()
     LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
             Row(
@@ -106,7 +108,7 @@ private fun CollectionTab(viewModel: StatsViewModel) {
                 )
                 StatTile(
                     label = stringResource(R.string.stats_collection_value),
-                    value = String.format(Locale.getDefault(), "%,.0f", stats.value),
+                    value = String.format(locale, "%,.0f", stats.value),
                     supporting = stats.currency,
                     modifier = Modifier.weight(1.2f)
                 )
@@ -136,8 +138,9 @@ private fun CollectionTab(viewModel: StatsViewModel) {
                 } else {
                     Column {
                         Text(
-                            text = stringResource(
-                                R.string.stats_shelf_of_shame_body,
+                            text = pluralStringResource(
+                                R.plurals.stats_shelf_of_shame_body,
+                                stats.unplayed.size,
                                 stats.unplayed.size
                             ),
                             style = MaterialTheme.typography.bodyMedium
@@ -147,8 +150,9 @@ private fun CollectionTab(viewModel: StatsViewModel) {
                         // stings and therefore the part worth showing.
                         stats.unplayed.take(10).forEach { row ->
                             Text(
-                                text = stringResource(
-                                    R.string.stats_unplayed_row,
+                                text = pluralStringResource(
+                                    R.plurals.stats_unplayed_row,
+                                    row.value.roundToInt(),
                                     row.label,
                                     row.value.roundToInt()
                                 ),
@@ -177,6 +181,7 @@ private fun CollectionTab(viewModel: StatsViewModel) {
 @Composable
 private fun PlaysTab(viewModel: StatsViewModel) {
     val stats by viewModel.plays.collectAsStateWithLifecycle()
+    val locale = currentLocale()
     LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
             Row(
@@ -209,8 +214,9 @@ private fun PlaysTab(viewModel: StatsViewModel) {
                 StatTile(
                     label = stringResource(R.string.stats_streak),
                     value = stats.streak.current.toString(),
-                    supporting = stringResource(
-                        R.string.dashboard_streak_longest,
+                    supporting = pluralStringResource(
+                        R.plurals.dashboard_streak_longest,
+                        stats.streak.longest,
                         stats.streak.longest
                     ),
                     modifier = Modifier.weight(1f)
@@ -218,7 +224,7 @@ private fun PlaysTab(viewModel: StatsViewModel) {
                 StatTile(
                     label = stringResource(R.string.stats_h_index),
                     value = stats.hIndex.toString(),
-                    supporting = stringResource(R.string.stats_h_index_body, stats.hIndex),
+                    supporting = pluralStringResource(R.plurals.stats_h_index_body, stats.hIndex, stats.hIndex),
                     modifier = Modifier.weight(1.4f)
                 )
             }
@@ -237,7 +243,7 @@ private fun PlaysTab(viewModel: StatsViewModel) {
                     stats.byDayOfWeek.map { row ->
                         val index = row.label.toIntOrNull() ?: 0
                         val day = if (index == 0) DayOfWeek.SUNDAY else DayOfWeek.of(index)
-                        day.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to row.value
+                        day.getDisplayName(TextStyle.SHORT, locale) to row.value
                     }
                 )
             }
@@ -308,6 +314,7 @@ private fun PlaysTab(viewModel: StatsViewModel) {
 @Composable
 private fun ValueTab(viewModel: StatsViewModel) {
     val stats by viewModel.value.collectAsStateWithLifecycle()
+    val locale = currentLocale()
     LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
             // Cost per play gets the first card: it is the number that actually changes
@@ -326,7 +333,7 @@ private fun ValueTab(viewModel: StatsViewModel) {
                     )
                     Text(
                         text = stats.overallCostPerPlay
-                            ?.let { String.format(Locale.getDefault(), "%.2f %s", it, stats.currency) }
+                            ?.let { String.format(locale, "%.2f %s", it, stats.currency) }
                             ?: stringResource(R.string.stats_no_data),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -349,7 +356,7 @@ private fun ValueTab(viewModel: StatsViewModel) {
             ChartCard {
                 HorizontalBarChart(
                     stats.deadWeight.toPairs(),
-                    valueFormatter = { String.format(Locale.getDefault(), "%.0f", it) }
+                    valueFormatter = { String.format(locale, "%.0f", it) }
                 )
             }
         }
@@ -358,6 +365,7 @@ private fun ValueTab(viewModel: StatsViewModel) {
 
 @Composable
 private fun CostPerPlayList(rows: List<CostPerPlayRow>) {
+    val locale = currentLocale()
     if (rows.isEmpty()) {
         Text(
             text = stringResource(R.string.stats_no_data),
@@ -377,7 +385,11 @@ private fun CostPerPlayList(rows: List<CostPerPlayRow>) {
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = stringResource(R.string.stats_plays_value, row.playCount),
+                    text = pluralStringResource(
+                        R.plurals.stats_plays_value,
+                        row.playCount,
+                        row.playCount
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -385,7 +397,7 @@ private fun CostPerPlayList(rows: List<CostPerPlayRow>) {
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = String.format(
-                        Locale.getDefault(),
+                        locale,
                         "%.2f %s",
                         row.costPerPlay,
                         row.currency
@@ -485,7 +497,7 @@ private fun PlayersTab(viewModel: StatsViewModel) {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = stringResource(R.string.stats_plays_value, row.plays),
+                    text = pluralStringResource(R.plurals.stats_plays_value, row.plays, row.plays),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

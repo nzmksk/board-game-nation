@@ -46,8 +46,8 @@ import com.boardgamenation.tracker.data.db.entity.RubricCriterionEntity
 import com.boardgamenation.tracker.data.db.entity.RubricEntity
 import com.boardgamenation.tracker.data.repository.RubricRepository
 import com.boardgamenation.tracker.ui.components.EmptyState
+import com.boardgamenation.tracker.ui.components.currentLocale
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -202,7 +202,7 @@ fun RubricsScreen(onBack: () -> Unit, viewModel: RubricsViewModel = hiltViewMode
                                         )
                                         Text(
                                             text = String.format(
-                                                Locale.getDefault(),
+                                                currentLocale(),
                                                 "%s ×%.1f · %s %.0f",
                                                 stringResource(R.string.rubrics_criterion_weight),
                                                 criterion.weight,

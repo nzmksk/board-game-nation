@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -59,8 +60,8 @@ import com.boardgamenation.tracker.ui.components.KeyValueRow
 import com.boardgamenation.tracker.ui.components.LoadingRows
 import com.boardgamenation.tracker.ui.components.SectionHeader
 import com.boardgamenation.tracker.ui.components.StatTile
+import com.boardgamenation.tracker.ui.components.currentLocale
 import com.boardgamenation.tracker.ui.sessions.SessionRow
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -264,24 +265,18 @@ fun GameDetailScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (prompt.sessionCount > 0) {
                         Text(
-                            stringResource(
-                                if (prompt.sessionCount == 1) {
-                                    R.string.game_detail_delete_with_sessions
-                                } else {
-                                    R.string.game_detail_delete_with_sessions_plural
-                                },
+                            pluralStringResource(
+                                R.plurals.game_detail_delete_with_sessions,
+                                prompt.sessionCount,
                                 prompt.sessionCount
                             )
                         )
                     }
                     if (prompt.expansionCount > 0) {
                         Text(
-                            stringResource(
-                                if (prompt.expansionCount == 1) {
-                                    R.string.game_detail_delete_with_expansions
-                                } else {
-                                    R.string.game_detail_delete_with_expansions_plural
-                                },
+                            pluralStringResource(
+                                R.plurals.game_detail_delete_with_expansions,
+                                prompt.expansionCount,
                                 prompt.expansionCount
                             )
                         )
@@ -356,8 +351,9 @@ private fun HeaderCard(game: GameEntity, state: GameDetailUiState) {
             )
             if (game.minPlayers != null && game.maxPlayers != null) {
                 Text(
-                    text = stringResource(
-                        R.string.unit_players_range,
+                    text = pluralStringResource(
+                        R.plurals.unit_players_range,
+                        game.maxPlayers,
                         game.minPlayers,
                         game.maxPlayers
                     ),
@@ -373,7 +369,11 @@ private fun HeaderCard(game: GameEntity, state: GameDetailUiState) {
             }
             if (state.daysOnLoan != null && !game.inPossession) {
                 Text(
-                    text = stringResource(R.string.game_detail_lent_since, state.daysOnLoan.toInt()),
+                    text = pluralStringResource(
+                        R.plurals.game_detail_lent_since,
+                        state.daysOnLoan.toInt(),
+                        state.daysOnLoan.toInt()
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.tertiary
                 )
@@ -472,7 +472,7 @@ private fun StatsRow(state: GameDetailUiState) {
             StatTile(
                 label = stringResource(R.string.game_detail_cost_per_play),
                 value = state.costPerPlay?.let {
-                    String.format(Locale.getDefault(), "%.2f", it)
+                    String.format(currentLocale(), "%.2f", it)
                 } ?: "—",
                 supporting = state.game?.currency,
                 modifier = Modifier.weight(1f)
@@ -502,7 +502,7 @@ private fun RatingSection(state: GameDetailUiState, onRate: () -> Unit) {
                     Text(
                         text = stringResource(
                             R.string.rate_computed,
-                            String.format(Locale.getDefault(), "%.1f", current.computedScore)
+                            String.format(currentLocale(), "%.1f", current.computedScore)
                         ),
                         style = MaterialTheme.typography.titleMedium
                     )
@@ -531,7 +531,7 @@ private fun RatingSection(state: GameDetailUiState, onRate: () -> Unit) {
                 state.ratings.drop(1).forEach { rating ->
                     Text(
                         text = "${rating.ratedOn} · ${
-                            String.format(Locale.getDefault(), "%.1f", rating.computedScore)
+                            String.format(currentLocale(), "%.1f", rating.computedScore)
                         } (${rating.rubricName})",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -550,13 +550,13 @@ private fun MetadataSection(game: GameEntity, designers: List<String>) {
         game.weight?.let {
             KeyValueRow(
                 stringResource(R.string.game_detail_weight),
-                String.format(Locale.getDefault(), "%.2f", it)
+                String.format(currentLocale(), "%.2f", it)
             )
         }
         game.bggRating?.let {
             KeyValueRow(
                 stringResource(R.string.game_detail_bgg_rating),
-                String.format(Locale.getDefault(), "%.1f", it)
+                String.format(currentLocale(), "%.1f", it)
             )
         }
         designers.takeIf { it.isNotEmpty() }?.let {
@@ -569,7 +569,7 @@ private fun MetadataSection(game: GameEntity, designers: List<String>) {
                 stringResource(
                     R.string.unit_money,
                     game.currency,
-                    String.format(Locale.getDefault(), "%.2f", it)
+                    String.format(currentLocale(), "%.2f", it)
                 )
             )
         }
@@ -603,7 +603,7 @@ private fun LendSection(game: GameEntity, state: GameDetailUiState, onLend: () -
                 )
                 state.daysOnLoan?.let {
                     Text(
-                        text = stringResource(R.string.game_detail_lent_since, it.toInt()),
+                        text = pluralStringResource(R.plurals.game_detail_lent_since, it.toInt(), it.toInt()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
