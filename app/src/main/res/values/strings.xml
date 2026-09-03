@@ -34,8 +34,7 @@
     <!-- Dashboard -->
     <string name="dashboard_title">Board Game Nation</string>
     <string name="dashboard_recent_sessions">Recent plays</string>
-    <string name="dashboard_no_sessions">No plays logged yet. Tap the button below to log your first.</string>
-    <string name="dashboard_quick_log">Quick log</string>
+    <string name="dashboard_no_sessions">No plays logged yet. Open a game in your collection to log your first.</string>
     <string name="dashboard_start_timer">Start timer</string>
     <string name="dashboard_streak_title">Playing streak</string>
     <plurals name="dashboard_streak_longest">
@@ -202,7 +201,6 @@
     <!-- Session edit -->
     <string name="session_edit_new">Log a play</string>
     <string name="session_edit_existing">Edit play</string>
-    <string name="session_edit_game">Game</string>
     <string name="session_edit_choose_game">Choose a game</string>
     <string name="session_edit_date">Date</string>
     <string name="session_edit_duration">Duration (minutes)</string>
@@ -256,7 +254,6 @@
     <string name="session_edit_move_up">Move up</string>
     <string name="session_edit_move_down">Move down</string>
     <string name="session_edit_remove_player">Remove from this play</string>
-    <string name="session_edit_full_form">More options</string>
 
     <!-- Sharing a result -->
     <plurals name="share_card_more_players">
@@ -268,11 +265,6 @@
     <string name="share_card_first_timer">First play</string>
     <string name="share_chooser_title">Share this result</string>
     <string name="share_failed">Could not create the image</string>
-
-    <!-- Quick log -->
-    <string name="quick_log_title">Quick log</string>
-    <string name="quick_log_who_won">Who won?</string>
-    <string name="quick_log_who_went_first">Who went first?</string>
 
     <!-- Timer -->
     <string name="timer_setup_title">Timer setup</string>
