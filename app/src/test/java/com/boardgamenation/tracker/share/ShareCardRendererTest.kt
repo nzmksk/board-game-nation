@@ -31,6 +31,9 @@ class ShareCardRendererTest {
 
     private val renderer = ShareCardRenderer(ApplicationProvider.getApplicationContext())
 
+    /** The renderer's own margin, which is private to it. */
+    private val margin = 84
+
     private fun standing(
         name: String,
         rank: Int? = null,
@@ -189,6 +192,30 @@ class ShareCardRendererTest {
 
         assertTrue(reason > mode)
         assertTrue(abandoned > teaching)
+    }
+
+    /**
+     * The watermark is centred and drawn straight, with nothing to ellipsise it, so a
+     * longer wording of it -- or a translation -- would simply run off the card. The
+     * margins either side of the footer are where that shows up first.
+     */
+    @Test
+    fun `the watermark stays inside the margins`() {
+        val bitmap = renderer.render(
+            card(standings = listOf(standing("Aina", rank = 1, isWinner = true)))
+        )
+
+        for (y in bitmap.height - 180 until bitmap.height) {
+            // The background is a vertical gradient, so it is constant across a row and
+            // the far edge of that row is what the margin should still be showing.
+            val background = bitmap.getPixel(0, y)
+            for (x in 0 until margin) {
+                assertEquals(background, bitmap.getPixel(x, y))
+            }
+            for (x in bitmap.width - margin until bitmap.width) {
+                assertEquals(background, bitmap.getPixel(x, y))
+            }
+        }
     }
 
     @Test

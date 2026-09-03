@@ -460,9 +460,16 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
         return top - 40f
     }
 
-    /** The watermark. Returns its top, which is the floor for everything above it. */
+    /**
+     * The watermark. Returns its top, which is the floor for everything above it.
+     *
+     * Set small on purpose. The card is somebody else's result, not an advertisement,
+     * and a signature that competes with the names above it is the sender's picture
+     * carrying the app's branding rather than their game. It is the quietest text on
+     * the card, which is what a signature is for.
+     */
     private fun drawFooter(canvas: Canvas): Float {
-        val paint = text(size = 44f, color = INK, bold = true).apply {
+        val paint = text(size = 30f, color = INK, bold = true).apply {
             textAlign = Paint.Align.CENTER
             letterSpacing = 0.08f
         }
@@ -475,7 +482,15 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
             4f,
             fill(GOLD)
         )
-        canvas.drawText(context.getString(R.string.app_name), WIDTH / 2f, baseline, paint)
+        canvas.drawText(
+            context.getString(
+                R.string.share_card_watermark,
+                context.getString(R.string.app_name)
+            ),
+            WIDTH / 2f,
+            baseline,
+            paint
+        )
 
         return ruleY - 56f
     }
