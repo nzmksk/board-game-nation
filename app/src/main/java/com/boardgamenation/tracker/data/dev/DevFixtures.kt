@@ -229,6 +229,21 @@ class DevFixtures @Inject constructor(
                     emptyMap()
                 }
 
+                // Where the table actually sat, which two thirds of them wrote down.
+                // Shuffled away from the turn order on purpose: the two columns are
+                // independent, and a fixture that always agreed with itself would never
+                // show a screen reading one where it meant the other.
+                //
+                // Always a full ring when it is recorded at all. A half-seated table has
+                // no neighbours to read, so generating one would exercise nothing.
+                val chairs = if (random.nextInt(100) < 65) {
+                    seated.shuffled(random)
+                        .withIndex()
+                        .associate { (index, playerId) -> playerId to index + 1 }
+                } else {
+                    emptyMap()
+                }
+
                 val stated = ((game.minPlaytimeMinutes ?: 45) + (game.maxPlaytimeMinutes ?: 90)) / 2
                 val teaching = random.nextInt(100) < 12
                 val incomplete = random.nextInt(100) < 4
@@ -271,7 +286,8 @@ class DevFixtures @Inject constructor(
                                 sessionId = sessionId,
                                 playerId = it,
                                 isWinner = won,
-                                turnOrder = seats[it]
+                                turnOrder = seats[it],
+                                seat = chairs[it]
                             )
                         }
                     )
@@ -287,7 +303,8 @@ class DevFixtures @Inject constructor(
                                 placement = index + 1,
                                 isWinner = index == 0,
                                 faction = FACTIONS.random(random),
-                                turnOrder = seats[entry.key]
+                                turnOrder = seats[entry.key],
+                                seat = chairs[entry.key]
                             )
                         }
                     )
