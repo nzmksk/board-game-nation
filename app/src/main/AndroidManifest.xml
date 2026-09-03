@@ -40,6 +40,20 @@
                 android:value="Board game turn timer that must keep accurate time while the screen is off." />
         </service>
 
+        <!--
+            Shared result cards. Nothing else in the app is exposed: the provider is
+            not exported, and the paths file limits it to one cache subdirectory.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

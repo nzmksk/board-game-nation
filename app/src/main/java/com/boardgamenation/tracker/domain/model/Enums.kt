@@ -80,6 +80,27 @@ enum class ScoringMode {
     /** Neither scores nor order matter; just record who played. */
     NONE;
 
+    /**
+     * Whether a play in this mode has a number against each player's name.
+     *
+     * Only ranked scoring does, and the logging form shows the score field for that
+     * mode alone. That makes this the line between a score somebody meant to record and
+     * one left behind by a mode the play used to be in: a game switched to placements,
+     * sides or nothing at all keeps no scores, because there is nowhere left in the app
+     * to see or correct them.
+     */
+    val recordsScores: Boolean get() = this == RANKED_SCORES
+
+    /**
+     * Whether a play in this mode puts each player on a side.
+     *
+     * Carries more weight than [recordsScores] does. A session never stores the mode it
+     * was played under, and one of the things it is worked out from on the way back is
+     * whether any row has a side on it -- so a side left behind by a mode change does
+     * not merely sit there unread, it pins the play to team scoring with no way out.
+     */
+    val recordsSides: Boolean get() = this == TEAM_BASED
+
     companion object {
         fun fromStorage(value: String?): ScoringMode =
             entries.firstOrNull { it.name == value } ?: RANKED_SCORES

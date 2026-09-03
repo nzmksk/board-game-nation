@@ -95,10 +95,35 @@ class SessionRepository @Inject constructor(
     suspend fun loadForm(sessionId: Long): SessionForm? {
         val session = sessionDao.getSession(sessionId) ?: return null
         val game = gameDao.getGame(session.gameId)
-        val participants = sessionDao.getParticipants(sessionId).map { it.toParticipantForm() }
+        val stored = sessionDao.getParticipants(sessionId).map { it.toParticipantForm() }
         val expansions = sessionDao.getAllSessionExpansions()
             .filter { it.sessionId == sessionId }
             .map { it.gameId }
+
+        val scoringMode = when {
+            session.isCooperative -> ScoringMode.COOPERATIVE
+            // A play with sides on it was a team game whatever the game says now.
+            stored.any { !it.team.isNullOrBlank() } -> ScoringMode.TEAM_BASED
+            else -> game?.scoringMode ?: ScoringMode.RANKED_SCORES
+        }
+
+        // A session does not store the mode it was played under -- it is worked out
+        // again here, and one of the three answers is the game's mode as it stands
+        // today. So a play's mode moves under it: rate the game's scoring differently,
+        // or open any one play of it and change the mode there, and every earlier play
+        // of that game reads back under the new one.
+        //
+        // That is why the save alone cannot keep a score and its mode agreed. It settles
+        // the question at the moment of writing, and the answer changes afterwards.
+        // Asking again on the way out covers both that and the plays written before
+        // there was a rule at all, which no migration could have found: at the time it
+        // ran, their mode would have been whatever the game happened to say that day.
+        val participants = if (scoringMode.recordsScores) {
+            stored
+        } else {
+            stored.map { it.copy(score = null) }
+        }
+
         return SessionForm(
             id = session.id,
             gameId = session.gameId,
@@ -106,12 +131,7 @@ class SessionRepository @Inject constructor(
             playedOn = DateUtils.parseIsoOrNull(session.playedOn) ?: clock.today(),
             durationMinutes = session.durationMinutes,
             location = session.location,
-            scoringMode = when {
-                session.isCooperative -> ScoringMode.COOPERATIVE
-                // A play with sides on it was a team game whatever the game says now.
-                participants.any { !it.team.isNullOrBlank() } -> ScoringMode.TEAM_BASED
-                else -> game?.scoringMode ?: ScoringMode.RANKED_SCORES
-            },
+            scoringMode = scoringMode,
             highScoreWins = game?.highScoreWins ?: true,
             coopOutcome = session.coopOutcome,
             mode = session.mode,
@@ -250,10 +270,29 @@ class SessionRepository @Inject constructor(
             }
         }
 
+        // A score and a side each belong to the mode that has a field for them, in the
+        // same way an end reason is only written for a sudden death and a co-op outcome
+        // only for a co-op. The logging form stops offering the field the moment the
+        // mode changes, so anything left behind is beyond reach: invisible on every
+        // screen, and still on the record.
+        //
+        // A stale score was the milder half of that -- it stayed out of sight until the
+        // play was shared as a picture. A stale side is worse, because the mode is
+        // worked out again on every load and a row with a side on it is one of the
+        // answers. Leaving it turns team scoring into a state a play cannot be moved
+        // out of: the save takes the new mode, and the load hands the old one straight
+        // back.
+        val owned = flagged.map { participant ->
+            participant.copy(
+                score = participant.score.takeIf { form.scoringMode.recordsScores },
+                team = participant.team.takeIf { form.scoringMode.recordsSides },
+            )
+        }
+
         // Renumbered here for the same reason placements are derived here: the quick
         // sheet, the full form and an import all reach this line, and exactly one of
         // them may leave a play with two first players.
-        return TurnOrder.normalise(flagged)
+        return TurnOrder.normalise(owned)
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.boardgamenation.tracker.data.db
 
 import com.boardgamenation.tracker.core.time.DateUtils
+import com.boardgamenation.tracker.data.db.entity.SessionPlayerEntity
 import com.boardgamenation.tracker.data.repository.SessionFilter
 import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.domain.model.CoopOutcome
@@ -64,6 +65,19 @@ class SessionDaoTest {
         },
     )
 
+    private fun teamForm(id: Long = 0) = SessionForm(
+        id = id,
+        gameId = gameId,
+        playedOn = LocalDate.parse("2026-02-01"),
+        durationMinutes = 45,
+        scoringMode = ScoringMode.TEAM_BASED,
+        winningTeam = "Liberals",
+        participants = listOf(
+            ParticipantForm(playerId = me, playerName = "Me", team = "Liberals"),
+            ParticipantForm(playerId = ben, playerName = "Ben", team = "Fascists"),
+        ),
+    )
+
     private fun seating(vararg playerIds: Long) =
         playerIds.map { ParticipantForm(playerId = it, playerName = "p$it") }
 
@@ -107,6 +121,134 @@ class SessionDaoTest {
         assertTrue(session.isCooperative)
         assertEquals(CoopOutcome.WIN, session.coopOutcome)
         assertTrue(db.sessionDao().getParticipants(id).all { it.isWinner })
+    }
+
+    /**
+     * The bug this guards: a play logged with scores and then switched to another mode
+     * kept the numbers in rows the app no longer shows a score field for, so they were
+     * invisible everywhere except the shared picture.
+     */
+    @Test
+    fun `switching a scored play to a mode without scores drops the scores`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+        assertEquals(10.0, db.sessionDao().getParticipants(id).first { it.playerId == me }.score)
+
+        repository.save(form(listOf(me to 10.0, ben to 8.0), mode = ScoringMode.NONE, id = id))
+
+        assertTrue(db.sessionDao().getParticipants(id).all { it.score == null })
+    }
+
+    /** Placements, sides and a co-op result all stand on their own without a score. */
+    @Test
+    fun `no mode but ranked scoring keeps a score`() = runTest {
+        val withoutScores = listOf(
+            ScoringMode.MANUAL_PLACEMENT,
+            ScoringMode.COOPERATIVE,
+            ScoringMode.TEAM_BASED,
+            ScoringMode.NONE,
+        )
+
+        withoutScores.forEach { mode ->
+            val id = repository.save(form(listOf(me to 10.0, ben to 8.0), mode = mode))
+            assertTrue(
+                "$mode should not keep a score",
+                db.sessionDao().getParticipants(id).all { it.score == null },
+            )
+        }
+
+        val ranked = repository.save(form(listOf(me to 10.0), mode = ScoringMode.RANKED_SCORES))
+        assertEquals(10.0, db.sessionDao().getParticipants(ranked).single().score)
+    }
+
+    /**
+     * Dropping the score must not take the result with it: a play ranked by placement
+     * still knows who won, and that is what the switch was made to record.
+     */
+    @Test
+    fun `dropping the scores leaves the placements alone`() = runTest {
+        val ordered = SessionForm(
+            gameId = gameId,
+            playedOn = LocalDate.parse("2026-02-01"),
+            durationMinutes = 75,
+            scoringMode = ScoringMode.MANUAL_PLACEMENT,
+            participants = listOf(
+                ParticipantForm(playerId = ben, playerName = "Ben", score = 8.0),
+                ParticipantForm(playerId = me, playerName = "Me", score = 10.0),
+            ),
+        )
+
+        val id = repository.save(ordered)
+        val participants = db.sessionDao().getParticipants(id).associateBy { it.playerId }
+
+        assertEquals(1, participants.getValue(ben).placement)
+        assertEquals(2, participants.getValue(me).placement)
+        assertTrue(participants.getValue(ben).isWinner)
+        assertTrue(participants.values.all { it.score == null })
+    }
+
+    /**
+     * A side is what `loadForm` works the mode out from, so one left behind by a mode
+     * change does not sit there harmlessly -- it hands team scoring back on the next
+     * load and the play can never be moved off it. That was #44.
+     */
+    @Test
+    fun `switching a team play to another mode drops the sides`() = runTest {
+        val id = repository.save(teamForm())
+        assertEquals(
+            listOf("Fascists", "Liberals"),
+            db.sessionDao().getParticipants(id).mapNotNull { it.team }.sorted(),
+        )
+
+        repository.save(
+            repository.loadForm(id)!!.copy(scoringMode = ScoringMode.RANKED_SCORES),
+        )
+
+        assertTrue(db.sessionDao().getParticipants(id).all { it.team == null })
+    }
+
+    @Test
+    fun `a play switched off team scoring stays switched`() = runTest {
+        val id = repository.save(teamForm())
+        assertEquals(ScoringMode.TEAM_BASED, repository.loadForm(id)!!.scoringMode)
+
+        listOf(
+            ScoringMode.RANKED_SCORES,
+            ScoringMode.MANUAL_PLACEMENT,
+            ScoringMode.NONE,
+        ).forEach { mode ->
+            repository.save(repository.loadForm(id)!!.copy(scoringMode = mode))
+            assertEquals(mode, repository.loadForm(id)!!.scoringMode)
+        }
+    }
+
+    /** The rule cuts the other way too: a team play keeps the sides it was logged with. */
+    @Test
+    fun `a team play keeps its sides and reads back as a team game`() = runTest {
+        val id = repository.save(teamForm())
+
+        val loaded = repository.loadForm(id)!!
+        assertEquals(ScoringMode.TEAM_BASED, loaded.scoringMode)
+        assertEquals("Liberals", loaded.winningTeam)
+        assertEquals(
+            listOf("Fascists", "Liberals"),
+            loaded.participants.mapNotNull { it.team }.sorted(),
+        )
+    }
+
+    /**
+     * The reason the sides are cleared on save rather than ignored on load: a play
+     * logged with sides has to keep reading as a team game even after the game itself
+     * moves to some other scoring, which is what `loadForm` prefers them for.
+     */
+    @Test
+    fun `changing the game's mode leaves an earlier team play a team game`() = runTest {
+        val id = repository.save(teamForm())
+
+        db.gameDao().getGame(gameId)!!.let {
+            db.gameDao().update(it.copy(scoringMode = ScoringMode.RANKED_SCORES))
+        }
+
+        assertEquals(ScoringMode.TEAM_BASED, repository.loadForm(id)!!.scoringMode)
     }
 
     /** Re-saving replaces the participant set rather than accumulating duplicates. */
@@ -353,6 +495,62 @@ class SessionDaoTest {
         assertEquals("Close one", loaded.notes)
         assertEquals(2, loaded.participants.size)
         assertEquals(LocalDate.parse("2026-02-01"), loaded.playedOn)
+    }
+
+    /**
+     * The half of #43 the save cannot reach. These rows were written before there was a
+     * rule about it, so the only thing standing between them and the shared picture is
+     * the read.
+     */
+    @Test
+    fun `a play already holding a stale score reads back without it`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+
+        // Written straight past the save's normalising, the way an archive restore
+        // writes: this is the shape the bug left behind and the save no longer produces.
+        db.sessionDao().clearParticipants(id)
+        db.sessionDao().insertParticipants(
+            listOf(
+                SessionPlayerEntity(sessionId = id, playerId = me, score = 42.0, placement = 1),
+                SessionPlayerEntity(sessionId = id, playerId = ben, score = 20.0, placement = 2),
+            ),
+        )
+        db.gameDao().getGame(gameId)!!.let {
+            db.gameDao().update(it.copy(scoringMode = ScoringMode.NONE))
+        }
+
+        assertTrue(repository.loadForm(id)!!.participants.all { it.score == null })
+    }
+
+    /**
+     * A session never stores the mode it was played under, so changing the game's mode
+     * moves every past play of it. A score kept only because the mode agreed at the
+     * moment of writing has to be asked about again on the way out.
+     */
+    @Test
+    fun `changing the game's mode takes the scores off its earlier plays`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+        assertEquals(10.0, repository.loadForm(id)!!.participants.first { it.playerId == me }.score)
+
+        db.gameDao().getGame(gameId)!!.let {
+            db.gameDao().update(it.copy(scoringMode = ScoringMode.MANUAL_PLACEMENT))
+        }
+
+        val loaded = repository.loadForm(id)!!
+        assertEquals(ScoringMode.MANUAL_PLACEMENT, loaded.scoringMode)
+        assertTrue(loaded.participants.all { it.score == null })
+        // The result the play was logged for is untouched.
+        assertEquals(1, loaded.participants.first { it.playerId == me }.placement)
+    }
+
+    @Test
+    fun `a ranked play still reads its scores back`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+
+        val loaded = repository.loadForm(id)!!
+        assertEquals(ScoringMode.RANKED_SCORES, loaded.scoringMode)
+        assertEquals(10.0, loaded.participants.first { it.playerId == me }.score)
+        assertEquals(8.0, loaded.participants.first { it.playerId == ben }.score)
     }
 
     @Test

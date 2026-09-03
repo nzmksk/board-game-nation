@@ -32,6 +32,7 @@
     <string name="action_decrease">Decrease</string>
     <string name="action_ok">OK</string>
     <string name="action_pick_date">Pick a date</string>
+    <string name="action_share">Share</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">Board Game Nation</string>
@@ -253,6 +254,18 @@
     <string name="session_edit_remove_player">Remove from this play</string>
     <string name="session_edit_full_form">More options</string>
     <string name="session_saved">Play saved</string>
+
+    <!-- Sharing a result -->
+    <plurals name="share_card_players">
+        <item quantity="one">%1$d player</item>
+        <item quantity="other">%1$d players</item>
+    </plurals>
+    <string name="share_card_more_players">+%1$d more</string>
+    <!-- Marks a player whose first play of this game it was. Kept short: it is drawn as
+         a tag beside the name, on a row that also has to hold a score. -->
+    <string name="share_card_first_timer">First play</string>
+    <string name="share_chooser_title">Share this result</string>
+    <string name="share_failed">Could not create the image</string>
 
     <!-- Quick log -->
     <string name="quick_log_title">Quick log</string>

@@ -78,7 +78,7 @@ data class SessionForm(
     val isCooperative: Boolean get() = scoringMode == ScoringMode.COOPERATIVE
 
     /** Sides win together, so nobody is marked a winner individually. */
-    val isTeamBased: Boolean get() = scoringMode == ScoringMode.TEAM_BASED
+    val isTeamBased: Boolean get() = scoringMode.recordsSides
 
     /** The sides named on the form so far, in the order they were entered. */
     val teams: List<String>

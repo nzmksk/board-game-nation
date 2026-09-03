@@ -132,10 +132,12 @@ app/src/main/java/com/boardgamenation/tracker/
 │   └── dev/          Generated fixtures, debug builds only
 ├── domain/
 │   ├── model/        Domain types and the placement rules
+│   ├── share/        How a result is arranged for a picture. Pure Kotlin.
 │   ├── timer/        The dual-timer state machine. Pure Kotlin.
 │   ├── achievement/  The rule engine
 │   ├── stats/        Streaks
 │   └── usecase/      Operations that span repositories
+├── share/            Draws a result card and hands it to the system share sheet
 ├── timer/            The foreground service and the singleton that owns the clock
 └── ui/               Compose screens, one package per screen
 ```
@@ -233,6 +235,31 @@ from average-score statistics because a count taken mid-game is not comparable t
 Deliberately not `is_incomplete`. That flag means abandoned, and it drops a session out of
 the win-rate and duration statistics — using it here would erase a legitimate win.
 
+### A play does not remember the scoring mode it was logged under
+
+A session records whether it was cooperative and what each player scored, but not its
+scoring mode. `SessionRepository.loadForm` works that out again on every read: a co-op
+play is a co-op, a play with sides on it was a team game whatever the game says now, and
+anything else takes the game's mode as it stands today.
+
+That is the right default — scoring is a property of the game, and one play should not
+pin it — but it means a play's mode moves under it. Changing the scoring on any single
+play writes the new mode back onto the game, and every earlier play of that game then
+reads back under it.
+
+So a field that only makes sense in one mode cannot be settled once, when the play is
+written. Both are cleared on save, so rows stop accumulating values no screen shows a
+field for. Scores are cleared on load as well, because the mode that justified keeping
+them can change afterwards without the row being touched. That also rules out repairing
+old rows with a migration — it would have had to ask each play what mode it was in, and
+got back whatever its game happened to say the day it ran.
+
+Sides are the one thing not cleared on load, and deliberately: they are what the derivation
+above *reads*. A saved side is meant to outrank the game's current mode, so discarding one
+on the way out would defeat the rule it feeds. Clearing them on save is enough, and it has
+to happen — a side that survives a mode change re-answers the question on every load, which
+is how team scoring became a mode a play could not be moved off (#44).
+
 ### Both kinds of backup, because they are for different things
 
 CSV is for portability and spreadsheet interop: RFC 4180, UTF-8 with a BOM so Excel does
@@ -260,6 +287,36 @@ own light and dark surfaces, and are assigned to players in fixed order so a pla
 their colour when the set on screen changes. Nothing is ever encoded by colour alone —
 every chart row and every timer zone carries the name beside the swatch.
 
+### A shared result is a picture, and pictures leave
+
+Sharing a play renders a 1080x1920 card and hands it to the system chooser. Three
+decisions in it are worth knowing about.
+
+It is drawn on a canvas rather than composed. The card is never on screen, and rendering
+a composable to a bitmap means attaching it to a window and waiting for a frame -- a
+lifecycle a ViewModel does not have, producing an image whose size depends on the phone
+that drew it. `share/ShareCardRenderer.kt` is a pure function of a `ShareCard` instead:
+same play, same picture, on any device, off the main thread. The arrangement it draws --
+who leads, who is highlighted, what the headline says -- is `domain/share/`, pure Kotlin
+and tested without a device.
+
+It ignores the theme, both the wallpaper and light or dark. The image outlives the phone
+it was made on: it lands in a group chat, on a story, in somebody else's camera roll. A
+card that looked like the sender's home screen would make the same app's results arrive
+looking like a different app every time.
+
+Gold means exactly one thing on it. The winner's row outline, their placement disc, their
+score, the headline -- and nothing else is allowed to spend it. The card marks other
+facts too: a player's first play of the game gets a tag beside their name, because the
+newcomer at the table is half of what the group talks about afterwards. That tag is
+outlined in the card's badge style rather than picked out in the accent, since a second
+gold element one row down reads as a second winner.
+
+The file itself is a throwaway in `cacheDir/share`, replaced on every share and exposed
+through a `FileProvider` scoped to exactly that directory -- naming the cache root would
+have put the BGG image cache one guessed filename away from any app that received a
+share.
+
 ### BGG is treated as somebody else's service
 
 Requests are serialised through a single permit with a minimum two-second gap. Community
@@ -277,7 +334,7 @@ than a spinner that says nothing.
 ./gradlew :app:testDebugUnitTest
 ```
 
-183 tests, run on the JVM. The database tests use a real Room in-memory database through
+300 tests, run on the JVM. The database tests use a real Room in-memory database through
 Robolectric rather than mocks, so a query that compiles but returns the wrong rows still
 fails.
 
@@ -299,6 +356,8 @@ fails.
 | `SuddenDeathTest` | Placement without scores, and that logging a play never rewrites the game |
 | `QuickLogViewModelTest` | That a quick log leaves the game's scoring mode alone |
 | `LegacyCsvImportTest` | An archive from before designers were tags still imports intact |
+| `ShareCardTest` | Winners lead the card, sides stay whole, an unrecorded result stays unannounced |
+| `ShareCardRendererTest` | That the drawing survives twelve players, unreadable lengths and an empty play |
 
 ### Sample data
 
@@ -330,7 +389,11 @@ reproducible.
 ## Not built
 
 Deliberately out of scope, per the specification: multi-device sync, cloud backup, user
-accounts, sharing, Play Store distribution, analytics, crash reporting, and writing plays
-back to BoardGameGeek.
+accounts, social features, Play Store distribution, analytics, crash reporting, and
+writing plays back to BoardGameGeek.
+
+Sharing a result is the one thing that crossed over, and only in the sense the OS means
+it: a picture, drawn on the device, handed to the share sheet. No account, no server,
+nothing uploaded.
 
 Powered by [BoardGameGeek](https://boardgamegeek.com).
