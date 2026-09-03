@@ -15,6 +15,7 @@ import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.PlacementCalculator
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.Seating
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.model.TurnOrder
 import javax.inject.Inject
@@ -119,6 +120,18 @@ class SessionRepository @Inject constructor(
             stored.map { it.copy(score = null) }
         }
 
+        // How a play ended was two columns before it was one question: `end_condition`
+        // for a game a rule stopped, `is_incomplete` for one the table gave up on. The
+        // migration folded them together, so this only speaks for rows that reach the
+        // app some other way -- an archive exported by an older version, restored into
+        // this one. A play nobody was ever asked about ran to the end, which is exactly
+        // what the null column used to mean.
+        val endCondition = session.endCondition ?: if (session.isIncomplete) {
+            SessionEndCondition.ABANDONED
+        } else {
+            SessionEndCondition.STANDARD
+        }
+
         return SessionForm(
             id = session.id,
             gameId = session.gameId,
@@ -133,9 +146,8 @@ class SessionRepository @Inject constructor(
 
             // The winning side is read back off the winners rather than stored twice.
             winningTeam = participants.firstOrNull { it.isWinner }?.team,
-            endCondition = session.endCondition,
-            endReason = session.endReason,
-            isIncomplete = session.isIncomplete,
+            endCondition = endCondition,
+            endReason = session.endReason?.takeIf { endCondition == SessionEndCondition.SPECIFIC },
             isTeachingGame = session.isTeachingGame,
             notes = session.notes,
             photoUri = session.photoUri,
@@ -170,7 +182,10 @@ class SessionRepository @Inject constructor(
             coopOutcome = if (form.isCooperative) form.coopOutcome ?: CoopOutcome.NA else null,
             mode = form.mode?.takeIf { it.isNotBlank() },
             endCondition = form.endCondition,
-            endReason = form.endReason?.takeIf { it.isNotBlank() && form.isSuddenDeath },
+            endReason = form.endReason?.takeIf { it.isNotBlank() && form.endedEarly },
+            // Still written, because every statistic that excludes an abandoned play
+            // reads this column. It is now derived from the end condition rather than
+            // set beside it, so the two cannot drift apart.
             isIncomplete = form.isIncomplete,
             isTeachingGame = form.isTeachingGame,
             isDraft = false,
@@ -223,14 +238,16 @@ class SessionRepository @Inject constructor(
             // because the mode is written back onto the game further down.
             !form.derivePlacements -> form.participants
 
-            // A sudden-death play ended the instant a condition was met, so there are no
-            // final scores to rank by -- 7 Wonders Duel's military and scientific
-            // supremacy both stop the game before anyone counts a victory point. The
-            // order the user put the players in is the result. Any scores they did enter
-            // are kept: a partial score is still worth remembering, it is just not what
-            // decides the winner.
-            form.isSuddenDeath && !form.isCooperative ->
-                PlacementCalculator.fromOrder(form.participants)
+            // A play a rule stopped ended before final scoring, so there are no final
+            // scores to rank by -- 7 Wonders Duel's military and scientific supremacy
+            // both stop the game before anyone counts a victory point. The order the user
+            // put the players in is the result. Any scores they did enter are kept: a
+            // partial score is still worth remembering, it is just not what decides the
+            // winner.
+            //
+            // Scored play only; see [SessionForm.ranksByOrder] for why the other modes
+            // are left to settle their own results.
+            form.ranksByOrder -> PlacementCalculator.fromOrder(form.participants)
 
             // Kept exhaustive over the enum on purpose: a new ScoringMode should fail
             // to compile here rather than quietly fall through to a default.

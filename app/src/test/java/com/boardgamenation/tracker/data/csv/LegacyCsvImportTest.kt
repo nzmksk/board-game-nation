@@ -5,6 +5,7 @@ import com.boardgamenation.tracker.data.db.AppDatabase
 import com.boardgamenation.tracker.data.db.DatabaseTestFixture
 import com.boardgamenation.tracker.data.repository.DataMaintenanceRepository
 import com.boardgamenation.tracker.domain.model.ImportMode
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TagKind
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -12,7 +13,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -24,8 +24,8 @@ import org.robolectric.RobolectricTestRunner
  * Importing a CSV archive written by an older version of the app.
  *
  * This is the other half of the backup story, next to `MigrationTest`. A CSV export taken
- * before this change still carries a `designers` column on games and knows nothing about
- * sudden-death endings, and somebody restoring one of those archives should not silently
+ * before this change still carries a `designers` column on games and says nothing at all
+ * about how a play ended, and somebody restoring one of those archives should not silently
  * lose a field from every game in their collection.
  *
  * The files here are written out by hand rather than produced by the exporter, because
@@ -172,12 +172,12 @@ class LegacyCsvImportTest {
     fun `columns the old archive never had fall back to their defaults`() = runTest {
         importer.import(legacyFiles(), ImportMode.REPLACE)
 
-        assertFalse(
-            "sudden_death_possible was absent, so it should be false",
-            db.gameDao().getGame(1)!!.suddenDeathPossible
-        )
         val session = db.sessionDao().getSession(1)!!
-        assertNull("no end_condition column in the archive", session.endCondition)
+        assertEquals(
+            "an archive with neither column describes a play that ran to the end",
+            SessionEndCondition.STANDARD,
+            session.endCondition
+        )
         assertNull(session.endReason)
         assertNull("no mode column in the archive", session.mode)
         assertTrue(

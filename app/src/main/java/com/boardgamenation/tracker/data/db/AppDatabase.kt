@@ -77,7 +77,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun bggCacheDao(): BggCacheDao
 
     companion object {
-        const val VERSION = 8
+        const val VERSION = 9
         const val NAME = "board_game_nation.db"
     }
 }

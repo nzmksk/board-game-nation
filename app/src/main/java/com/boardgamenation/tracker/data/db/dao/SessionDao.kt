@@ -192,14 +192,19 @@ interface SessionDao {
     suspend fun timesPlayerPlayedGame(playerId: Long, gameId: Long, excludingSessionId: Long): Int
 
     /**
-     * Sudden-death reasons already recorded for this game, newest first, so the form can
+     * Rules already recorded as stopping this game early, newest first, so the form can
      * offer "Military supremacy" as a chip on the second play rather than asking the
      * user to type it again.
+     *
+     * Scoped to the ending that owns a reason. A play given up on can still be carrying
+     * one it was written with years ago, and suggesting that back would be putting words
+     * in the user's mouth.
      */
     @Query(
         """
         SELECT end_reason FROM sessions
-        WHERE game_id = :gameId AND is_draft = 0 AND end_reason IS NOT NULL
+        WHERE game_id = :gameId AND is_draft = 0
+          AND end_condition = 'SPECIFIC' AND end_reason IS NOT NULL
         GROUP BY end_reason COLLATE NOCASE
         ORDER BY MAX(played_on) DESC
         LIMIT :limit

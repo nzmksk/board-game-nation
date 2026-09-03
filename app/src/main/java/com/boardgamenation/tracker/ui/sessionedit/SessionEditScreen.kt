@@ -313,75 +313,81 @@ fun SessionEditScreen(onBack: () -> Unit, onSaved: (Long, List<String>) -> Unit,
                 }
             }
 
-            // Only for games that can actually end early. On everything else the choice
-            // would be noise, which is why it is a per-game flag rather than always on.
-            if (state.suddenDeathPossible &&
-                state.form.scoringMode != ScoringMode.COOPERATIVE
-            ) {
-                item { SectionHeader(stringResource(R.string.session_edit_ended_by)) }
-                item {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Asked of every play, whatever the scoring. Any game can be given up on,
+            // and the games a rule can stop early are not a category the collection
+            // sorts into up front -- a co-op is lost to an uncontrolled outbreak, a
+            // hidden-role game is won the instant Hitler is elected, a scored game is
+            // stopped by military supremacy.
+            item { SectionHeader(stringResource(R.string.session_edit_ended_by)) }
+            item {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SessionEndCondition.entries.forEach { condition ->
                         FilterChip(
-                            selected = !state.form.isSuddenDeath,
-                            onClick = { viewModel.setEndCondition(null) },
-                            label = { Text(stringResource(R.string.session_edit_ended_scoring)) }
-                        )
-                        FilterChip(
-                            selected = state.form.isSuddenDeath,
-                            onClick = {
-                                viewModel.setEndCondition(SessionEndCondition.SUDDEN_DEATH)
-                            },
-                            label = {
-                                Text(stringResource(R.string.session_edit_ended_sudden_death))
-                            }
+                            selected = state.form.endCondition == condition,
+                            onClick = { viewModel.setEndCondition(condition) },
+                            label = { Text(stringResource(condition.labelRes())) }
                         )
                     }
                 }
+            }
 
-                if (state.form.isSuddenDeath) {
-                    item {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            when (state.form.endCondition) {
+                SessionEndCondition.SPECIFIC -> item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            // Only a scored play loses its result to an early ending;
+                            // every other mode still decides one the usual way.
+                            text = stringResource(
+                                if (state.form.ranksByOrder) {
+                                    R.string.session_edit_ended_specific_help
+                                } else {
+                                    R.string.session_edit_ended_specific_help_other
+                                }
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        OutlinedTextField(
+                            value = state.form.endReason.orEmpty(),
+                            onValueChange = { value ->
+                                viewModel.update { it.copy(endReason = value) }
+                            },
+                            label = { Text(stringResource(R.string.session_edit_end_reason)) },
+                            placeholder = {
+                                Text(stringResource(R.string.session_edit_end_reason_hint))
+                            },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (state.previousEndReasons.isNotEmpty()) {
                             Text(
-                                text = stringResource(R.string.session_edit_sudden_death_help),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = stringResource(R.string.session_edit_end_reason_previous),
+                                style = MaterialTheme.typography.labelSmall
                             )
-                            OutlinedTextField(
-                                value = state.form.endReason.orEmpty(),
-                                onValueChange = { value ->
-                                    viewModel.update { it.copy(endReason = value) }
-                                },
-                                label = {
-                                    Text(stringResource(R.string.session_edit_end_reason))
-                                },
-                                placeholder = {
-                                    Text(stringResource(R.string.session_edit_end_reason_hint))
-                                },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            if (state.previousEndReasons.isNotEmpty()) {
-                                Text(
-                                    text = stringResource(
-                                        R.string.session_edit_end_reason_previous
-                                    ),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    state.previousEndReasons.forEach { reason ->
-                                        FilterChip(
-                                            selected = state.form.endReason == reason,
-                                            onClick = {
-                                                viewModel.update { it.copy(endReason = reason) }
-                                            },
-                                            label = { Text(reason) }
-                                        )
-                                    }
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                state.previousEndReasons.forEach { reason ->
+                                    FilterChip(
+                                        selected = state.form.endReason == reason,
+                                        onClick = {
+                                            viewModel.update { it.copy(endReason = reason) }
+                                        },
+                                        label = { Text(reason) }
+                                    )
                                 }
                             }
                         }
                     }
                 }
+
+                SessionEndCondition.ABANDONED -> item {
+                    Text(
+                        text = stringResource(R.string.session_edit_ended_abandoned_help),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                SessionEndCondition.STANDARD -> Unit
             }
 
             item { SectionHeader(stringResource(R.string.session_edit_players)) }
@@ -393,10 +399,10 @@ fun SessionEditScreen(onBack: () -> Unit, onSaved: (Long, List<String>) -> Unit,
                     participant = participant,
                     index = index,
                     mode = state.form.scoringMode,
-                    // A sudden-death play is ranked by the order the user puts the
+                    // A play a rule stopped is ranked by the order the user puts the
                     // players in, but any partial score they enter is still kept.
                     showOrdering = state.form.scoringMode == ScoringMode.MANUAL_PLACEMENT ||
-                        state.form.isSuddenDeath,
+                        state.form.ranksByOrder,
                     showScore = state.form.scoringMode.recordsScores,
                     showTeam = state.form.isTeamBased,
                     previousTeams = state.previousTeams,
@@ -461,14 +467,6 @@ fun SessionEditScreen(onBack: () -> Unit, onSaved: (Long, List<String>) -> Unit,
                         }
                     }
                 }
-            }
-
-            item {
-                ToggleRow(
-                    label = stringResource(R.string.session_edit_incomplete),
-                    checked = state.form.isIncomplete,
-                    onChange = { value -> viewModel.update { it.copy(isIncomplete = value) } }
-                )
             }
 
             item {
@@ -848,6 +846,12 @@ private fun ParticipantCard(
             }
         }
     }
+}
+
+private fun SessionEndCondition.labelRes(): Int = when (this) {
+    SessionEndCondition.STANDARD -> R.string.session_edit_ended_standard
+    SessionEndCondition.SPECIFIC -> R.string.session_edit_ended_specific
+    SessionEndCondition.ABANDONED -> R.string.session_edit_ended_abandoned
 }
 
 @Composable

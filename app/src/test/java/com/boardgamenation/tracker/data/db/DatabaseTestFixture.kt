@@ -9,6 +9,7 @@ import com.boardgamenation.tracker.data.db.entity.PlayerEntity
 import com.boardgamenation.tracker.data.db.entity.SessionEntity
 import com.boardgamenation.tracker.data.db.entity.SessionPlayerEntity
 import com.boardgamenation.tracker.domain.model.GameStatus
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import java.time.ZoneId
 
 /**
@@ -83,6 +84,11 @@ object DatabaseTestFixture {
         durationMinutes = durationMinutes,
         playerCount = playerCount,
         isIncomplete = isIncomplete,
+        endCondition = if (isIncomplete) {
+            SessionEndCondition.ABANDONED
+        } else {
+            SessionEndCondition.STANDARD
+        },
         isTeachingGame = isTeaching,
         isDraft = isDraft,
         isCooperative = isCooperative,

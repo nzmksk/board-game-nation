@@ -249,21 +249,33 @@ untrustworthy.
 
 An unreadable or future-dated rule degrades to "never unlocks" instead of crashing.
 
-### A game that ends early still has a winner
+### Every play ends somehow, and it is worth saying how
 
-Some games stop the moment a condition is met. 7 Wonders Duel is the obvious one: military
-or scientific supremacy ends it before anyone counts a victory point, so there are no final
-scores to rank by, but the play unambiguously finished and unambiguously has a winner.
+Three things can end a play, and the form asks which whatever the game's scoring: it ran to
+the game's own ending, a rule in the box stopped it early, or the table gave up.
 
-That is a property of the play, not of the game, so it is a nullable `end_condition` on the
-session rather than another `ScoringMode`. The game keeps whatever scoring it normally uses
-and a flag saying it *can* end this way, which is all that decides whether the logging form
-offers the choice. A sudden-death play is ranked by the order the user puts the players in;
-any partial score they enter is kept but does not decide it, and those scores are excluded
-from average-score statistics because a count taken mid-game is not comparable to a final one.
+The middle one is the interesting case. 7 Wonders Duel's military or scientific supremacy
+ends the game before anyone counts a victory point, so there are no final scores to rank by,
+but the play unambiguously finished and unambiguously has a winner. It is not a property of
+the game either — Pandemic is lost to an uncontrolled outbreak, Secret Hitler is won the
+instant Hitler is elected Chancellor — which is why it is an `end_condition` on the session
+rather than another `ScoringMode` or a flag on the game. Which rule it was is free text: no
+fixed list survives the next game bought, and the form offers back the words that game's
+earlier plays were recorded with.
 
-Deliberately not `is_incomplete`. That flag means abandoned, and it drops a session out of
-the win-rate and duration statistics — using it here would erase a legitimate win.
+Only a scored play changes shape as a result. There is nothing to rank by, so the order the
+user puts the players in is the result; any partial score they enter is kept but does not
+decide it, and those scores are excluded from average-score statistics because a count taken
+mid-game is not comparable to a final one. Every other mode already answers the question some
+way the ending leaves alone — a co-op by the table's verdict, a team game by the winning
+side, manual placement by that same order — and overriding those would throw away the answer
+the user gave.
+
+An abandoned play is emphatically not the same thing, and conflating the two would drop a
+legitimate win out of the win-rate and duration statistics. It keeps the `is_incomplete`
+column those statistics filter on in SQL, but that column is now written *from* the end
+condition rather than set beside it: while they were two fields on opposite sides of the
+form, one play could claim both.
 
 ### A play does not remember the scoring mode it was logged under
 
@@ -405,8 +417,8 @@ fails.
 | `CsvTest` | RFC 4180 quoting, embedded newlines, locale-independent numbers |
 | `GameQueryBuilderTest` | That values are bound and never interpolated |
 | `MigrationChainTest` | That a version bump without a migration fails the build |
-| `MigrationTest` | The chain run against a real v1 database: designers backfilled, ids not rewound |
-| `SuddenDeathTest` | Placement without scores, and that logging a play never rewrites the game |
+| `MigrationTest` | The chain run against a real v1 database: designers backfilled, ids not rewound; and a v8 one, for the two columns folded into one ending |
+| `EndConditionTest` | Placement without scores, that the other modes settle their own results, and that logging a play never rewrites the game |
 | `QuickLogViewModelTest` | That a quick log leaves the game's scoring mode alone |
 | `LegacyCsvImportTest` | An archive from before designers were tags still imports intact |
 | `ShareCardTest` | Winners lead the card, sides stay whole, an unrecorded result stays unannounced |

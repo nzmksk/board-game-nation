@@ -280,7 +280,6 @@ class CsvImporter @Inject constructor(
                     baseGameId = null,
                     scoringMode = ScoringMode.fromStorage(row.string("scoring_mode")),
                     highScoreWins = row.boolean("high_score_wins", default = true),
-                    suddenDeathPossible = row.boolean("sudden_death_possible"),
                     notes = row.string("notes"),
                     createdAt = row.long("created_at") ?: 0L,
                     updatedAt = row.long("updated_at") ?: 0L
@@ -490,6 +489,7 @@ class CsvImporter @Inject constructor(
                 }
                 val playedOn = row.requireString("played_on")
                 val playerCount = row.int("player_count") ?: 0
+                val endCondition = endConditionOf(row)
                 val entity = SessionEntity(
                     id = if (mode == ImportMode.REPLACE) incomingId else 0L,
                     gameId = gameId,
@@ -502,9 +502,9 @@ class CsvImporter @Inject constructor(
                     isCooperative = row.boolean("is_cooperative"),
                     coopOutcome = CoopOutcome.fromStorage(row.string("coop_outcome")),
                     mode = row.string("mode"),
-                    endCondition = SessionEndCondition.fromStorage(row.string("end_condition")),
+                    endCondition = endCondition,
                     endReason = row.string("end_reason"),
-                    isIncomplete = row.boolean("is_incomplete"),
+                    isIncomplete = endCondition == SessionEndCondition.ABANDONED,
                     isTeachingGame = row.boolean("is_teaching_game"),
                     isDraft = false,
                     pausedMs = row.long("paused_ms") ?: 0L,
@@ -534,6 +534,25 @@ class CsvImporter @Inject constructor(
         }
         written[CsvSchema.SESSIONS] = count
         return ids
+    }
+
+    /**
+     * How a play ended, out of an archive that may predate the question being asked.
+     *
+     * Before there was one word for it, three answers were spread across two columns:
+     * a `SUDDEN_DEATH` end condition, an `is_incomplete` flag, and the absence of both.
+     * The same reconciliation runs in the version 8 migration, and an archive exported
+     * back then never went through it -- restoring one is the other way this data
+     * arrives, so it has to be reconciled on the way in too.
+     *
+     * Abandonment is read first for the reason it wins there as well: a row claiming
+     * both is claiming there was no result, which is the claim every statistic acts on.
+     */
+    private fun endConditionOf(row: CsvRow): SessionEndCondition = if (row.boolean("is_incomplete")) {
+        SessionEndCondition.ABANDONED
+    } else {
+        SessionEndCondition.fromStorage(row.string("end_condition"))
+            ?: SessionEndCondition.STANDARD
     }
 
     private suspend fun importSessionPlayers(

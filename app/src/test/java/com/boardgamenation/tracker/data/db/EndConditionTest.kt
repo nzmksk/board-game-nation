@@ -20,15 +20,21 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 /**
- * Plays that end the moment a condition is met, and the rule that recording one must not
- * disturb how the game is normally scored.
+ * How a play ended, which every play is asked and every scoring mode can answer.
  *
- * 7 Wonders Duel is the case this was built for: military or scientific supremacy stops
- * the game before anyone counts a victory point, so there are no final scores to rank by,
- * but the play absolutely finished and absolutely has a winner.
+ * Two of the three answers change what the app does with the play. An abandoned one is a
+ * play with no result, and drops out of the duration and win-rate figures. A play a rule
+ * stopped is the opposite: 7 Wonders Duel's military supremacy ends the game before
+ * anyone counts a victory point, so there are no final scores to rank by, but the play
+ * absolutely finished and absolutely has a winner.
+ *
+ * The rest of this file is about what must *not* change when one is recorded: a rule that
+ * ends a co-op does not take the table's verdict away from it, one that ends a hidden-role
+ * game does not take the win off the winning side, and logging any of it never rewrites
+ * how the game itself is scored.
  */
 @RunWith(RobolectricTestRunner::class)
-class SuddenDeathTest {
+class EndConditionTest {
 
     private lateinit var db: AppDatabase
     private lateinit var repository: SessionRepository
@@ -46,10 +52,7 @@ class SuddenDeathTest {
             clock = DatabaseTestFixture.clock
         )
         gameId = db.gameDao().insert(
-            DatabaseTestFixture.game("7 Wonders Duel").copy(
-                scoringMode = ScoringMode.RANKED_SCORES,
-                suddenDeathPossible = true
-            )
+            DatabaseTestFixture.game("7 Wonders Duel").copy(scoringMode = ScoringMode.RANKED_SCORES)
         )
         me = db.playerDao().insert(DatabaseTestFixture.player("Hafiz", isSelf = true))
         opponent = db.playerDao().insert(DatabaseTestFixture.player("Aisyah"))
@@ -60,7 +63,7 @@ class SuddenDeathTest {
 
     private fun form(
         players: List<Pair<Long, Double?>>,
-        endCondition: SessionEndCondition? = null,
+        endCondition: SessionEndCondition = SessionEndCondition.STANDARD,
         endReason: String? = null,
         mode: ScoringMode = ScoringMode.RANKED_SCORES
     ) = SessionForm(
@@ -75,12 +78,14 @@ class SuddenDeathTest {
         }
     )
 
+    // --- a rule that stops the game -------------------------------------------------
+
     @Test
-    fun `a sudden-death play ranks by order even with no scores at all`() = runTest {
+    fun `a play a rule ended ranks by order even with no scores at all`() = runTest {
         val id = repository.save(
             form(
                 players = listOf(me to null, opponent to null),
-                endCondition = SessionEndCondition.SUDDEN_DEATH,
+                endCondition = SessionEndCondition.SPECIFIC,
                 endReason = "Military supremacy"
             )
         )
@@ -100,7 +105,7 @@ class SuddenDeathTest {
      * the whole reason the field exists.
      */
     @Test
-    fun `the same scoreless form without a sudden death produces no winner`() = runTest {
+    fun `the same scoreless form played to the end produces no winner`() = runTest {
         val id = repository.save(form(players = listOf(me to null, opponent to null)))
         val rows = db.sessionDao().getParticipants(id)
 
@@ -109,13 +114,13 @@ class SuddenDeathTest {
     }
 
     @Test
-    fun `a partial score entered on a sudden-death play is kept but does not decide it`() = runTest {
+    fun `a partial score entered on a play a rule ended is kept but does not decide it`() = runTest {
         // The player placed second has the higher number: the game ended before that
         // number meant anything.
         val id = repository.save(
             form(
                 players = listOf(me to 12.0, opponent to 40.0),
-                endCondition = SessionEndCondition.SUDDEN_DEATH,
+                endCondition = SessionEndCondition.SPECIFIC,
                 endReason = "Scientific supremacy"
             )
         )
@@ -133,25 +138,24 @@ class SuddenDeathTest {
         val id = repository.save(
             form(
                 players = listOf(me to null, opponent to null),
-                endCondition = SessionEndCondition.SUDDEN_DEATH,
+                endCondition = SessionEndCondition.SPECIFIC,
                 endReason = "Military supremacy"
             )
         )
 
         val session = db.sessionDao().getSession(id)!!
 
-        assertEquals(SessionEndCondition.SUDDEN_DEATH, session.endCondition)
+        assertEquals(SessionEndCondition.SPECIFIC, session.endCondition)
         assertEquals("Military supremacy", session.endReason)
-        assertFalse("a sudden death is not an abandoned game", session.isIncomplete)
+        assertFalse("a game a rule ended is not an abandoned one", session.isIncomplete)
     }
 
-    /** A stale reason must not survive on a play that was scored normally after all. */
+    /** A stale reason must not survive on a play that ran to the last round after all. */
     @Test
-    fun `a reason is not stored when the play ended in final scoring`() = runTest {
+    fun `a reason is not stored when the play ran to the end`() = runTest {
         val id = repository.save(
             form(
                 players = listOf(me to 20.0, opponent to 15.0),
-                endCondition = null,
                 endReason = "Military supremacy"
             )
         )
@@ -164,7 +168,7 @@ class SuddenDeathTest {
         repository.save(
             form(
                 players = listOf(me to null, opponent to null),
-                endCondition = SessionEndCondition.SUDDEN_DEATH,
+                endCondition = SessionEndCondition.SPECIFIC,
                 endReason = "Military supremacy"
             )
         )
@@ -175,14 +179,155 @@ class SuddenDeathTest {
         )
     }
 
+    // --- abandonment -----------------------------------------------------------------
+
+    @Test
+    fun `an abandoned play is the flag every statistic filters on`() = runTest {
+        val id = repository.save(
+            form(
+                players = listOf(me to null, opponent to null),
+                endCondition = SessionEndCondition.ABANDONED
+            )
+        )
+
+        val session = db.sessionDao().getSession(id)!!
+
+        assertEquals(SessionEndCondition.ABANDONED, session.endCondition)
+        assertTrue("is_incomplete is written from the end condition", session.isIncomplete)
+    }
+
+    @Test
+    fun `abandonment survives a load and a save`() = runTest {
+        val id = repository.save(
+            form(
+                players = listOf(me to null, opponent to null),
+                endCondition = SessionEndCondition.ABANDONED
+            )
+        )
+
+        val reloaded = repository.loadForm(id)!!
+
+        assertEquals(SessionEndCondition.ABANDONED, reloaded.endCondition)
+        assertTrue(reloaded.isIncomplete)
+    }
+
+    /**
+     * A row written by a version that had no end condition, or restored from an archive
+     * exported then, still says how it ended -- in the only column that could carry it.
+     */
+    @Test
+    fun `an old row with only the abandoned flag reads back as abandoned`() = runTest {
+        val id = db.sessionDao().insertSession(
+            DatabaseTestFixture.session(gameId, "2026-02-03", isIncomplete = true)
+                .copy(endCondition = null)
+        )
+        db.sessionDao().insertParticipants(
+            listOf(DatabaseTestFixture.participant(id, me))
+        )
+
+        assertEquals(SessionEndCondition.ABANDONED, repository.loadForm(id)!!.endCondition)
+    }
+
+    @Test
+    fun `an old row with neither reads back as having run to the end`() = runTest {
+        val id = db.sessionDao().insertSession(
+            DatabaseTestFixture.session(gameId, "2026-02-04").copy(endCondition = null)
+        )
+        db.sessionDao().insertParticipants(
+            listOf(DatabaseTestFixture.participant(id, me))
+        )
+
+        assertEquals(SessionEndCondition.STANDARD, repository.loadForm(id)!!.endCondition)
+    }
+
+    // --- every other mode settles its own result -------------------------------------
+
+    /**
+     * Pandemic's uncontrolled outbreak is a rule ending the game, and it is also a loss.
+     * The table's verdict decides who won; the ending only says what brought it about.
+     */
+    @Test
+    fun `a co-op a rule ended still takes the table's outcome`() = runTest {
+        val coopGame = db.gameDao().insert(
+            DatabaseTestFixture.game("Pandemic").copy(scoringMode = ScoringMode.COOPERATIVE)
+        )
+        val id = repository.save(
+            SessionForm(
+                gameId = coopGame,
+                playedOn = LocalDate.parse("2026-02-02"),
+                durationMinutes = 45,
+                scoringMode = ScoringMode.COOPERATIVE,
+                coopOutcome = CoopOutcome.LOSS,
+                endCondition = SessionEndCondition.SPECIFIC,
+                endReason = "Uncontrolled outbreak",
+                participants = listOf(
+                    ParticipantForm(playerId = me, playerName = "me"),
+                    ParticipantForm(playerId = opponent, playerName = "them")
+                )
+            )
+        )
+
+        assertTrue("a lost co-op has no winner", db.sessionDao().getParticipants(id).none { it.isWinner })
+        assertEquals("Uncontrolled outbreak", db.sessionDao().getSession(id)!!.endReason)
+    }
+
+    /**
+     * Secret Hitler ends the instant Hitler is elected Chancellor, and the fascists win
+     * whoever happens to be first in the list. Ranking by order here would hand the game
+     * to the player at the top of the form.
+     */
+    @Test
+    fun `a team game a rule ended still wins by the side, not by list order`() = runTest {
+        val teamGame = db.gameDao().insert(
+            DatabaseTestFixture.game("Secret Hitler").copy(scoringMode = ScoringMode.TEAM_BASED)
+        )
+        val id = repository.save(
+            SessionForm(
+                gameId = teamGame,
+                playedOn = LocalDate.parse("2026-02-05"),
+                durationMinutes = 40,
+                scoringMode = ScoringMode.TEAM_BASED,
+                winningTeam = "Fascists",
+                endCondition = SessionEndCondition.SPECIFIC,
+                endReason = "Hitler elected Chancellor",
+                participants = listOf(
+                    ParticipantForm(playerId = me, playerName = "me", team = "Liberals"),
+                    ParticipantForm(playerId = opponent, playerName = "them", team = "Fascists")
+                )
+            )
+        )
+
+        val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
+
+        assertFalse("first in the list is not the winner here", rows[me]!!.isWinner)
+        assertTrue("the winning side won", rows[opponent]!!.isWinner)
+    }
+
+    @Test
+    fun `a manual placement play a rule ended keeps the order the user gave`() = runTest {
+        val id = repository.save(
+            form(
+                players = listOf(me to null, opponent to null),
+                endCondition = SessionEndCondition.SPECIFIC,
+                endReason = "Ran out of cards",
+                mode = ScoringMode.MANUAL_PLACEMENT
+            )
+        )
+
+        val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
+
+        assertEquals(1, rows[me]!!.placement)
+        assertEquals(2, rows[opponent]!!.placement)
+    }
+
     // --- the game's own scoring must survive being played -------------------------
 
     @Test
-    fun `saving a sudden-death play leaves the game's scoring mode alone`() = runTest {
+    fun `saving a play a rule ended leaves the game's scoring mode alone`() = runTest {
         repository.save(
             form(
                 players = listOf(me to null, opponent to null),
-                endCondition = SessionEndCondition.SUDDEN_DEATH,
+                endCondition = SessionEndCondition.SPECIFIC,
                 endReason = "Military supremacy"
             )
         )

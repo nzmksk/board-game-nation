@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.domain.model.TimerMode
 import java.io.File
@@ -117,7 +118,9 @@ class MigrationTest {
         assertEquals(2, db.gameDao().getAllGames().size)
         assertEquals("Catan", db.gameDao().getGame(1)!!.title)
         assertFalse("designers column should be dropped", columnsOf(db, "games").contains("designers"))
-        assertTrue(columnsOf(db, "games").contains("sudden_death_possible"))
+        // The rebuild copies the rest of the table across rather than only the columns
+        // this migration cares about.
+        assertTrue(columnsOf(db, "games").contains("scoring_mode"))
     }
 
     /**
@@ -139,7 +142,7 @@ class MigrationTest {
         assertTrue("expected an id above 7 but got $newId", newId > 7)
     }
 
-    // --- sudden death ---------------------------------------------------------------
+    // --- end conditions ---------------------------------------------------------------
 
     @Test
     fun `existing sessions come through as ordinary endings`() = runTest {
@@ -157,9 +160,109 @@ class MigrationTest {
         val db = openMigrated()
         val session = db.sessionDao().getSession(1)!!
 
-        assertNull("a pre-existing play was scored normally", session.endCondition)
+        assertEquals(
+            "a play written before the app asked ran to the end, which is what the null meant",
+            SessionEndCondition.STANDARD,
+            session.endCondition
+        )
         assertNull(session.endReason)
         assertEquals("2026-01-05", session.playedOn)
+    }
+
+    @Test
+    fun `a sudden death becomes the rule that ended it`() = runTest {
+        seedAt(8) { db ->
+            insertGameV8(db, id = 1, title = "7 Wonders Duel")
+            insertSessionV8(db, id = 1, endCondition = "'SUDDEN_DEATH'", endReason = "'Military supremacy'")
+        }
+
+        val session = openMigrated().sessionDao().getSession(1)!!
+
+        assertEquals(SessionEndCondition.SPECIFIC, session.endCondition)
+        assertEquals("Military supremacy", session.endReason)
+        assertFalse("a game a rule ended is not an abandoned one", session.isIncomplete)
+    }
+
+    @Test
+    fun `an abandoned play becomes an abandoned ending`() = runTest {
+        seedAt(8) { db ->
+            insertGameV8(db, id = 1, title = "Twilight Imperium")
+            insertSessionV8(db, id = 1, isIncomplete = 1)
+        }
+
+        val session = openMigrated().sessionDao().getSession(1)!!
+
+        assertEquals(SessionEndCondition.ABANDONED, session.endCondition)
+        assertTrue("the flag every statistic filters on still stands", session.isIncomplete)
+    }
+
+    /**
+     * Nothing stopped a play claiming both while they were separate fields. Abandonment
+     * is the reading that survives: it is the stronger claim -- there was no result --
+     * and the one the win-rate and duration figures already act on, so resolving it the
+     * other way would quietly readmit the play to statistics that had excluded it.
+     */
+    @Test
+    fun `a play that claimed both endings comes back abandoned`() = runTest {
+        seedAt(8) { db ->
+            insertGameV8(db, id = 1, title = "Secret Hitler")
+            insertSessionV8(
+                db,
+                id = 1,
+                isIncomplete = 1,
+                endCondition = "'SUDDEN_DEATH'",
+                endReason = "'Hitler elected Chancellor'"
+            )
+        }
+
+        val session = openMigrated().sessionDao().getSession(1)!!
+
+        assertEquals(SessionEndCondition.ABANDONED, session.endCondition)
+        assertTrue(session.isIncomplete)
+    }
+
+    /** The user's own words are never thrown away, only left unread where they no longer fit. */
+    @Test
+    fun `a reason on a play that is no longer specific is kept but not offered back`() = runTest {
+        seedAt(8) { db ->
+            insertGameV8(db, id = 1, title = "Secret Hitler")
+            insertSessionV8(
+                db,
+                id = 1,
+                isIncomplete = 1,
+                endCondition = "'SUDDEN_DEATH'",
+                endReason = "'Hitler elected Chancellor'"
+            )
+        }
+
+        val db = openMigrated()
+
+        assertEquals("Hitler elected Chancellor", db.sessionDao().getSession(1)!!.endReason)
+        assertTrue(
+            "a reason from an abandoned play is not a rule to suggest",
+            db.sessionDao().observeEndReasonsFor(1).first().isEmpty()
+        )
+    }
+
+    @Test
+    fun `the per-game sudden death flag is gone and the collection is not`() = runTest {
+        seedAt(8) { db ->
+            insertGameV8(db, id = 1, title = "7 Wonders Duel", suddenDeathPossible = 1)
+            insertGameV8(db, id = 2, title = "Azul")
+            db.execSQL("DELETE FROM games WHERE id = 2")
+            insertGameV8(db, id = 5, title = "Wingspan")
+        }
+
+        val db = openMigrated()
+
+        assertFalse("sudden_death_possible dropped", "sudden_death_possible" in columnsOf(db, "games"))
+        assertEquals(
+            listOf("7 Wonders Duel", "Wingspan"),
+            db.gameDao().getAllGames().map { it.title }.sorted()
+        )
+        // The rebuild drops the table, and with it the AUTOINCREMENT counter.
+        val newId = db.gameDao().insert(DatabaseTestFixture.game("Brand new"))
+        assertTrue("expected an id above 5 but got $newId", newId > 5)
     }
 
     // --- timer mode -----------------------------------------------------------------
@@ -372,14 +475,24 @@ class MigrationTest {
     // --- plumbing -------------------------------------------------------------------
 
     /** Builds a database at schema version 1 and hands it to [block] to fill. */
-    private fun seedV1(block: (SupportSQLiteDatabase) -> Unit) {
+    private fun seedV1(block: (SupportSQLiteDatabase) -> Unit) = seedAt(1, block)
+
+    /**
+     * The same at any committed version.
+     *
+     * Most of these tests start at 1 and walk the whole chain, which is the case that
+     * matters: it is what restoring an old backup does. A migration that folds two
+     * columns into one needs the other kind as well -- the values it reconciles cannot be
+     * written at version 1, because the columns holding them did not exist yet.
+     */
+    private fun seedAt(version: Int, block: (SupportSQLiteDatabase) -> Unit) {
         val helper = FrameworkSQLiteOpenHelperFactory().create(
             SupportSQLiteOpenHelper.Configuration.builder(context)
                 .name(DB_NAME)
                 .callback(
-                    object : SupportSQLiteOpenHelper.Callback(1) {
+                    object : SupportSQLiteOpenHelper.Callback(version) {
                         override fun onCreate(db: SupportSQLiteDatabase) {
-                            version1Ddl().forEach(db::execSQL)
+                            schemaDdl(version).forEach(db::execSQL)
                         }
 
                         override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
@@ -413,6 +526,31 @@ class MigrationTest {
         """.trimIndent()
     )
 
+    private fun insertGameV8(db: SupportSQLiteDatabase, id: Long, title: String, suddenDeathPossible: Int = 0) = db.execSQL(
+        """
+        INSERT INTO games (id, title, date_added, status, sudden_death_possible,
+                           created_at, updated_at)
+        VALUES ($id, '$title', '2026-01-01', 'OWNED', $suddenDeathPossible, 0, 0)
+        """.trimIndent()
+    )
+
+    private fun insertSessionV8(
+        db: SupportSQLiteDatabase,
+        id: Long,
+        gameId: Long = 1,
+        isIncomplete: Int = 0,
+        endCondition: String = "NULL",
+        endReason: String = "NULL"
+    ) = db.execSQL(
+        """
+        INSERT INTO sessions (id, game_id, played_on, duration_minutes, player_count,
+                              is_incomplete, end_condition, end_reason,
+                              created_at, updated_at)
+        VALUES ($id, $gameId, '2026-01-05', 45, 2,
+                $isIncomplete, $endCondition, $endReason, 0, 0)
+        """.trimIndent()
+    )
+
     private fun columnsOf(db: AppDatabase, table: String): List<String> =
         db.openHelper.writableDatabase.query("PRAGMA table_info($table)").use { cursor ->
             buildList {
@@ -421,9 +559,9 @@ class MigrationTest {
             }
         }
 
-    /** The version 1 schema, read from the JSON Room exported and the repository commits. */
-    private fun version1Ddl(): List<String> {
-        val file = File("schemas/${AppDatabase::class.qualifiedName}/1.json")
+    /** A schema, read from the JSON Room exported and the repository commits. */
+    private fun schemaDdl(version: Int): List<String> {
+        val file = File("schemas/${AppDatabase::class.qualifiedName}/$version.json")
         val database = JSONObject(file.readText()).getJSONObject("database")
         val statements = mutableListOf<String>()
         val entities = database.getJSONArray("entities")

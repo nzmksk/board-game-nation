@@ -7,6 +7,7 @@ import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.SessionForm
 import java.time.LocalDate
 import kotlinx.coroutines.flow.first
@@ -437,7 +438,11 @@ class SessionDaoTest {
         repository.save(form(listOf(me to 10.0)).copy(durationMinutes = 90))
         repository.save(
             form(listOf(me to 10.0))
-                .copy(playedOn = LocalDate.parse("2026-02-05"), durationMinutes = 5, isIncomplete = true)
+                .copy(
+                    playedOn = LocalDate.parse("2026-02-05"),
+                    durationMinutes = 5,
+                    endCondition = SessionEndCondition.ABANDONED
+                )
         )
         assertEquals(90, repository.newSessionForm(gameId).durationMinutes)
     }

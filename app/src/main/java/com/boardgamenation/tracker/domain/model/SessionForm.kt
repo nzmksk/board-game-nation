@@ -51,13 +51,16 @@ data class SessionForm(
      */
     val winningTeam: String? = null,
 
-    /** Null means the play ran to final scoring, which is the ordinary case. */
-    val endCondition: SessionEndCondition? = null,
+    /**
+     * How the play ended. Never null on the form: a play the app was never able to ask
+     * about reads back as [SessionEndCondition.STANDARD], which is what the nullable
+     * column meant before there was anything else to say.
+     */
+    val endCondition: SessionEndCondition = SessionEndCondition.STANDARD,
 
-    /** Free text naming what triggered a sudden-death ending. */
+    /** Free text naming the rule that stopped the play, when one did. */
     val endReason: String? = null,
 
-    val isIncomplete: Boolean = false,
     val isTeachingGame: Boolean = false,
     val notes: String? = null,
     val photoUri: String? = null,
@@ -88,8 +91,29 @@ data class SessionForm(
         get() = participants.mapNotNull { it.team?.trim()?.takeIf(String::isNotEmpty) }
             .distinctBy { it.lowercase() }
 
-    /** A play that ended the moment a condition was met, before any final scoring. */
-    val isSuddenDeath: Boolean get() = endCondition == SessionEndCondition.SUDDEN_DEATH
+    /** A play a rule stopped before the game reached its own ending. */
+    val endedEarly: Boolean get() = endCondition == SessionEndCondition.SPECIFIC
+
+    /**
+     * Abandoned before any ending was reached: counted in play totals, excluded from
+     * duration and win-rate statistics.
+     *
+     * Read off the end condition rather than held beside it, so the two can never
+     * disagree. A play cannot both have been given up on and have run to the last round,
+     * and while they were separate fields the form allowed exactly that.
+     */
+    val isIncomplete: Boolean get() = endCondition == SessionEndCondition.ABANDONED
+
+    /**
+     * Whether the order the players are listed in is what decides the result.
+     *
+     * Only scored play needs this. A game stopped early has no final scores to rank by,
+     * so the order the user puts the table in is the ranking. Every other mode already
+     * decides the result some way the ending leaves alone -- a co-op by the table's
+     * outcome, a team game by the winning side, manual placement by that same order --
+     * and overriding those would throw away the answer the user actually gave.
+     */
+    val ranksByOrder: Boolean get() = endedEarly && scoringMode == ScoringMode.RANKED_SCORES
 
     /** Who took the first turn, when anyone said. */
     val firstPlayer: ParticipantForm? get() = participants.firstOrNull { it.turnOrder == 1 }

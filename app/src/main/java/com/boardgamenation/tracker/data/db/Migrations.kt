@@ -253,6 +253,132 @@ object Migrations {
     }
 
     /**
+     * Turns sudden death into an ending every play has, whatever its scoring.
+     *
+     * Three things used to answer "how did this end?", and only between them: a null
+     * `end_condition` meant the game ran to its own finish, `SUDDEN_DEATH` meant a rule
+     * stopped it, and `is_incomplete` -- a separate column, on the other side of the
+     * form -- meant the table gave up. Nothing joined them up, so a play could claim two
+     * at once, and a game with no `sudden_death_possible` flag was never asked at all.
+     *
+     * Every existing row is written into the one vocabulary. None of it is guesswork:
+     *
+     *  - abandoned wins where both were ticked. It is the stronger claim about the play
+     *    -- there is no result -- and it is the one the statistics already act on, so
+     *    letting the other reading win would quietly readmit those plays to the win-rate.
+     *  - `SUDDEN_DEATH` becomes `SPECIFIC`, which is the same fact renamed.
+     *  - a null becomes `STANDARD`, which is what the column's own documentation said a
+     *    null meant. This is the previous meaning written down, not a new claim about
+     *    plays nobody recorded.
+     *
+     * Reasons left on rows that are no longer `SPECIFIC` are kept where they are. They
+     * are the user's own words and cost nothing to hold; the query that offers them back
+     * as chips asks for the ending that owns one, so a stale reason is unread, not shown.
+     *
+     * `sudden_death_possible` then goes: the form asks every game how the play ended, so
+     * there is no per-game flag left to gate it. minSdk 26 ships SQLite 3.18, which
+     * predates ALTER TABLE DROP COLUMN (3.35), so removing the column means the
+     * create/copy/drop/rename recipe -- and the AUTOINCREMENT counter has to be carried
+     * over by hand, exactly as in [MIGRATION_2_3], or a collection whose highest-numbered
+     * game had been deleted would hand that id out a second time.
+     */
+    private val MIGRATION_8_9 = Migration(8, 9) { db ->
+        db.execSQL("UPDATE sessions SET end_condition = 'ABANDONED' WHERE is_incomplete = 1")
+        db.execSQL(
+            "UPDATE sessions SET end_condition = 'SPECIFIC' WHERE end_condition = 'SUDDEN_DEATH'"
+        )
+        db.execSQL("UPDATE sessions SET end_condition = 'STANDARD' WHERE end_condition IS NULL")
+
+        db.execSQL(
+            "CREATE TEMP TABLE games_seq AS " +
+                "SELECT seq FROM sqlite_sequence WHERE name = 'games'"
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `games_new` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `bgg_id` INTEGER,
+                `title` TEXT NOT NULL,
+                `year_published` INTEGER,
+                `min_players` INTEGER,
+                `max_players` INTEGER,
+                `best_player_count` TEXT,
+                `min_playtime_minutes` INTEGER,
+                `max_playtime_minutes` INTEGER,
+                `weight` REAL,
+                `bgg_rating` REAL,
+                `publisher` TEXT,
+                `thumbnail_path` TEXT,
+                `date_added` TEXT NOT NULL,
+                `price` REAL,
+                `currency` TEXT NOT NULL DEFAULT 'MYR',
+                `purchase_note` TEXT,
+                `status` TEXT NOT NULL,
+                `wishlist_priority` INTEGER,
+                `in_possession` INTEGER NOT NULL DEFAULT 1,
+                `lent_to` TEXT,
+                `lent_date` TEXT,
+                `is_expansion` INTEGER NOT NULL DEFAULT 0,
+                `base_game_id` INTEGER,
+                `scoring_mode` TEXT NOT NULL DEFAULT 'RANKED_SCORES',
+                `high_score_wins` INTEGER NOT NULL DEFAULT 1,
+                `notes` TEXT,
+                `created_at` INTEGER NOT NULL,
+                `updated_at` INTEGER NOT NULL,
+                FOREIGN KEY(`base_game_id`) REFERENCES `games`(`id`)
+                    ON UPDATE NO ACTION ON DELETE SET NULL
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO `games_new` (
+                `id`, `bgg_id`, `title`, `year_published`, `min_players`, `max_players`,
+                `best_player_count`, `min_playtime_minutes`, `max_playtime_minutes`,
+                `weight`, `bgg_rating`, `publisher`, `thumbnail_path`, `date_added`,
+                `price`, `currency`, `purchase_note`, `status`, `wishlist_priority`,
+                `in_possession`, `lent_to`, `lent_date`, `is_expansion`, `base_game_id`,
+                `scoring_mode`, `high_score_wins`, `notes`, `created_at`, `updated_at`
+            )
+            SELECT
+                `id`, `bgg_id`, `title`, `year_published`, `min_players`, `max_players`,
+                `best_player_count`, `min_playtime_minutes`, `max_playtime_minutes`,
+                `weight`, `bgg_rating`, `publisher`, `thumbnail_path`, `date_added`,
+                `price`, `currency`, `purchase_note`, `status`, `wishlist_priority`,
+                `in_possession`, `lent_to`, `lent_date`, `is_expansion`, `base_game_id`,
+                `scoring_mode`, `high_score_wins`, `notes`, `created_at`, `updated_at`
+            FROM `games`
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE `games`")
+        db.execSQL("ALTER TABLE `games_new` RENAME TO `games`")
+
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_games_bgg_id` ON `games` (`bgg_id`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_games_title` ON `games` (`title`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_games_status` ON `games` (`status`)")
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_games_base_game_id` ON `games` (`base_game_id`)"
+        )
+
+        db.execSQL(
+            """
+            UPDATE sqlite_sequence
+               SET seq = (SELECT seq FROM games_seq)
+             WHERE name = 'games' AND (SELECT seq FROM games_seq) > seq
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO sqlite_sequence (name, seq)
+            SELECT 'games', (SELECT seq FROM games_seq)
+             WHERE (SELECT seq FROM games_seq) IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM sqlite_sequence WHERE name = 'games')
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE games_seq")
+    }
+
+    /**
      * Ordered oldest to newest. Room composes them, so a device three versions behind
      * walks the chain rather than needing a 1-to-4 migration of its own.
      */
@@ -263,6 +389,7 @@ object Migrations {
         MIGRATION_4_5,
         MIGRATION_5_6,
         MIGRATION_6_7,
-        MIGRATION_7_8
+        MIGRATION_7_8,
+        MIGRATION_8_9
     )
 }
