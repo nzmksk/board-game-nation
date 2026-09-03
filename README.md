@@ -383,14 +383,18 @@ Android Studio reads too, so a file saved in the IDE is a file ktlint accepts. A
 everything it reports, `ktlintFormat` fixes for you.
 
 **Android Lint** is about the code: a permission that may be denied at runtime, a locale
-read in a way that will not recompose. It had never been run here, so it opened with 16
-errors and 111 warnings that predate it. Those live in `app/lint-baseline.xml`, which
-means CI fails on a *new* error rather than on the backlog. Fixing one is a matter of
-deleting its entry from that file; regenerating the whole file (delete it and run
-`lintDebug`) hides the backlog again, so do that only when the errors are genuinely gone.
+read in a way that will not recompose. It opened with 15 errors and 111 warnings, which
+were held in a baseline file while they were worked through and are now all fixed, so
+there is no baseline and the project lints clean.
 
-Warnings never fail the build. The `Lint` workflow runs both on every pull request,
-attaches the HTML reports to the run, and annotates the diff with what it found.
+A warning fails the build the same as an error does. With nothing outstanding there is
+no backlog for a new one to hide in, so anything lint reports belongs to the change that
+introduced it. Two checks are switched off outright: `PropertyEscape`, which only ever
+fires on the git-ignored `local.properties`, and the pair of dependency-freshness checks,
+which are Dependabot's job.
+
+The `Lint` workflow runs both linters on every pull request, attaches the HTML reports to
+the run, and annotates the diff with what it found.
 
 ## Tests
 
