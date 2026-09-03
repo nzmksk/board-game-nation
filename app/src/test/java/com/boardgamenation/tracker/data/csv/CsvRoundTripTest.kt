@@ -138,10 +138,11 @@ class CsvRoundTripTest {
             )
             db.sessionDao().insertParticipants(
                 listOf(
-                    DatabaseTestFixture.participant(sessionId, me, 9.0 + index, index == 0, 1, 2),
-                    DatabaseTestFixture.participant(sessionId, ben, 7.0, index != 0, 2, 1),
-                    // Left out of the turn order: a partial one has to survive too.
-                    DatabaseTestFixture.participant(sessionId, aina, 5.0, false, 3)
+                    DatabaseTestFixture.participant(sessionId, me, 9.0 + index, index == 0, 1, 2, seat = 1),
+                    DatabaseTestFixture.participant(sessionId, ben, 7.0, index != 0, 2, 1, seat = 3),
+                    // Left out of the turn order but not out of the seating: the two
+                    // columns are independent, and the archive has to keep them that way.
+                    DatabaseTestFixture.participant(sessionId, aina, 5.0, false, 3, seat = 2)
                 )
             )
             if (index == 2) {
@@ -281,6 +282,28 @@ class CsvRoundTripTest {
         assertEquals(3, rows.count { it.playerId == ben.id && it.turnOrder == 1 })
         assertTrue(
             "a player left out of the order comes back left out of it",
+            rows.filter { it.playerId == aina.id }.all { it.turnOrder == null }
+        )
+    }
+
+    @Test
+    fun `the seating survives the round trip`() = runTest {
+        populate()
+        val files = exporter.buildFiles()
+        maintenance.wipeUserData()
+        importer.import(files, ImportMode.REPLACE)
+
+        val me = db.playerDao().getAll().first { it.name == "Muhammad" }
+        val ben = db.playerDao().getAll().first { it.name == "Ben" }
+        val aina = db.playerDao().getAll().first { it.name == "Aina" }
+        val rows = db.sessionDao().getAllSessionPlayers().filter { it.seat != null }
+
+        assertEquals(9, rows.size)
+        assertEquals(3, rows.count { it.playerId == me.id && it.seat == 1 })
+        assertEquals(3, rows.count { it.playerId == aina.id && it.seat == 2 })
+        assertEquals(3, rows.count { it.playerId == ben.id && it.seat == 3 })
+        assertTrue(
+            "a seat is not read off the turn order on the way back in",
             rows.filter { it.playerId == aina.id }.all { it.turnOrder == null }
         )
     }

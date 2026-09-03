@@ -566,6 +566,10 @@ class CsvImporter @Inject constructor(
                     // Absent from any archive taken before the column existed, which
                     // reads back as null: nobody recorded an order for those plays.
                     turnOrder = row.int("turn_order"),
+                    // Likewise, and here null is the only answer an old archive could
+                    // honestly give -- there is nothing in it to reconstruct a seating
+                    // from, and a ring built out of row order would be made up.
+                    seat = row.int("seat"),
                     team = row.string("team"),
                     isNewPlayer = row.boolean("is_new_player"),
                     turnTimeMs = row.long("turn_time_ms"),
