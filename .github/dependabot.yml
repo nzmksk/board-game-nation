@@ -18,3 +18,26 @@ updates:
       - infra
     commit-message:
       prefix: ci
+
+  # Every coordinate the app builds against lives in gradle/libs.versions.toml, so
+  # the root directory covers app/ too — neither build script names a version.
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      # A minor or patch bump across the Compose, AndroidX and test libraries is
+      # the same review either way, and one green CI run says more about the set
+      # than a dozen runs on a dozen branches.
+      gradle-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    # A major bump of AGP, Kotlin or KSP tends to drag the others with it and can
+    # need source changes, so majors stay ungrouped and arrive one at a time.
+    open-pull-requests-limit: 5
+    labels:
+      - infra
+    commit-message:
+      prefix: build
