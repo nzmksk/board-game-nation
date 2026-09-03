@@ -264,8 +264,8 @@ every chart row and every timer zone carries the name beside the swatch.
 
 ### A shared result is a picture, and pictures leave
 
-Sharing a play renders a 1080x1920 card and hands it to the system chooser. Two decisions
-in it are worth knowing about.
+Sharing a play renders a 1080x1920 card and hands it to the system chooser. Three
+decisions in it are worth knowing about.
 
 It is drawn on a canvas rather than composed. The card is never on screen, and rendering
 a composable to a bitmap means attaching it to a window and waiting for a frame -- a
@@ -279,6 +279,13 @@ It ignores the theme, both the wallpaper and light or dark. The image outlives t
 it was made on: it lands in a group chat, on a story, in somebody else's camera roll. A
 card that looked like the sender's home screen would make the same app's results arrive
 looking like a different app every time.
+
+Gold means exactly one thing on it. The winner's row outline, their placement disc, their
+score, the headline -- and nothing else is allowed to spend it. The card marks other
+facts too: a player's first play of the game gets a tag beside their name, because the
+newcomer at the table is half of what the group talks about afterwards. That tag is
+outlined in the card's badge style rather than picked out in the accent, since a second
+gold element one row down reads as a second winner.
 
 The file itself is a throwaway in `cacheDir/share`, replaced on every share and exposed
 through a `FileProvider` scoped to exactly that directory -- naming the cache root would
@@ -302,7 +309,7 @@ than a spinner that says nothing.
 ./gradlew :app:testDebugUnitTest
 ```
 
-269 tests, run on the JVM. The database tests use a real Room in-memory database through
+289 tests, run on the JVM. The database tests use a real Room in-memory database through
 Robolectric rather than mocks, so a query that compiles but returns the wrong rows still
 fails.
 
