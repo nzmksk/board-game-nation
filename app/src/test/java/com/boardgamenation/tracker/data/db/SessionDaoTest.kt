@@ -1,6 +1,7 @@
 package com.boardgamenation.tracker.data.db
 
 import com.boardgamenation.tracker.core.time.DateUtils
+import com.boardgamenation.tracker.data.db.entity.SessionPlayerEntity
 import com.boardgamenation.tracker.data.repository.SessionFilter
 import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.domain.model.CoopOutcome
@@ -416,6 +417,62 @@ class SessionDaoTest {
         assertEquals("Close one", loaded.notes)
         assertEquals(2, loaded.participants.size)
         assertEquals(LocalDate.parse("2026-02-01"), loaded.playedOn)
+    }
+
+    /**
+     * The half of #43 the save cannot reach. These rows were written before there was a
+     * rule about it, so the only thing standing between them and the shared picture is
+     * the read.
+     */
+    @Test
+    fun `a play already holding a stale score reads back without it`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+
+        // Written straight past the save's normalising, the way an archive restore
+        // writes: this is the shape the bug left behind and the save no longer produces.
+        db.sessionDao().clearParticipants(id)
+        db.sessionDao().insertParticipants(
+            listOf(
+                SessionPlayerEntity(sessionId = id, playerId = me, score = 42.0, placement = 1),
+                SessionPlayerEntity(sessionId = id, playerId = ben, score = 20.0, placement = 2),
+            ),
+        )
+        db.gameDao().getGame(gameId)!!.let {
+            db.gameDao().update(it.copy(scoringMode = ScoringMode.NONE))
+        }
+
+        assertTrue(repository.loadForm(id)!!.participants.all { it.score == null })
+    }
+
+    /**
+     * A session never stores the mode it was played under, so changing the game's mode
+     * moves every past play of it. A score kept only because the mode agreed at the
+     * moment of writing has to be asked about again on the way out.
+     */
+    @Test
+    fun `changing the game's mode takes the scores off its earlier plays`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+        assertEquals(10.0, repository.loadForm(id)!!.participants.first { it.playerId == me }.score)
+
+        db.gameDao().getGame(gameId)!!.let {
+            db.gameDao().update(it.copy(scoringMode = ScoringMode.MANUAL_PLACEMENT))
+        }
+
+        val loaded = repository.loadForm(id)!!
+        assertEquals(ScoringMode.MANUAL_PLACEMENT, loaded.scoringMode)
+        assertTrue(loaded.participants.all { it.score == null })
+        // The result the play was logged for is untouched.
+        assertEquals(1, loaded.participants.first { it.playerId == me }.placement)
+    }
+
+    @Test
+    fun `a ranked play still reads its scores back`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+
+        val loaded = repository.loadForm(id)!!
+        assertEquals(ScoringMode.RANKED_SCORES, loaded.scoringMode)
+        assertEquals(10.0, loaded.participants.first { it.playerId == me }.score)
+        assertEquals(8.0, loaded.participants.first { it.playerId == ben }.score)
     }
 
     @Test
