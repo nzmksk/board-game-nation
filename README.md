@@ -248,11 +248,17 @@ play writes the new mode back onto the game, and every earlier play of that game
 reads back under it.
 
 So a field that only makes sense in one mode cannot be settled once, when the play is
-written. Scores are dropped in both directions: on save, so rows stop accumulating
-numbers no screen shows a field for, and on load, because the mode that justified keeping
-them can change afterwards without the row being touched. The same reasoning rules out
-repairing old rows with a migration — it would have had to ask each play what mode it was
-in, and got back whatever its game happened to say the day it ran.
+written. Both are cleared on save, so rows stop accumulating values no screen shows a
+field for. Scores are cleared on load as well, because the mode that justified keeping
+them can change afterwards without the row being touched. That also rules out repairing
+old rows with a migration — it would have had to ask each play what mode it was in, and
+got back whatever its game happened to say the day it ran.
+
+Sides are the one thing not cleared on load, and deliberately: they are what the derivation
+above *reads*. A saved side is meant to outrank the game's current mode, so discarding one
+on the way out would defeat the rule it feeds. Clearing them on save is enough, and it has
+to happen — a side that survives a mode change re-answers the question on every load, which
+is how team scoring became a mode a play could not be moved off (#44).
 
 ### Both kinds of backup, because they are for different things
 
@@ -328,7 +334,7 @@ than a spinner that says nothing.
 ./gradlew :app:testDebugUnitTest
 ```
 
-296 tests, run on the JVM. The database tests use a real Room in-memory database through
+300 tests, run on the JVM. The database tests use a real Room in-memory database through
 Robolectric rather than mocks, so a query that compiles but returns the wrong rows still
 fails.
 

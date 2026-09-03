@@ -167,6 +167,7 @@ Indexes: `game_id`, `played_on`.
 | `is_winner` | INTEGER NOT NULL DEFAULT 0 | Explicit, since not all games rank by score |
 | `faction` | TEXT NULL | Role, character, colour, faction |
 | `turn_order` | INTEGER NULL | Seat in the turn order; 1 went first, null is unrecorded |
+| `team` | TEXT NULL | The side this player was on; only team scoring keeps one. Distinct from `faction` — a Secret Hitler player is on the fascist side while their role is Hitler |
 | `is_new_player` | INTEGER NOT NULL DEFAULT 0 | First time this player played this game |
 | `turn_time_ms` | INTEGER NULL | Populated by the timer, if used |
 | `bank_time_remaining_ms` | INTEGER NULL | Populated by the timer, if used |
