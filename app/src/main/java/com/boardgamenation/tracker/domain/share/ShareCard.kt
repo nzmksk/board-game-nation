@@ -37,6 +37,9 @@ data class ShareStanding(
     val team: String?,
     val score: Double?,
     val isWinner: Boolean,
+
+    /** Whether this play was their first of this game. */
+    val isNewPlayer: Boolean,
 ) {
     /** `12` rather than `12.0`, and `7.5` kept as `7.5`. */
     val scoreText: String? get() = score?.let(::formatScore)
@@ -175,6 +178,7 @@ data class ShareCard(
             team = team?.trim()?.takeIf(String::isNotEmpty),
             score = score,
             isWinner = isWinner,
+            isNewPlayer = isNewPlayer,
         )
     }
 }

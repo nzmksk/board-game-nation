@@ -48,6 +48,7 @@ class ShareCardTest {
         faction: String? = null,
         team: String? = null,
         turnOrder: Int? = null,
+        isNewPlayer: Boolean = false,
     ) = ParticipantForm(
         playerId = id,
         playerName = name,
@@ -57,6 +58,7 @@ class ShareCardTest {
         faction = faction,
         team = team,
         turnOrder = turnOrder,
+        isNewPlayer = isNewPlayer,
     )
 
     private fun namesOn(card: ShareCard) = card.standings.map { it.name }
@@ -229,6 +231,45 @@ class ShareCardTest {
         assertNull(card.endReason)
         assertNull(card.standings.single().faction)
         assertNull(card.standings.single().team)
+    }
+
+    /**
+     * Who was new to the game is recorded per player and per play, so it has to ride
+     * along with the row it belongs to rather than being looked up again later. The
+     * ordering rules move rows around freely, so the check is that the flag lands on the
+     * right name after the sort, not merely that some row carries it.
+     */
+    @Test
+    fun `a first-timer is marked on their own row and nobody else's`() {
+        val card = ShareCard.of(
+            form(
+                participants = listOf(
+                    player(1, "Hafiz", score = 71.0, placement = 3),
+                    player(2, "Aina", score = 94.0, placement = 1, isWinner = true),
+                    player(3, "Ben", score = 88.0, placement = 2, isNewPlayer = true),
+                ),
+            ),
+        )
+
+        assertEquals(listOf("Aina", "Ben", "Hafiz"), namesOn(card))
+        assertEquals(listOf(false, true, false), card.standings.map { it.isNewPlayer })
+    }
+
+    /** Everybody's first play of a game is the ordinary case for a new game night. */
+    @Test
+    fun `a table where nobody had played before marks every row`() {
+        val card = ShareCard.of(
+            form(
+                scoringMode = ScoringMode.COOPERATIVE,
+                coopOutcome = CoopOutcome.WIN,
+                participants = listOf(
+                    player(1, "Hafiz", isWinner = true, isNewPlayer = true),
+                    player(2, "Aina", isWinner = true, isNewPlayer = true),
+                ),
+            ),
+        )
+
+        assertTrue(card.standings.all { it.isNewPlayer })
     }
 
     @Test

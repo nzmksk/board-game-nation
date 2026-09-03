@@ -37,6 +37,7 @@ class ShareCardRendererTest {
         faction: String? = null,
         team: String? = null,
         isWinner: Boolean = false,
+        isNewPlayer: Boolean = false,
     ) = ShareStanding(
         rank = rank,
         name = name,
@@ -44,6 +45,7 @@ class ShareCardRendererTest {
         team = team,
         score = score,
         isWinner = isWinner,
+        isNewPlayer = isNewPlayer,
     )
 
     private fun card(
