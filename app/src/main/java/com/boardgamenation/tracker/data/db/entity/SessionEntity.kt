@@ -59,21 +59,33 @@ data class SessionEntity(
      */
     @ColumnInfo(name = "mode") val mode: String? = null,
 
-    /** Abandoned before finishing: counted in play totals, excluded from duration averages. */
+    /**
+     * Abandoned before finishing: counted in play totals, excluded from duration and
+     * win-rate averages.
+     *
+     * Kept as a column of its own even though it is now [endCondition] said a second
+     * way. Every statistic that excludes an abandoned play filters on this, in SQL, and
+     * a boolean the query planner can use an index on is worth more there than one
+     * fewer column. It is written from the end condition on every save, never beside it.
+     */
     @ColumnInfo(name = "is_incomplete", defaultValue = "0") val isIncomplete: Boolean = false,
 
     /**
-     * How the play ended, when that was not by playing through to final scoring. Null is
-     * the ordinary case, which is what leaves every session written before this column
-     * existed correct without a backfill.
+     * How the play ended. Null only on a row that reached the database without being
+     * asked -- one written before the column existed, or imported from an archive
+     * exported then.
      *
-     * A sudden-death ending is emphatically not [isIncomplete]: the game finished, it
-     * just finished early. Conflating the two would drop a legitimate win out of the
+     * An ending a rule brought on is emphatically not [isIncomplete]: the game finished,
+     * it just finished early. Conflating the two would drop a legitimate win out of the
      * win-rate and duration statistics.
      */
     @ColumnInfo(name = "end_condition") val endCondition: SessionEndCondition? = null,
 
-    /** Free text naming the condition that triggered it, e.g. "Military supremacy". */
+    /**
+     * Free text naming the rule that stopped the play, e.g. "Military supremacy". Only
+     * written alongside [SessionEndCondition.SPECIFIC], which is the only ending that
+     * has one.
+     */
     @ColumnInfo(name = "end_reason") val endReason: String? = null,
 
     /** Someone was learning, which skews duration. Flagged separately in stats. */

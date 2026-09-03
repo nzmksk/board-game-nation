@@ -50,7 +50,6 @@ data class GameEditState(
     val baseGameId: Long? = null,
     val scoringMode: ScoringMode = ScoringMode.RANKED_SCORES,
     val highScoreWins: Boolean = true,
-    val suddenDeathPossible: Boolean = false,
     val notes: String = "",
     val mechanics: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
@@ -117,7 +116,6 @@ class GameEditViewModel @Inject constructor(
                         baseGameId = game.baseGameId,
                         scoringMode = game.scoringMode,
                         highScoreWins = game.highScoreWins,
-                        suddenDeathPossible = game.suddenDeathPossible,
                         notes = game.notes.orEmpty(),
                         mechanics = tags.filter { it.kind == TagKind.MECHANIC }.map { it.name },
                         categories = tags.filter { it.kind == TagKind.CATEGORY }.map { it.name },
@@ -195,7 +193,6 @@ class GameEditViewModel @Inject constructor(
                 baseGameId = current.baseGameId.takeIf { current.isExpansion },
                 scoringMode = current.scoringMode,
                 highScoreWins = current.highScoreWins,
-                suddenDeathPossible = current.suddenDeathPossible,
                 notes = current.notes.trim().ifBlank { null },
                 createdAt = now,
                 updatedAt = now

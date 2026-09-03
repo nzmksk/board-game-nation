@@ -44,20 +44,44 @@ enum class CoopOutcome {
 }
 
 /**
- * How a play ended, when that differs from playing through to final scoring.
+ * How a play ended.
  *
- * Some games can end the moment a condition is met -- 7 Wonders Duel's military and
- * scientific supremacy both stop the game before anyone counts a victory point. The
- * ending is a property of one play rather than of the game, which is why this sits on
- * the session and not beside [ScoringMode].
+ * Every play ends somehow, so this is asked of all of them whatever the scoring. The
+ * ending belongs to the play rather than to the game -- the same game runs to its own
+ * last round one night and is stopped by a rule the next -- which is why it sits on the
+ * session and not beside [ScoringMode].
  *
- * A null column means the ordinary case: the table played to the end and scored it.
+ * A null column is a play that reached the app without being asked: one logged before
+ * the column existed, or restored from an archive exported then. It means nobody said,
+ * not that nothing happened.
  */
 enum class SessionEndCondition {
-    SUDDEN_DEATH;
+    /** Played through to the game's own ending: the last round, the points target. */
+    STANDARD,
+
+    /**
+     * A rule stopped it before that ending was reached -- 7 Wonders Duel's military and
+     * scientific supremacy, Pandemic's uncontrolled outbreak, Hitler elected Chancellor.
+     * `end_reason` names which one in the user's own words, because every game words it
+     * differently and no fixed list would survive the next game bought.
+     */
+    SPECIFIC,
+
+    /** The table gave up. The only ending with no result to record. */
+    ABANDONED;
 
     companion object {
-        fun fromStorage(value: String?): SessionEndCondition? = value?.let { v -> entries.firstOrNull { it.name == v } }
+
+        /**
+         * "SUDDEN_DEATH" is what this column held while an early ending was the only one
+         * the app could record, and archives exported then still say it. It described
+         * exactly [SPECIFIC]: a rule stopping the game before its own ending.
+         */
+        fun fromStorage(value: String?): SessionEndCondition? = when (value) {
+            null -> null
+            "SUDDEN_DEATH" -> SPECIFIC
+            else -> entries.firstOrNull { it.name == value }
+        }
     }
 }
 

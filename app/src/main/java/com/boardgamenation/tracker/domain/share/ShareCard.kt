@@ -67,7 +67,7 @@ data class ShareCard(
     /** The configuration the game was set up with, when it was recorded. */
     val mode: String?,
 
-    /** What ended a play that stopped the moment a condition was met. */
+    /** The rule that stopped a play, when one did. */
     val endReason: String?,
 
     /** Names in seat order. Empty when nobody wrote the order down, which is common. */

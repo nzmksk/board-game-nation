@@ -21,6 +21,7 @@ import com.boardgamenation.tracker.di.IoDispatcher
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TagKind
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -138,7 +139,6 @@ class DevFixtures @Inject constructor(
                     currency = "MYR",
                     status = spec.status,
                     scoringMode = spec.scoring,
-                    suddenDeathPossible = spec.suddenDeath,
                     createdAt = now,
                     updatedAt = now
                 )
@@ -247,6 +247,17 @@ class DevFixtures @Inject constructor(
                 val stated = ((game.minPlaytimeMinutes ?: 45) + (game.maxPlaytimeMinutes ?: 90)) / 2
                 val teaching = random.nextInt(100) < 12
                 val incomplete = random.nextInt(100) < 4
+
+                // A third of the plays of a game that can be stopped by a rule were. A
+                // fixture where everything ran to the last round would leave the "ended
+                // by" chips and the reasons they are drawn from with nothing to show.
+                val endings = EARLY_ENDINGS[game.title].orEmpty()
+                val endedEarly = endings.isNotEmpty() && !incomplete && random.nextInt(100) < 33
+                val endCondition = when {
+                    incomplete -> SessionEndCondition.ABANDONED
+                    endedEarly -> SessionEndCondition.SPECIFIC
+                    else -> SessionEndCondition.STANDARD
+                }
                 val duration = when {
                     incomplete -> (stated * 0.35).toInt().coerceAtLeast(10)
 
@@ -272,6 +283,8 @@ class DevFixtures @Inject constructor(
                             null
                         },
                         isIncomplete = incomplete,
+                        endCondition = endCondition,
+                        endReason = endings.random(random).takeIf { endedEarly },
                         isTeachingGame = teaching,
                         createdAt = now,
                         updatedAt = now
@@ -292,8 +305,16 @@ class DevFixtures @Inject constructor(
                         }
                     )
                 } else {
-                    val scores = seated.associateWith { random.nextInt(20, 120).toDouble() }
-                    val ranked = scores.entries.sortedByDescending { it.value }
+                    // A rule that stops the game stops it before anyone counts a score,
+                    // so those plays are ranked with none -- the same shape the app
+                    // itself writes for them, rather than a scored play wearing a
+                    // reason it was never scored under.
+                    val scores: Map<Long, Double?> = if (endedEarly) {
+                        seated.shuffled(random).associateWith { null }
+                    } else {
+                        seated.associateWith { random.nextInt(20, 120).toDouble() }
+                    }
+                    val ranked = scores.entries.sortedByDescending { it.value ?: 0.0 }
                     sessionDao.insertParticipants(
                         ranked.mapIndexed { index, entry ->
                             SessionPlayerEntity(
@@ -382,7 +403,9 @@ class DevFixtures @Inject constructor(
         val categories: List<String>,
         val status: GameStatus = GameStatus.OWNED,
         val scoring: ScoringMode = ScoringMode.RANKED_SCORES,
-        val suddenDeath: Boolean = false
+
+        /** Rules that stop this game before its own ending, drawn on by its plays. */
+        val endsEarlyBy: List<String> = emptyList()
     )
 
     private companion object {
@@ -407,6 +430,14 @@ class DevFixtures @Inject constructor(
             "Woodland",
             "Engineer"
         )
+
+        /**
+         * Rules a game can be stopped by, by title, so a play can be written as one
+         * those rules ended. Only the games that have such a rule appear.
+         */
+        val EARLY_ENDINGS: Map<String, List<String>> by lazy {
+            CATALOGUE.filter { it.endsEarlyBy.isNotEmpty() }.associate { it.title to it.endsEarlyBy }
+        }
 
         val CATALOGUE = listOf(
             GameSpec(
@@ -433,7 +464,8 @@ class DevFixtures @Inject constructor(
             GameSpec(
                 "Pandemic", 2008, 2, 4, "4", 45, 45, 2.4, 140.0, "Matt Leacock", "Z-Man",
                 listOf("Hand Management", "Set Collection"), listOf("Medical"),
-                scoring = ScoringMode.COOPERATIVE
+                scoring = ScoringMode.COOPERATIVE,
+                endsEarlyBy = listOf("Uncontrolled outbreak", "Out of player cards", "Out of cubes")
             ),
             GameSpec(
                 "7 Wonders", 2010, 3, 7, "5", 30, 30, 2.3, 170.0, "Antoine Bauza", "Repos",
@@ -549,7 +581,7 @@ class DevFixtures @Inject constructor(
             GameSpec(
                 "7 Wonders Duel", 2015, 2, 2, "2", 30, 30, 2.2, 130.0, "Antoine Bauza", "Repos",
                 listOf("Card Drafting", "Set Collection"), listOf("Ancient", "Civilization"),
-                suddenDeath = true
+                endsEarlyBy = listOf("Military supremacy", "Scientific supremacy")
             ),
             GameSpec(
                 "Lost Ruins of Arnak", 2020, 1, 4, "2", 30, 120, 2.9, 260.0, "Elwen", "CGE",
