@@ -239,6 +239,20 @@ object Migrations {
     }
 
     /**
+     * Records where each player sat, for the games whose rules reach sideways.
+     *
+     * Additive and nullable, and it stays null on every existing row for a stronger
+     * reason than the migrations above. A turn order could at least be guessed at from
+     * the order rows were written in; a seating cannot, because the question it answers
+     * is who was *beside* whom, and a wrong neighbour is worse than an admitted unknown.
+     * Numbering the old rows 1..n would have invented an arrangement for every play in
+     * the database and read back as though someone had recorded it.
+     */
+    private val MIGRATION_7_8 = Migration(7, 8) { db ->
+        db.execSQL("ALTER TABLE session_players ADD COLUMN seat INTEGER")
+    }
+
+    /**
      * Ordered oldest to newest. Room composes them, so a device three versions behind
      * walks the chain rather than needing a 1-to-4 migration of its own.
      */
@@ -248,6 +262,7 @@ object Migrations {
         MIGRATION_3_4,
         MIGRATION_4_5,
         MIGRATION_5_6,
-        MIGRATION_6_7
+        MIGRATION_6_7,
+        MIGRATION_7_8
     )
 }

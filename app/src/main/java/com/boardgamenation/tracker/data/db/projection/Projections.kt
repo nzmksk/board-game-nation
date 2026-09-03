@@ -92,6 +92,9 @@ data class SessionParticipant(
     @ColumnInfo(name = "faction") val faction: String?,
     @ColumnInfo(name = "turn_order") val turnOrder: Int?,
 
+    /** The chair this player sat in, numbered round the table from 1. */
+    @ColumnInfo(name = "seat") val seat: Int?,
+
     /** The side this player was on, for a game where a side wins together. */
     @ColumnInfo(name = "team") val team: String?,
 
