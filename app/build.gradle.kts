@@ -170,8 +170,11 @@ ktlint {
     version = libs.versions.ktlintCli
     reporters {
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        // CI turns the SARIF file into inline annotations on the pull request diff.
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.SARIF)
+        // For the artifact CI attaches to the run. Not SARIF: ktlint writes a SARIF whose
+        // %SRCROOT% is the home directory rather than the repository root, so code scanning
+        // cannot map a finding onto a file in the diff. The plain output already names the
+        // file, line and rule, which is what a formatting failure needs.
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.HTML)
     }
 }
 

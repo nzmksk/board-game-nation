@@ -63,9 +63,12 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # Annotations on the diff, so a reviewer sees a finding where it happened
-      # instead of in a log. Both linters write SARIF into app/build/reports, and the
-      # action picks up every .sarif under the directory it is given.
+      # Annotations on the diff, so a reviewer sees a finding where it happened instead
+      # of in a log. Android Lint only: code scanning takes one run per category, and
+      # ktlint writes a SARIF per source set whose %SRCROOT% is the home directory
+      # rather than the repository root -- so its findings could not be mapped onto a
+      # file in the diff even one category at a time. ktlint's plain output names the
+      # file, line and rule in the log above.
       #
       # A fork's pull request has no write access to code scanning, hence the guard;
       # and continue-on-error because this is a convenience on top of the reports the
@@ -75,8 +78,8 @@ jobs:
         continue-on-error: true
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: app/build/reports
-          category: lint
+          sarif_file: app/build/reports/lint-results-debug.sarif
+          category: android-lint
 
       # continue-on-error above means both steps report before anything fails, so the
       # job has to fail here on its own.
