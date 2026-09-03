@@ -38,6 +38,7 @@ import com.boardgamenation.tracker.data.repository.StatsRepository
 import com.boardgamenation.tracker.ui.components.HorizontalBarChart
 import com.boardgamenation.tracker.ui.components.SectionHeader
 import com.boardgamenation.tracker.ui.components.StatTile
+import com.boardgamenation.tracker.ui.components.currentLocale
 import com.boardgamenation.tracker.ui.navigation.Route
 import com.boardgamenation.tracker.ui.sessions.SessionRow
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -90,6 +91,7 @@ class PlayerDetailViewModel @Inject constructor(
 @Composable
 fun PlayerDetailScreen(onBack: () -> Unit, onOpenSession: (Long) -> Unit, viewModel: PlayerDetailViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val locale = currentLocale()
 
     Scaffold(
         topBar = {
@@ -160,7 +162,7 @@ fun PlayerDetailScreen(onBack: () -> Unit, onOpenSession: (Long) -> Unit, viewMo
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     HorizontalBarChart(
                         data = state.averageScores.map { it.label to it.value },
-                        valueFormatter = { String.format(java.util.Locale.getDefault(), "%.1f", it) }
+                        valueFormatter = { String.format(locale, "%.1f", it) }
                     )
                 }
             }

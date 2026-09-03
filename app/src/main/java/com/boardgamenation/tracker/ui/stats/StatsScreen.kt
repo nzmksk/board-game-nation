@@ -43,10 +43,10 @@ import com.boardgamenation.tracker.ui.components.PlayerDot
 import com.boardgamenation.tracker.ui.components.SectionHeader
 import com.boardgamenation.tracker.ui.components.StatTile
 import com.boardgamenation.tracker.ui.components.VerticalBarChart
+import com.boardgamenation.tracker.ui.components.currentLocale
 import com.boardgamenation.tracker.ui.theme.LocalChartColors
 import java.time.DayOfWeek
 import java.time.format.TextStyle
-import java.util.Locale
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +88,7 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
 @Composable
 private fun CollectionTab(viewModel: StatsViewModel) {
     val stats by viewModel.collection.collectAsStateWithLifecycle()
+    val locale = currentLocale()
     LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
             Row(
@@ -106,7 +107,7 @@ private fun CollectionTab(viewModel: StatsViewModel) {
                 )
                 StatTile(
                     label = stringResource(R.string.stats_collection_value),
-                    value = String.format(Locale.getDefault(), "%,.0f", stats.value),
+                    value = String.format(locale, "%,.0f", stats.value),
                     supporting = stats.currency,
                     modifier = Modifier.weight(1.2f)
                 )
@@ -177,6 +178,7 @@ private fun CollectionTab(viewModel: StatsViewModel) {
 @Composable
 private fun PlaysTab(viewModel: StatsViewModel) {
     val stats by viewModel.plays.collectAsStateWithLifecycle()
+    val locale = currentLocale()
     LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
             Row(
@@ -237,7 +239,7 @@ private fun PlaysTab(viewModel: StatsViewModel) {
                     stats.byDayOfWeek.map { row ->
                         val index = row.label.toIntOrNull() ?: 0
                         val day = if (index == 0) DayOfWeek.SUNDAY else DayOfWeek.of(index)
-                        day.getDisplayName(TextStyle.SHORT, Locale.getDefault()) to row.value
+                        day.getDisplayName(TextStyle.SHORT, locale) to row.value
                     }
                 )
             }
@@ -308,6 +310,7 @@ private fun PlaysTab(viewModel: StatsViewModel) {
 @Composable
 private fun ValueTab(viewModel: StatsViewModel) {
     val stats by viewModel.value.collectAsStateWithLifecycle()
+    val locale = currentLocale()
     LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
             // Cost per play gets the first card: it is the number that actually changes
@@ -326,7 +329,7 @@ private fun ValueTab(viewModel: StatsViewModel) {
                     )
                     Text(
                         text = stats.overallCostPerPlay
-                            ?.let { String.format(Locale.getDefault(), "%.2f %s", it, stats.currency) }
+                            ?.let { String.format(locale, "%.2f %s", it, stats.currency) }
                             ?: stringResource(R.string.stats_no_data),
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -349,7 +352,7 @@ private fun ValueTab(viewModel: StatsViewModel) {
             ChartCard {
                 HorizontalBarChart(
                     stats.deadWeight.toPairs(),
-                    valueFormatter = { String.format(Locale.getDefault(), "%.0f", it) }
+                    valueFormatter = { String.format(locale, "%.0f", it) }
                 )
             }
         }
@@ -358,6 +361,7 @@ private fun ValueTab(viewModel: StatsViewModel) {
 
 @Composable
 private fun CostPerPlayList(rows: List<CostPerPlayRow>) {
+    val locale = currentLocale()
     if (rows.isEmpty()) {
         Text(
             text = stringResource(R.string.stats_no_data),
@@ -385,7 +389,7 @@ private fun CostPerPlayList(rows: List<CostPerPlayRow>) {
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = String.format(
-                        Locale.getDefault(),
+                        locale,
                         "%.2f %s",
                         row.costPerPlay,
                         row.currency

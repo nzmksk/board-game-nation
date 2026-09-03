@@ -73,7 +73,7 @@ import com.boardgamenation.tracker.ui.components.ConfirmDialog
 import com.boardgamenation.tracker.ui.components.EmptyState
 import com.boardgamenation.tracker.ui.components.GameThumbnail
 import com.boardgamenation.tracker.ui.components.LoadingRows
-import java.util.Locale
+import com.boardgamenation.tracker.ui.components.currentLocale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -535,7 +535,7 @@ private fun GameRow(game: GameListItem, selected: Boolean, onOpen: () -> Unit, o
                 }
                 game.rating?.let {
                     Text(
-                        text = String.format(Locale.getDefault(), "%.1f", it),
+                        text = String.format(currentLocale(), "%.1f", it),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -622,7 +622,7 @@ private fun GameListItem.subtitle(): String {
             )
         }
         maxPlaytimeMinutes?.let { add(DurationFormat.minutes(it)) }
-        weight?.let { add(stringResource(R.string.unit_weight, String.format(Locale.getDefault(), "%.1f", it))) }
+        weight?.let { add(stringResource(R.string.unit_weight, String.format(currentLocale(), "%.1f", it))) }
     }
     return parts.joinToString(" · ").ifEmpty { stringResource(status.labelRes()) }
 }
