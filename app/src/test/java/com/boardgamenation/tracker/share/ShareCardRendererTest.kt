@@ -91,6 +91,23 @@ class ShareCardRendererTest {
         return count
     }
 
+    /**
+     * The first row on which two cards differ, which on a pair that differ by one badge
+     * is where that badge was drawn.
+     *
+     * Everything below it differs too -- a badge lengthens the header, and the standings
+     * shift down to make room -- so only the first row means anything, and it is exactly
+     * the question here: which side of the headline did the badge land on.
+     */
+    private fun firstChangedRow(one: Bitmap, other: Bitmap): Int {
+        for (y in 0 until one.height) {
+            for (x in 0 until one.width step 4) {
+                if (one.getPixel(x, y) != other.getPixel(x, y)) return y
+            }
+        }
+        return -1
+    }
+
     private fun distinctColours(bitmap: Bitmap): Int {
         val seen = mutableSetOf<Int>()
         for (x in 0 until bitmap.width step 8) {
@@ -142,6 +159,36 @@ class ShareCardRendererTest {
         )
 
         assertTrue(goldPixels(won) > goldPixels(unresolved))
+    }
+
+    /**
+     * The ending qualifies the result, so it reads under the headline. The mode and the
+     * teaching flag were both true before the game started and stay above it.
+     */
+    @Test
+    fun `the end condition is drawn below the headline and the setup badges above it`() {
+        val players = listOf(standing("Aina", rank = 1, isWinner = true), standing("Hafiz", rank = 2))
+        val plain = renderer.render(card(standings = players))
+
+        val reason = firstChangedRow(
+            renderer.render(card(standings = players, endReason = "Military supremacy")),
+            plain
+        )
+        val mode = firstChangedRow(
+            renderer.render(card(standings = players, mode = "Military supremacy")),
+            plain
+        )
+        val abandoned = firstChangedRow(
+            renderer.render(card(standings = players, isIncomplete = true)),
+            plain
+        )
+        val teaching = firstChangedRow(
+            renderer.render(card(standings = players, isTeachingGame = true)),
+            plain
+        )
+
+        assertTrue(reason > mode)
+        assertTrue(abandoned > teaching)
     }
 
     @Test

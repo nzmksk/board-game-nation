@@ -87,7 +87,7 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
 
     // -- Header -------------------------------------------------------------------
 
-    /** Draws the date, title, figures and badges. Returns the y the standings start at. */
+    /** Draws the date, title, figures, badges and headline. Returns the y the standings start at. */
     private fun drawHeader(canvas: Canvas, card: ShareCard): Float {
         var y = 152f
 
@@ -121,13 +121,14 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
         canvas.drawText(figures, MARGIN, y + figuresPaint.textSize, figuresPaint)
         y += figuresPaint.textSize + 24f
 
-        val badges = listOfNotNull(
+        // What the table sat down to: the configuration played and whether somebody was
+        // being taught. Both are true before a die is rolled, so they belong with the
+        // title and the figures rather than with the result.
+        val setup = listOfNotNull(
             card.mode,
-            card.endReason,
-            context.getString(R.string.session_incomplete).takeIf { card.isIncomplete },
             context.getString(R.string.session_teaching).takeIf { card.isTeachingGame }
         )
-        if (badges.isNotEmpty()) y += drawBadges(canvas, badges, y) + 20f
+        if (setup.isNotEmpty()) y += drawBadges(canvas, setup, y) + 20f
 
         headline(card)?.let { headline ->
             y += 20f
@@ -139,6 +140,19 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
                 top = y,
                 maxLines = 2
             )
+        }
+
+        // How the play ended is a qualification of the result -- won, by military
+        // supremacy; gave up, so nobody won -- and reads as one only underneath it.
+        // Above, sat among the setup badges, it looked like another thing the table
+        // chose at the start.
+        val ending = listOfNotNull(
+            card.endReason,
+            context.getString(R.string.session_incomplete).takeIf { card.isIncomplete }
+        )
+        if (ending.isNotEmpty()) {
+            y += 20f
+            y += drawBadges(canvas, ending, y)
         }
 
         return y + 56f
