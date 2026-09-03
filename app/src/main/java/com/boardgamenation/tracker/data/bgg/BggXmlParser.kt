@@ -1,10 +1,10 @@
 package com.boardgamenation.tracker.data.bgg
 
 import android.util.Xml
-import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader
 import javax.inject.Inject
 import javax.inject.Singleton
+import org.xmlpull.v1.XmlPullParser
 
 /**
  * Hand-rolled parsing for the BGG XML API2.
@@ -30,6 +30,7 @@ class BggXmlParser @Inject constructor() {
                     "name" -> if (parser.attr("type") != "alternate" || name == null) {
                         name = parser.attr("value")
                     }
+
                     "yearpublished" -> year = parser.attr("value")?.toIntOrNull()
                 }
             }
@@ -38,7 +39,7 @@ class BggXmlParser @Inject constructor() {
                     bggId = id,
                     name = it,
                     yearPublished = year,
-                    isExpansion = type == "boardgameexpansion",
+                    isExpansion = type == "boardgameexpansion"
                 )
             }
         }
@@ -72,23 +73,38 @@ class BggXmlParser @Inject constructor() {
                     "name" -> if (parser.attr("type") == "primary" || name == null) {
                         name = parser.attr("value")
                     }
+
                     "yearpublished" -> year = parser.attr("value")?.toIntOrNull()
+
                     "minplayers" -> minPlayers = parser.attr("value")?.toIntOrNull()
+
                     "maxplayers" -> maxPlayers = parser.attr("value")?.toIntOrNull()
+
                     "minplaytime" -> minTime = parser.attr("value")?.toIntOrNull()
+
                     "maxplaytime" -> maxTime = parser.attr("value")?.toIntOrNull()
+
                     "playingtime" -> playingTime = parser.attr("value")?.toIntOrNull()
+
                     "thumbnail" -> thumbnail = parser.nextTextOrNull()
+
                     "image" -> image = parser.nextTextOrNull()
+
                     "average" -> rating = parser.attr("value")?.toDoubleOrNull()
+
                     "averageweight" -> weight = parser.attr("value")?.toDoubleOrNull()
+
                     "link" -> {
                         val value = parser.attr("value")
                         when (parser.attr("type")) {
                             "boardgamedesigner" -> value?.let { designers += it }
+
                             "boardgamepublisher" -> value?.let { publishers += it }
+
                             "boardgamemechanic" -> value?.let { mechanics += it }
+
                             "boardgamecategory" -> value?.let { categories += it }
+
                             "boardgameexpansion" ->
                                 // inbound="true" means "this thing expands that one".
                                 if (parser.attr("inbound") == "true") {
@@ -96,7 +112,9 @@ class BggXmlParser @Inject constructor() {
                                 }
                         }
                     }
+
                     "poll-summary", "poll" -> Unit
+
                     "results" -> Unit
                 }
             }
@@ -124,7 +142,7 @@ class BggXmlParser @Inject constructor() {
                     imageUrl = image,
                     isExpansion = type == "boardgameexpansion",
                     bestPlayerCount = summariseBest(bestVotes),
-                    expandsBggIds = expands.distinct(),
+                    expandsBggIds = expands.distinct()
                 )
             }
         }
@@ -155,9 +173,13 @@ class BggXmlParser @Inject constructor() {
                         when (child) {
                             // Collection puts these in element text, not attributes.
                             "name" -> name = parser.nextTextOrNull().orEmpty()
+
                             "yearpublished" -> year = parser.nextTextOrNull()?.toIntOrNull()
+
                             "thumbnail" -> thumbnail = parser.nextTextOrNull()
+
                             "numplays" -> numPlays = parser.nextTextOrNull()?.toIntOrNull() ?: 0
+
                             "status" -> {
                                 owned = parser.attr("own") == "1"
                                 forTrade = parser.attr("fortrade") == "1"
@@ -182,7 +204,7 @@ class BggXmlParser @Inject constructor() {
                             wishlistPriority = wishlistPriority,
                             preordered = preordered,
                             numPlays = numPlays,
-                            isExpansion = subtype == "boardgameexpansion",
+                            isExpansion = subtype == "boardgameexpansion"
                         )
                     }
                 }
@@ -193,10 +215,9 @@ class BggXmlParser @Inject constructor() {
     }
 
     /** BGG answers a queued collection request with a `<message>` body. */
-    fun isQueuedResponse(xml: String): Boolean =
-        xml.contains("<message", ignoreCase = true) &&
-            xml.contains("request", ignoreCase = true) &&
-            !xml.contains("<item", ignoreCase = true)
+    fun isQueuedResponse(xml: String): Boolean = xml.contains("<message", ignoreCase = true) &&
+        xml.contains("request", ignoreCase = true) &&
+        !xml.contains("<item", ignoreCase = true)
 
     fun errorMessage(xml: String): String? {
         val start = xml.indexOf("<message")
@@ -214,10 +235,7 @@ class BggXmlParser @Inject constructor() {
         setInput(StringReader(xml))
     }
 
-    private inline fun forEachItem(
-        xml: String,
-        onItem: (XmlPullParser, type: String?, id: Long) -> Unit,
-    ) {
+    private inline fun forEachItem(xml: String, onItem: (XmlPullParser, type: String?, id: Long) -> Unit) {
         val parser = newParser(xml)
         var event = parser.eventType
         while (event != XmlPullParser.END_DOCUMENT) {
@@ -243,7 +261,9 @@ class BggXmlParser @Inject constructor() {
                     depth++
                     onChild(parser.name)
                 }
+
                 XmlPullParser.END_TAG -> depth--
+
                 XmlPullParser.END_DOCUMENT -> return
             }
         }

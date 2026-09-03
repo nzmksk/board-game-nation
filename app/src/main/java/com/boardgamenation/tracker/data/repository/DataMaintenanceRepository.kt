@@ -12,10 +12,10 @@ import com.boardgamenation.tracker.data.db.dao.TagDao
 import com.boardgamenation.tracker.data.db.dao.TimerDao
 import com.boardgamenation.tracker.data.db.projection.TableCountSummary
 import com.boardgamenation.tracker.di.IoDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 
 /**
  * Destructive whole-database operations, in exactly one place.
@@ -35,7 +35,7 @@ class DataMaintenanceRepository @Inject constructor(
     private val achievementDao: AchievementDao,
     private val timerDao: TimerDao,
     private val bggCacheDao: BggCacheDao,
-    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) {
 
     /**
@@ -77,7 +77,7 @@ class DataMaintenanceRepository @Inject constructor(
             rubricCriteria = rubricDao.countCriteria(),
             gameRatings = rubricDao.countRatings(),
             gameRatingScores = rubricDao.countScores(),
-            achievementUnlocks = achievementDao.countUnlocks(),
+            achievementUnlocks = achievementDao.countUnlocks()
         )
     }
 }

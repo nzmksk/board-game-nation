@@ -57,10 +57,10 @@ import com.boardgamenation.tracker.data.db.entity.TimerStateEntity
         TimerPresetEntity::class,
         TimerStateEntity::class,
         TimerSeatEntity::class,
-        BggThingCacheEntity::class,
+        BggThingCacheEntity::class
     ],
     version = AppDatabase.VERSION,
-    exportSchema = true,
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

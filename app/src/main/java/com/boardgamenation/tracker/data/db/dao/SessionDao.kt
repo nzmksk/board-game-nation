@@ -55,14 +55,9 @@ interface SessionDao {
           AND (:fromDate IS NULL OR s.played_on >= :fromDate)
           AND (:toDate IS NULL OR s.played_on <= :toDate)
         ORDER BY s.played_on DESC, s.id DESC
-        """,
+        """
     )
-    fun observeSessions(
-        gameId: Long?,
-        playerId: Long?,
-        fromDate: String?,
-        toDate: String?,
-    ): Flow<List<SessionListItem>>
+    fun observeSessions(gameId: Long?, playerId: Long?, fromDate: String?, toDate: String?): Flow<List<SessionListItem>>
 
     @Query(
         """
@@ -92,7 +87,7 @@ interface SessionDao {
         WHERE s.is_draft = 0
         ORDER BY s.played_on DESC, s.id DESC
         LIMIT :limit
-        """,
+        """
     )
     fun observeRecent(limit: Int): Flow<List<SessionListItem>>
 
@@ -118,7 +113,7 @@ interface SessionDao {
         SELECT * FROM sessions
         WHERE game_id = :gameId AND played_on = :playedOn AND player_count = :playerCount
         LIMIT 1
-        """,
+        """
     )
     suspend fun findByNaturalKey(gameId: Long, playedOn: String, playerCount: Int): SessionEntity?
 
@@ -140,7 +135,7 @@ interface SessionDao {
         JOIN players p ON p.id = sp.player_id
         WHERE sp.session_id = :sessionId
         ORDER BY sp.placement IS NULL, sp.placement, sp.id
-        """,
+        """
     )
     fun observeParticipants(sessionId: Long): Flow<List<SessionParticipant>>
 
@@ -154,7 +149,7 @@ interface SessionDao {
         JOIN players p ON p.id = sp.player_id
         WHERE sp.session_id = :sessionId
         ORDER BY sp.placement IS NULL, sp.placement, sp.id
-        """,
+        """
     )
     suspend fun getParticipants(sessionId: Long): List<SessionParticipant>
 
@@ -172,7 +167,7 @@ interface SessionDao {
         """
         SELECT AVG(duration_minutes) FROM sessions
         WHERE game_id = :gameId AND is_draft = 0 AND is_incomplete = 0
-        """,
+        """
     )
     suspend fun averageDurationFor(gameId: Long): Double?
 
@@ -190,13 +185,9 @@ interface SessionDao {
         JOIN sessions s ON s.id = sp.session_id AND s.is_draft = 0
         WHERE sp.player_id = :playerId AND s.game_id = :gameId
           AND sp.session_id != :excludingSessionId
-        """,
+        """
     )
-    suspend fun timesPlayerPlayedGame(
-        playerId: Long,
-        gameId: Long,
-        excludingSessionId: Long,
-    ): Int
+    suspend fun timesPlayerPlayedGame(playerId: Long, gameId: Long, excludingSessionId: Long): Int
 
     /**
      * Sudden-death reasons already recorded for this game, newest first, so the form can
@@ -210,7 +201,7 @@ interface SessionDao {
         GROUP BY end_reason COLLATE NOCASE
         ORDER BY MAX(played_on) DESC
         LIMIT :limit
-        """,
+        """
     )
     fun observeEndReasonsFor(gameId: Long, limit: Int = 6): Flow<List<String>>
 
@@ -222,7 +213,7 @@ interface SessionDao {
         GROUP BY mode COLLATE NOCASE
         ORDER BY MAX(played_on) DESC
         LIMIT :limit
-        """,
+        """
     )
     fun observeModesFor(gameId: Long, limit: Int = 6): Flow<List<String>>
 
@@ -236,7 +227,7 @@ interface SessionDao {
         GROUP BY sp.team COLLATE NOCASE
         ORDER BY MAX(s.played_on) DESC
         LIMIT :limit
-        """,
+        """
     )
     fun observeTeamsFor(gameId: Long, limit: Int = 8): Flow<List<String>>
 
@@ -279,11 +270,7 @@ interface SessionDao {
      * can never be observed.
      */
     @Transaction
-    suspend fun saveComplete(
-        session: SessionEntity,
-        participants: List<SessionPlayerEntity>,
-        expansionIds: List<Long>,
-    ): Long {
+    suspend fun saveComplete(session: SessionEntity, participants: List<SessionPlayerEntity>, expansionIds: List<Long>): Long {
         val id = if (session.id == 0L) {
             insertSession(session)
         } else {

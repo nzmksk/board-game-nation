@@ -29,7 +29,7 @@ object Migrations {
      */
     private val MIGRATION_1_2 = Migration(1, 2) { db ->
         db.execSQL(
-            "ALTER TABLE games ADD COLUMN sudden_death_possible INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE games ADD COLUMN sudden_death_possible INTEGER NOT NULL DEFAULT 0"
         )
         db.execSQL("ALTER TABLE sessions ADD COLUMN end_condition TEXT")
         db.execSQL("ALTER TABLE sessions ADD COLUMN end_reason TEXT")
@@ -69,7 +69,7 @@ object Migrations {
                  WHERE rest <> ''
             )
             SELECT game_id, name FROM split WHERE name <> ''
-            """.trimIndent(),
+            """.trimIndent()
         )
 
         // The unique index on (name, kind) makes OR IGNORE the de-duplicator: two games
@@ -78,7 +78,7 @@ object Migrations {
             """
             INSERT OR IGNORE INTO tags (name, kind)
             SELECT DISTINCT name, 'DESIGNER' FROM designer_split
-            """.trimIndent(),
+            """.trimIndent()
         )
         db.execSQL(
             """
@@ -86,7 +86,7 @@ object Migrations {
             SELECT s.game_id, t.id
               FROM designer_split s
               JOIN tags t ON t.name = s.name AND t.kind = 'DESIGNER'
-            """.trimIndent(),
+            """.trimIndent()
         )
         db.execSQL("DROP TABLE designer_split")
 
@@ -99,7 +99,7 @@ object Migrations {
         // deleted would start handing that id out a second time.
         db.execSQL(
             "CREATE TEMP TABLE games_seq AS " +
-                "SELECT seq FROM sqlite_sequence WHERE name = 'games'",
+                "SELECT seq FROM sqlite_sequence WHERE name = 'games'"
         )
 
         db.execSQL(
@@ -138,7 +138,7 @@ object Migrations {
                 FOREIGN KEY(`base_game_id`) REFERENCES `games`(`id`)
                     ON UPDATE NO ACTION ON DELETE SET NULL
             )
-            """.trimIndent(),
+            """.trimIndent()
         )
         db.execSQL(
             """
@@ -160,7 +160,7 @@ object Migrations {
                 `scoring_mode`, `high_score_wins`, `sudden_death_possible`, `notes`,
                 `created_at`, `updated_at`
             FROM `games`
-            """.trimIndent(),
+            """.trimIndent()
         )
         db.execSQL("DROP TABLE `games`")
         db.execSQL("ALTER TABLE `games_new` RENAME TO `games`")
@@ -169,7 +169,7 @@ object Migrations {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_games_title` ON `games` (`title`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_games_status` ON `games` (`status`)")
         db.execSQL(
-            "CREATE INDEX IF NOT EXISTS `index_games_base_game_id` ON `games` (`base_game_id`)",
+            "CREATE INDEX IF NOT EXISTS `index_games_base_game_id` ON `games` (`base_game_id`)"
         )
 
         // Put the counter back where it was, but never move it backwards.
@@ -178,7 +178,7 @@ object Migrations {
             UPDATE sqlite_sequence
                SET seq = (SELECT seq FROM games_seq)
              WHERE name = 'games' AND (SELECT seq FROM games_seq) > seq
-            """.trimIndent(),
+            """.trimIndent()
         )
         db.execSQL(
             """
@@ -186,7 +186,7 @@ object Migrations {
             SELECT 'games', (SELECT seq FROM games_seq)
              WHERE (SELECT seq FROM games_seq) IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM sqlite_sequence WHERE name = 'games')
-            """.trimIndent(),
+            """.trimIndent()
         )
         db.execSQL("DROP TABLE games_seq")
     }
@@ -199,10 +199,10 @@ object Migrations {
      */
     private val MIGRATION_3_4 = Migration(3, 4) { db ->
         db.execSQL(
-            "ALTER TABLE timer_state ADD COLUMN mode TEXT NOT NULL DEFAULT 'TURN_BASED'",
+            "ALTER TABLE timer_state ADD COLUMN mode TEXT NOT NULL DEFAULT 'TURN_BASED'"
         )
         db.execSQL(
-            "ALTER TABLE timer_state ADD COLUMN table_time_ms INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE timer_state ADD COLUMN table_time_ms INTEGER NOT NULL DEFAULT 0"
         )
     }
 
@@ -248,6 +248,6 @@ object Migrations {
         MIGRATION_3_4,
         MIGRATION_4_5,
         MIGRATION_5_6,
-        MIGRATION_6_7,
+        MIGRATION_6_7
     )
 }

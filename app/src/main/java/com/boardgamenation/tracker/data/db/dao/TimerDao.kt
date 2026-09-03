@@ -61,7 +61,7 @@ interface TimerDao {
         FROM timer_seats t
         JOIN players p ON p.id = t.player_id
         ORDER BY t.seat_order
-        """,
+        """
     )
     fun observeSeats(): Flow<List<TimerSeatWithPlayer>>
 

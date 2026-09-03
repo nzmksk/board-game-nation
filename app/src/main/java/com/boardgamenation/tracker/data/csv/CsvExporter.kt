@@ -13,8 +13,6 @@ import com.boardgamenation.tracker.data.db.dao.SessionDao
 import com.boardgamenation.tracker.data.db.dao.TagDao
 import com.boardgamenation.tracker.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.io.BufferedWriter
 import java.io.OutputStream
 import java.io.OutputStreamWriter
@@ -24,11 +22,10 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 
-data class ExportResult(
-    val rowCounts: Map<String, Int>,
-    val location: String,
-) {
+data class ExportResult(val rowCounts: Map<String, Int>, val location: String) {
     val totalRows: Int get() = rowCounts.values.sum()
 }
 
@@ -49,7 +46,7 @@ class CsvExporter @Inject constructor(
     private val rubricDao: RubricDao,
     private val achievementDao: AchievementDao,
     private val clock: AppClock,
-    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) {
 
     /** Writes one CSV per table into a directory the user chose. */
@@ -160,26 +157,30 @@ class CsvExporter @Inject constructor(
                         Csv.formatBool(g.isExpansion), Csv.formatLong(g.baseGameId),
                         g.scoringMode.name, Csv.formatBool(g.highScoreWins),
                         Csv.formatBool(g.suddenDeathPossible), g.notes,
-                        g.createdAt.toString(), g.updatedAt.toString(),
+                        g.createdAt.toString(), g.updatedAt.toString()
                     )
-                },
+                }
             ),
             CsvSchema.TAGS to Table(
                 CsvSchema.tagColumns,
-                tags.map { listOf(it.id.toString(), it.name, it.kind.name) },
+                tags.map { listOf(it.id.toString(), it.name, it.kind.name) }
             ),
             CsvSchema.GAME_TAGS to Table(
                 CsvSchema.gameTagColumns,
-                gameTags.map { listOf(it.gameId.toString(), it.tagId.toString()) },
+                gameTags.map { listOf(it.gameId.toString(), it.tagId.toString()) }
             ),
             CsvSchema.PLAYERS to Table(
                 CsvSchema.playerColumns,
                 players.map {
                     listOf(
-                        it.id.toString(), it.name, Csv.formatBool(it.isSelf),
-                        it.colorHex, it.notes, Csv.formatBool(it.archived),
+                        it.id.toString(),
+                        it.name,
+                        Csv.formatBool(it.isSelf),
+                        it.colorHex,
+                        it.notes,
+                        Csv.formatBool(it.archived)
                     )
-                },
+                }
             ),
             CsvSchema.SESSIONS to Table(
                 CsvSchema.sessionColumns,
@@ -192,9 +193,9 @@ class CsvExporter @Inject constructor(
                         s.endCondition?.name, s.endReason,
                         Csv.formatBool(s.isIncomplete), Csv.formatBool(s.isTeachingGame),
                         s.pausedMs.toString(), s.photoUri, s.notes,
-                        s.createdAt.toString(), s.updatedAt.toString(),
+                        s.createdAt.toString(), s.updatedAt.toString()
                     )
-                },
+                }
             ),
             CsvSchema.SESSION_PLAYERS to Table(
                 CsvSchema.sessionPlayerColumns,
@@ -205,58 +206,69 @@ class CsvExporter @Inject constructor(
                         Csv.formatBool(sp.isWinner), sp.faction,
                         Csv.formatInt(sp.turnOrder), sp.team,
                         Csv.formatBool(sp.isNewPlayer), Csv.formatLong(sp.turnTimeMs),
-                        Csv.formatLong(sp.bankTimeRemainingMs),
+                        Csv.formatLong(sp.bankTimeRemainingMs)
                     )
-                },
+                }
             ),
             CsvSchema.SESSION_EXPANSIONS to Table(
                 CsvSchema.sessionExpansionColumns,
-                sessionExpansions.map { listOf(it.sessionId.toString(), it.gameId.toString()) },
+                sessionExpansions.map { listOf(it.sessionId.toString(), it.gameId.toString()) }
             ),
             CsvSchema.RUBRICS to Table(
                 CsvSchema.rubricColumns,
                 rubrics.map {
                     listOf(it.id.toString(), it.name, it.description, Csv.formatBool(it.archived))
-                },
+                }
             ),
             CsvSchema.RUBRIC_CRITERIA to Table(
                 CsvSchema.rubricCriterionColumns,
                 criteria.map {
                     listOf(
-                        it.id.toString(), it.rubricId.toString(), it.name, it.description,
-                        Csv.formatDouble(it.weight), Csv.formatDouble(it.maxScore),
-                        it.sortOrder.toString(),
+                        it.id.toString(),
+                        it.rubricId.toString(),
+                        it.name,
+                        it.description,
+                        Csv.formatDouble(it.weight),
+                        Csv.formatDouble(it.maxScore),
+                        it.sortOrder.toString()
                     )
-                },
+                }
             ),
             CsvSchema.GAME_RATINGS to Table(
                 CsvSchema.gameRatingColumns,
                 ratings.map {
                     listOf(
-                        it.id.toString(), it.gameId.toString(), it.rubricId.toString(),
-                        it.ratedOn, Csv.formatDouble(it.computedScore), it.notes,
+                        it.id.toString(),
+                        it.gameId.toString(),
+                        it.rubricId.toString(),
+                        it.ratedOn,
+                        Csv.formatDouble(it.computedScore),
+                        it.notes
                     )
-                },
+                }
             ),
             CsvSchema.GAME_RATING_SCORES to Table(
                 CsvSchema.gameRatingScoreColumns,
                 ratingScores.map {
                     listOf(
-                        it.id.toString(), it.gameRatingId.toString(),
-                        it.criterionId.toString(), Csv.formatDouble(it.score),
+                        it.id.toString(),
+                        it.gameRatingId.toString(),
+                        it.criterionId.toString(),
+                        Csv.formatDouble(it.score)
                     )
-                },
+                }
             ),
             CsvSchema.ACHIEVEMENT_UNLOCKS to Table(
                 CsvSchema.achievementUnlockColumns,
                 unlocks.mapNotNull { unlock ->
                     val code = definitions[unlock.achievementId]?.code ?: return@mapNotNull null
                     listOf(
-                        code, unlock.unlockedAt.toString(),
+                        code,
+                        unlock.unlockedAt.toString(),
                         Csv.formatDouble(unlock.progressValue),
-                        Csv.formatLong(unlock.sessionId),
+                        Csv.formatLong(unlock.sessionId)
                     )
-                },
+                }
             ),
             CsvSchema.MANIFEST to Table(
                 CsvSchema.manifestColumns,
@@ -267,9 +279,9 @@ class CsvExporter @Inject constructor(
                     listOf("app_database", AppDatabase.NAME),
                     listOf("games", games.size.toString()),
                     listOf("sessions", sessions.size.toString()),
-                    listOf("players", players.size.toString()),
-                ),
-            ),
+                    listOf("players", players.size.toString())
+                )
+            )
         )
     }
 

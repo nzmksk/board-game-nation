@@ -61,34 +61,34 @@ fun EmptyState(
     body: String? = null,
     icon: ImageVector? = null,
     modifier: Modifier = Modifier,
-    action: (@Composable () -> Unit)? = null,
+    action: (@Composable () -> Unit)? = null
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(48.dp)
             )
         }
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
         if (body != null) {
             Text(
                 text = body,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
         }
         action?.invoke()
@@ -96,22 +96,18 @@ fun EmptyState(
 }
 
 @Composable
-fun SectionHeader(
-    title: String,
-    modifier: Modifier = Modifier,
-    trailing: (@Composable () -> Unit)? = null,
-) {
+fun SectionHeader(title: String, modifier: Modifier = Modifier, trailing: (@Composable () -> Unit)? = null) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
         trailing?.invoke()
     }
@@ -122,17 +118,12 @@ fun SectionHeader(
  * faster than any plot of one number could.
  */
 @Composable
-fun StatTile(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    supporting: String? = null,
-) {
+fun StatTile(label: String, value: String, modifier: Modifier = Modifier, supporting: String? = null) {
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
@@ -140,14 +131,14 @@ fun StatTile(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
+                maxLines = 1
             )
             if (supporting != null) {
                 Text(
@@ -155,7 +146,7 @@ fun StatTile(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -170,19 +161,14 @@ fun StatTile(
  * collection fully usable in airplane mode.
  */
 @Composable
-fun GameThumbnail(
-    path: String?,
-    title: String,
-    modifier: Modifier = Modifier,
-    size: androidx.compose.ui.unit.Dp = 56.dp,
-) {
+fun GameThumbnail(path: String?, title: String, modifier: Modifier = Modifier, size: androidx.compose.ui.unit.Dp = 56.dp) {
     val shape = RoundedCornerShape(8.dp)
     Box(
         modifier = modifier
             .size(size)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         val file = remember(path) { path?.let(::File)?.takeIf { it.exists() } }
         if (file != null) {
@@ -192,14 +178,14 @@ fun GameThumbnail(
                     .crossfade(true)
                     .build(),
                 contentDescription = stringResource(R.string.cd_game_thumbnail, title),
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize()
             )
         } else {
             Icon(
                 imageVector = Icons.Filled.Casino,
                 contentDescription = stringResource(R.string.cd_no_thumbnail),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(size / 2),
+                modifier = Modifier.size(size / 2)
             )
         }
     }
@@ -212,7 +198,7 @@ fun PlayerDot(color: Color, modifier: Modifier = Modifier, size: androidx.compos
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(color),
+            .background(color)
     )
 }
 
@@ -224,7 +210,7 @@ fun ConfirmDialog(
     dismissLabel: String = stringResource(R.string.action_cancel),
     destructive: Boolean = false,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -238,13 +224,13 @@ fun ConfirmDialog(
                         MaterialTheme.colorScheme.error
                     } else {
                         MaterialTheme.colorScheme.primary
-                    },
+                    }
                 )
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(dismissLabel) }
-        },
+        }
     )
 }
 
@@ -261,7 +247,7 @@ fun TypedConfirmDialog(
     requiredWord: String,
     confirmLabel: String,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     var typed by remember { mutableStateOf("") }
     AlertDialog(
@@ -274,19 +260,19 @@ fun TypedConfirmDialog(
                     value = typed,
                     onValueChange = { typed = it },
                     singleLine = true,
-                    label = { Text(requiredWord) },
+                    label = { Text(requiredWord) }
                 )
             }
         },
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                enabled = typed.trim().equals(requiredWord, ignoreCase = false),
+                enabled = typed.trim().equals(requiredWord, ignoreCase = false)
             ) {
                 Text(confirmLabel, color = MaterialTheme.colorScheme.error)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } }
     )
 }
 
@@ -317,35 +303,31 @@ fun LoadingRows(count: Int = 5, modifier: Modifier = Modifier) {
                     .height(72.dp)
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             )
         }
     }
 }
 
 @Composable
-fun KeyValueRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
+fun KeyValueRow(label: String, value: String, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.Top
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(140.dp),
+            modifier = Modifier.width(140.dp)
         )
         Spacer(Modifier.width(8.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -365,12 +347,7 @@ fun KeyValueRow(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IsoDateField(
-    value: String,
-    label: String,
-    onChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun IsoDateField(value: String, label: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf(false) }
 
     OutlinedTextField(
@@ -383,11 +360,11 @@ fun IsoDateField(
             IconButton(onClick = { open = true }) {
                 Icon(
                     Icons.Filled.DateRange,
-                    contentDescription = stringResource(R.string.action_pick_date),
+                    contentDescription = stringResource(R.string.action_pick_date)
                 )
             }
         },
-        modifier = modifier,
+        modifier = modifier
     )
 
     if (open) {
@@ -398,7 +375,7 @@ fun IsoDateField(
             initialSelectedDateMillis = DateUtils.parseIsoOrNull(value)
                 ?.atStartOfDay(ZoneOffset.UTC)
                 ?.toInstant()
-                ?.toEpochMilli(),
+                ?.toEpochMilli()
         )
         DatePickerDialog(
             onDismissRequest = { open = false },
@@ -409,14 +386,14 @@ fun IsoDateField(
                             onChange(DateUtils.epochMillisToIso(it, ZoneOffset.UTC))
                         }
                         open = false
-                    },
+                    }
                 ) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
                 TextButton(onClick = { open = false }) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         ) {
             DatePicker(state = state)
         }

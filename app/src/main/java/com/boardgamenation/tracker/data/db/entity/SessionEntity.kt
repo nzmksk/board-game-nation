@@ -19,14 +19,14 @@ import com.boardgamenation.tracker.domain.model.SessionEndCondition
             entity = GameEntity::class,
             parentColumns = ["id"],
             childColumns = ["game_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
     indices = [
         Index(value = ["game_id"]),
         Index(value = ["played_on"]),
-        Index(value = ["is_draft"]),
-    ],
+        Index(value = ["is_draft"])
+    ]
 )
 data class SessionEntity(
     @PrimaryKey(autoGenerate = true)
@@ -94,5 +94,5 @@ data class SessionEntity(
 
     @ColumnInfo(name = "notes") val notes: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long
 )

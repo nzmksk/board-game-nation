@@ -10,6 +10,8 @@ import com.boardgamenation.tracker.domain.achievement.AchievementEvaluator
 import com.boardgamenation.tracker.domain.achievement.RuleProgress
 import com.boardgamenation.tracker.domain.achievement.RuleType
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -17,8 +19,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** One achievement as the grid renders it. */
 data class AchievementUi(
@@ -30,7 +30,7 @@ data class AchievementUi(
     val category: String,
     val isHidden: Boolean,
     val unlockedAt: Long?,
-    val progress: RuleProgress,
+    val progress: RuleProgress
 ) {
     val isUnlocked: Boolean get() = unlockedAt != null
 
@@ -49,7 +49,7 @@ class AchievementRepository @Inject constructor(
     private val achievementDao: AchievementDao,
     private val statsDao: AchievementStatsDao,
     private val evaluator: AchievementEvaluator,
-    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -80,7 +80,7 @@ class AchievementRepository @Inject constructor(
                 targetValue = definition.rule.target.takeIf { it > 0.0 },
                 isHidden = definition.hidden,
                 sortOrder = definition.sortOrder,
-                ruleJson = json.encodeToString(definition.rule),
+                ruleJson = json.encodeToString(definition.rule)
             )
         }
     }
@@ -98,33 +98,32 @@ class AchievementRepository @Inject constructor(
      * The achievements grid. Re-emits whenever anything an achievement could depend on
      * changes, so progress bars move as sessions are logged without any manual refresh.
      */
-    fun observeAchievements(): Flow<List<AchievementUi>> =
-        combine(
-            achievementDao.observeAll(),
-            statsDao.observeInvalidationToken(),
-        ) { rows, _ -> rows }
-            .mapLatest { rows ->
-                val rules = rows.associate { it.code to evaluator.parseRule(it.ruleJson) }
-                val minPlays = rules.values
-                    .filter { it.type == RuleType.RATIO }
-                    .map { it.minPlays }
-                    .toSet()
-                val snapshot = evaluator.snapshot(minPlays)
-                rows.map { row ->
-                    val rule = rules.getValue(row.code)
-                    AchievementUi(
-                        id = row.id,
-                        code = row.code,
-                        name = row.name,
-                        description = row.description,
-                        icon = row.icon,
-                        category = row.category,
-                        isHidden = row.isHidden,
-                        unlockedAt = row.unlockedAt,
-                        progress = evaluator.progressOf(rule, snapshot),
-                    )
-                }
+    fun observeAchievements(): Flow<List<AchievementUi>> = combine(
+        achievementDao.observeAll(),
+        statsDao.observeInvalidationToken()
+    ) { rows, _ -> rows }
+        .mapLatest { rows ->
+            val rules = rows.associate { it.code to evaluator.parseRule(it.ruleJson) }
+            val minPlays = rules.values
+                .filter { it.type == RuleType.RATIO }
+                .map { it.minPlays }
+                .toSet()
+            val snapshot = evaluator.snapshot(minPlays)
+            rows.map { row ->
+                val rule = rules.getValue(row.code)
+                AchievementUi(
+                    id = row.id,
+                    code = row.code,
+                    name = row.name,
+                    description = row.description,
+                    icon = row.icon,
+                    category = row.category,
+                    isHidden = row.isHidden,
+                    unlockedAt = row.unlockedAt,
+                    progress = evaluator.progressOf(rule, snapshot)
+                )
             }
+        }
 
     fun observeUnlockedCount(): Flow<Int> = achievementDao.observeUnlockedCount()
 
@@ -133,8 +132,7 @@ class AchievementRepository @Inject constructor(
     fun observeRecentlyUnlocked(limit: Int = 3) = achievementDao.observeRecentlyUnlocked(limit)
 
     /** Called after a session is saved. Returns whatever it newly unlocked. */
-    suspend fun evaluateAfterSession(sessionId: Long?): List<AchievementEntity> =
-        withContext(io) { evaluator.evaluate(sessionId) }
+    suspend fun evaluateAfterSession(sessionId: Long?): List<AchievementEntity> = withContext(io) { evaluator.evaluate(sessionId) }
 
     /** Called after an edit or delete, which can invalidate an existing unlock. */
     suspend fun reconcile() = withContext(io) { evaluator.reconcile() }
@@ -154,6 +152,6 @@ class AchievementRepository @Inject constructor(
         targetValue = rule.target.takeIf { it > 0.0 },
         isHidden = hidden,
         sortOrder = sortOrder,
-        ruleJson = json.encodeToString(rule),
+        ruleJson = json.encodeToString(rule)
     )
 }

@@ -25,8 +25,10 @@ val bggToken: String = Properties().apply {
  * -PversionName=v0.2.0 or VERSION_NAME in the environment; every other build -- local, and
  * every CI debug build -- gets the value below, which is what the app has always reported.
  */
-val appVersionName: String = (providers.gradleProperty("versionName").orNull
-    ?: providers.environmentVariable("VERSION_NAME").orNull)
+val appVersionName: String = (
+    providers.gradleProperty("versionName").orNull
+        ?: providers.environmentVariable("VERSION_NAME").orNull
+    )
     ?.trim()?.removePrefix("v")?.takeIf { it.isNotEmpty() }
     ?: "0.1.0-alpha"
 
@@ -133,7 +135,7 @@ android {
         resources.excludes += setOf(
             "/META-INF/{AL2.0,LGPL2.1}",
             "/META-INF/LICENSE.md",
-            "/META-INF/LICENSE-notice.md",
+            "/META-INF/LICENSE-notice.md"
         )
     }
 }

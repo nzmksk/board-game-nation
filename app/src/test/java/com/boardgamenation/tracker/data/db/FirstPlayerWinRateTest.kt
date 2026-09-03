@@ -33,7 +33,7 @@ class FirstPlayerWinRateTest {
         gameId = db.gameDao().insert(DatabaseTestFixture.game("Catan"))
         repeat(5) { index ->
             players += db.playerDao().insert(
-                DatabaseTestFixture.player("P${index + 1}", isSelf = index == 0),
+                DatabaseTestFixture.player("P${index + 1}", isSelf = index == 0)
             )
         }
     }
@@ -57,7 +57,7 @@ class FirstPlayerWinRateTest {
         game: Long = gameId,
         isCooperative: Boolean = false,
         isIncomplete: Boolean = false,
-        isDraft: Boolean = false,
+        isDraft: Boolean = false
     ) {
         val sessionId = db.sessionDao().insertSession(
             DatabaseTestFixture.session(
@@ -66,8 +66,8 @@ class FirstPlayerWinRateTest {
                 playerCount = seats,
                 isCooperative = isCooperative,
                 isIncomplete = isIncomplete,
-                isDraft = isDraft,
-            ),
+                isDraft = isDraft
+            )
         )
         // The winners are seated at the back when the first player lost, so the count
         // of winners stays what the caller asked for either way.
@@ -78,9 +78,9 @@ class FirstPlayerWinRateTest {
                     sessionId,
                     players[seat],
                     isWinner = seat in winningSeats,
-                    turnOrder = if (orderRecorded) seat + 1 else null,
+                    turnOrder = if (orderRecorded) seat + 1 else null
                 )
-            },
+            }
         )
     }
 

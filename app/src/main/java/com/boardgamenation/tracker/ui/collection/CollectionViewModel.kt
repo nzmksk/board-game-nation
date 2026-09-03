@@ -12,6 +12,7 @@ import com.boardgamenation.tracker.domain.model.CollectionSort
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.PlaytimeBucket
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class CollectionUiState(
     val games: List<GameListItem> = emptyList(),
@@ -31,7 +31,7 @@ data class CollectionUiState(
     val filter: CollectionFilter = CollectionFilter(),
     val layout: CollectionLayout = CollectionLayout.LIST,
     val selection: Set<Long> = emptySet(),
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = true
 ) {
     val inSelectionMode: Boolean get() = selection.isNotEmpty()
 }
@@ -40,7 +40,7 @@ data class CollectionUiState(
 @HiltViewModel
 class CollectionViewModel @Inject constructor(
     private val gameRepository: GameRepository,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val filter = MutableStateFlow(CollectionFilter())
@@ -62,7 +62,7 @@ class CollectionViewModel @Inject constructor(
         gameRepository.observeTagsInUse(),
         filter,
         selection,
-        settingsRepository.settings.map { it.collectionLayout }.distinctUntilChanged(),
+        settingsRepository.settings.map { it.collectionLayout }.distinctUntilChanged()
     ) { games, tags, currentFilter, selected, layout ->
         CollectionUiState(
             games = games,
@@ -72,7 +72,7 @@ class CollectionViewModel @Inject constructor(
             // Selecting a game and then filtering it away would otherwise leave it
             // invisibly selected and quietly included in the next bulk action.
             selection = selected intersect games.map { it.id }.toSet(),
-            isLoading = false,
+            isLoading = false
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CollectionUiState())
 
@@ -83,32 +83,32 @@ class CollectionViewModel @Inject constructor(
     fun toggleStatus(status: GameStatus) {
         val current = filter.value.statuses
         filter.value = filter.value.copy(
-            statuses = if (status in current) current - status else current + status,
+            statuses = if (status in current) current - status else current + status
         )
     }
 
     fun setPlayerCount(count: Int?) {
         filter.value = filter.value.copy(
-            playerCount = if (filter.value.playerCount == count) null else count,
+            playerCount = if (filter.value.playerCount == count) null else count
         )
     }
 
     fun setPlaytime(bucket: PlaytimeBucket?) {
         filter.value = filter.value.copy(
-            playtime = if (filter.value.playtime == bucket) null else bucket,
+            playtime = if (filter.value.playtime == bucket) null else bucket
         )
     }
 
     fun toggleTag(tagId: Long) {
         val current = filter.value.tagIds
         filter.value = filter.value.copy(
-            tagIds = if (tagId in current) current - tagId else current + tagId,
+            tagIds = if (tagId in current) current - tagId else current + tagId
         )
     }
 
     fun setRated(rated: Boolean?) {
         filter.value = filter.value.copy(
-            rated = if (filter.value.rated == rated) null else rated,
+            rated = if (filter.value.rated == rated) null else rated
         )
     }
 
@@ -141,7 +141,7 @@ class CollectionViewModel @Inject constructor(
         filter.value = CollectionFilter(
             search = filter.value.search,
             sort = filter.value.sort,
-            ascending = filter.value.ascending,
+            ascending = filter.value.ascending
         )
     }
 

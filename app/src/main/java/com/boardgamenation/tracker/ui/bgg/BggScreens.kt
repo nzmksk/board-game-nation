@@ -51,17 +51,13 @@ fun BggUnconfigured(modifier: Modifier = Modifier) {
     EmptyState(
         title = stringResource(R.string.bgg_disabled_title),
         body = stringResource(R.string.bgg_disabled_body),
-        modifier = modifier,
+        modifier = modifier
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BggSearchScreen(
-    onBack: () -> Unit,
-    onImported: (Long) -> Unit,
-    viewModel: BggViewModel = hiltViewModel(),
-) {
+fun BggSearchScreen(onBack: () -> Unit, onImported: (Long) -> Unit, viewModel: BggViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -72,12 +68,12 @@ fun BggSearchScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
-                },
+                }
             )
-        },
+        }
     ) { padding ->
         if (!state.configured) {
             BggUnconfigured(Modifier.padding(padding))
@@ -91,7 +87,7 @@ fun BggSearchScreen(
                     onValueChange = viewModel::setQuery,
                     label = { Text(stringResource(R.string.bgg_search_hint)) },
                     singleLine = true,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
                 Spacer(Modifier.width(8.dp))
                 Button(onClick = viewModel::search, enabled = !state.isBusy) {
@@ -112,14 +108,14 @@ fun BggSearchScreen(
                     val owned = result.bggId in state.alreadyOwned
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 3.dp)
                             .clickable(enabled = !owned && !state.isBusy) {
                                 viewModel.importSingle(result.bggId, onImported)
-                            },
+                            }
                     ) {
                         Column(Modifier.padding(12.dp)) {
                             Text(result.name, style = MaterialTheme.typography.titleSmall)
@@ -136,7 +132,7 @@ fun BggSearchScreen(
                                     }
                                 },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -146,7 +142,7 @@ fun BggSearchScreen(
                         Text(
                             text = stringResource(R.string.bgg_no_results),
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
@@ -157,10 +153,7 @@ fun BggSearchScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BggImportScreen(
-    onBack: () -> Unit,
-    viewModel: BggViewModel = hiltViewModel(),
-) {
+fun BggImportScreen(onBack: () -> Unit, viewModel: BggViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -171,12 +164,12 @@ fun BggImportScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
-                },
+                }
             )
-        },
+        }
     ) { padding ->
         if (!state.configured) {
             BggUnconfigured(Modifier.padding(padding))
@@ -190,7 +183,7 @@ fun BggImportScreen(
                     onValueChange = viewModel::setUsername,
                     label = { Text(stringResource(R.string.bgg_username)) },
                     singleLine = true,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
                 Spacer(Modifier.width(8.dp))
                 Button(onClick = viewModel::fetchCollection, enabled = !state.isBusy) {
@@ -202,7 +195,7 @@ fun BggImportScreen(
             ErrorBanner(
                 state,
                 onRetry = viewModel::fetchCollection,
-                onDismiss = viewModel::dismissError,
+                onDismiss = viewModel::dismissError
             )
 
             // The collection endpoint queues on BGG's side, so the wait is explained
@@ -212,14 +205,14 @@ fun BggImportScreen(
                     text = stringResource(R.string.bgg_queued, seconds),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
 
             state.progress?.let { (done, total) ->
                 LabelledProgress(
                     label = "$done / $total",
-                    fraction = if (total > 0) done.toFloat() / total else null,
+                    fraction = if (total > 0) done.toFloat() / total else null
                 )
                 Spacer(Modifier.height(8.dp))
             }
@@ -233,7 +226,7 @@ fun BggImportScreen(
                     Text(
                         text = stringResource(R.string.bgg_import_done, count),
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     TextButton(onClick = viewModel::dismissImported) {
                         Text(stringResource(R.string.action_close))
@@ -244,7 +237,7 @@ fun BggImportScreen(
             if (state.collectionItems.isNotEmpty()) {
                 Row(
                     Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(onClick = viewModel::selectAll) {
                         Text(stringResource(R.string.action_select_all))
@@ -255,7 +248,7 @@ fun BggImportScreen(
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = viewModel::importSelected,
-                        enabled = state.selected.isNotEmpty() && !state.isBusy,
+                        enabled = state.selected.isNotEmpty() && !state.isBusy
                     ) {
                         Text(stringResource(R.string.bgg_import_selected, state.selected.size))
                     }
@@ -265,7 +258,7 @@ fun BggImportScreen(
             LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
                 items(
                     state.collectionItems.size,
-                    key = { state.collectionItems[it].bggId },
+                    key = { state.collectionItems[it].bggId }
                 ) { index ->
                     val item = state.collectionItems[index]
                     val owned = item.bggId in state.alreadyOwned
@@ -274,18 +267,18 @@ fun BggImportScreen(
                             .fillMaxWidth()
                             .clickable { viewModel.toggleSelection(item.bggId) }
                             .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
                             checked = item.bggId in state.selected,
-                            onCheckedChange = { viewModel.toggleSelection(item.bggId) },
+                            onCheckedChange = { viewModel.toggleSelection(item.bggId) }
                         )
                         Column(Modifier.weight(1f)) {
                             Text(
                                 text = item.name,
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = buildString {
@@ -296,7 +289,7 @@ fun BggImportScreen(
                                     }
                                 },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -307,7 +300,7 @@ fun BggImportScreen(
                 text = stringResource(R.string.bgg_attribution),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
     }
@@ -318,15 +311,15 @@ private fun ErrorBanner(state: BggUiState, onRetry: () -> Unit, onDismiss: () ->
     val message = state.errorMessage ?: return
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
+            containerColor = MaterialTheme.colorScheme.errorContainer
         ),
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Retry is only offered when it could plausibly work: a rejected token

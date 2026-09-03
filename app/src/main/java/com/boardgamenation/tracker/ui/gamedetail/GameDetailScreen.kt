@@ -72,7 +72,7 @@ fun GameDetailScreen(
     onOpenSession: (Long) -> Unit,
     onOpenGame: (Long) -> Unit,
     onRate: (Long) -> Unit,
-    viewModel: GameDetailViewModel = hiltViewModel(),
+    viewModel: GameDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val deletePrompt by viewModel.deletePrompt.collectAsStateWithLifecycle()
@@ -88,14 +88,14 @@ fun GameDetailScreen(
                     Text(
                         text = state.game?.title.orEmpty(),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
                 },
@@ -103,18 +103,18 @@ fun GameDetailScreen(
                     IconButton(onClick = { onEdit(viewModel.gameId) }) {
                         Icon(
                             Icons.Filled.Edit,
-                            contentDescription = stringResource(R.string.action_edit),
+                            contentDescription = stringResource(R.string.action_edit)
                         )
                     }
                     IconButton(onClick = viewModel::requestDelete) {
                         Icon(
                             Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.action_delete),
+                            contentDescription = stringResource(R.string.action_delete)
                         )
                     }
-                },
+                }
             )
-        },
+        }
     ) { padding ->
         val game = state.game
         if (state.isLoading) {
@@ -124,14 +124,14 @@ fun GameDetailScreen(
         if (game == null) {
             Text(
                 text = stringResource(R.string.error_not_found),
-                modifier = Modifier.padding(padding).padding(24.dp),
+                modifier = Modifier.padding(padding).padding(24.dp)
             )
             return@Scaffold
         }
 
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 32.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 32.dp)
         ) {
             item { HeaderCard(game, state) }
 
@@ -140,15 +140,15 @@ fun GameDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
                         onClick = { onLogPlay(game.id) },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     ) { Text(stringResource(R.string.game_detail_log_play)) }
                     OutlinedButton(
                         onClick = { onStartTimer(game.id) },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     ) { Text(stringResource(R.string.game_detail_start_timer)) }
                 }
             }
@@ -163,7 +163,7 @@ fun GameDetailScreen(
                             .fillMaxWidth()
                             .horizontalScroll(rememberScrollState())
                             .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         state.tags.forEach { tag ->
                             AssistChip(onClick = {}, label = { Text(tag.name) })
@@ -181,7 +181,7 @@ fun GameDetailScreen(
                     game = game,
                     designers = state.tags
                         .filter { it.kind == TagKind.DESIGNER }
-                        .map { it.name },
+                        .map { it.name }
                 )
             }
 
@@ -192,7 +192,7 @@ fun GameDetailScreen(
                         text = stringResource(R.string.game_detail_no_expansions),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                     )
                 }
             } else {
@@ -204,7 +204,7 @@ fun GameDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onOpenGame(expansion.id) }
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
                     )
                 }
             }
@@ -218,7 +218,7 @@ fun GameDetailScreen(
                         record = state.firstPlayer,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
                     )
                 }
             }
@@ -239,7 +239,7 @@ fun GameDetailScreen(
                         text = stringResource(R.string.game_detail_never_played),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                     )
                 }
             } else {
@@ -247,7 +247,7 @@ fun GameDetailScreen(
                     SessionRow(
                         session = state.sessions[index],
                         showGameTitle = false,
-                        onClick = { onOpenSession(state.sessions[index].id) },
+                        onClick = { onOpenSession(state.sessions[index].id) }
                     )
                 }
             }
@@ -270,8 +270,8 @@ fun GameDetailScreen(
                                 } else {
                                     R.string.game_detail_delete_with_sessions_plural
                                 },
-                                prompt.sessionCount,
-                            ),
+                                prompt.sessionCount
+                            )
                         )
                     }
                     if (prompt.expansionCount > 0) {
@@ -282,8 +282,8 @@ fun GameDetailScreen(
                                 } else {
                                     R.string.game_detail_delete_with_expansions_plural
                                 },
-                                prompt.expansionCount,
-                            ),
+                                prompt.expansionCount
+                            )
                         )
                     }
                 }
@@ -292,7 +292,7 @@ fun GameDetailScreen(
                 TextButton(onClick = viewModel::confirmDelete) {
                     Text(
                         text = stringResource(R.string.action_delete),
-                        color = MaterialTheme.colorScheme.error,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             },
@@ -300,7 +300,7 @@ fun GameDetailScreen(
                 TextButton(onClick = viewModel::dismissDelete) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 
@@ -314,7 +314,7 @@ fun GameDetailScreen(
                     value = person,
                     onValueChange = { person = it },
                     singleLine = true,
-                    label = { Text(stringResource(R.string.players_name)) },
+                    label = { Text(stringResource(R.string.players_name)) }
                 )
             },
             confirmButton = {
@@ -323,14 +323,14 @@ fun GameDetailScreen(
                         viewModel.lend(person)
                         lendDialogOpen = false
                     },
-                    enabled = person.isNotBlank(),
+                    enabled = person.isNotBlank()
                 ) { Text(stringResource(R.string.action_save)) }
             },
             dismissButton = {
                 TextButton(onClick = { lendDialogOpen = false }) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 }
@@ -346,34 +346,36 @@ private fun HeaderCard(game: GameEntity, state: GameDetailUiState) {
                 Text(
                     text = it.toString(),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Text(
                 text = stringResource(game.status.labelRes()),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.primary
             )
             if (game.minPlayers != null && game.maxPlayers != null) {
                 Text(
                     text = stringResource(
-                        R.string.unit_players_range, game.minPlayers, game.maxPlayers,
+                        R.string.unit_players_range,
+                        game.minPlayers,
+                        game.maxPlayers
                     ),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
             game.bestPlayerCount?.let {
                 Text(
                     text = stringResource(R.string.game_detail_best_at, it),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             if (state.daysOnLoan != null && !game.inPossession) {
                 Text(
                     text = stringResource(R.string.game_detail_lent_since, state.daysOnLoan.toInt()),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.tertiary,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }
@@ -392,7 +394,7 @@ private fun FactionRow(record: FactionRecord) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -400,27 +402,27 @@ private fun FactionRow(record: FactionRecord) {
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
             Text(
                 text = stringResource(R.string.stats_win_rate_value, record.winPercent),
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 text = stringResource(
                     R.string.game_detail_faction_plays,
                     record.wins,
-                    record.plays,
+                    record.plays
                 ),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(Modifier.height(4.dp))
         LinearProgressIndicator(
             progress = { record.winPercent / 100f },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
@@ -433,12 +435,12 @@ private fun StatsRow(state: GameDetailUiState) {
             StatTile(
                 label = stringResource(R.string.game_detail_plays),
                 value = aggregates.playCount.toString(),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
             StatTile(
                 label = stringResource(R.string.game_detail_hours),
                 value = DurationFormat.hoursOneDecimal(aggregates.totalMinutes),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
             StatTile(
                 label = stringResource(R.string.game_detail_win_rate),
@@ -447,7 +449,7 @@ private fun StatsRow(state: GameDetailUiState) {
                 } else {
                     "—"
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -465,7 +467,7 @@ private fun StatsRow(state: GameDetailUiState) {
                         null
                     }
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
             StatTile(
                 label = stringResource(R.string.game_detail_cost_per_play),
@@ -473,7 +475,7 @@ private fun StatsRow(state: GameDetailUiState) {
                     String.format(Locale.getDefault(), "%.2f", it)
                 } ?: "—",
                 supporting = state.game?.currency,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -487,32 +489,32 @@ private fun RatingSection(state: GameDetailUiState, onRate: () -> Unit) {
             Text(
                 text = stringResource(R.string.game_detail_no_rating),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 ),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(
                         text = stringResource(
                             R.string.rate_computed,
-                            String.format(Locale.getDefault(), "%.1f", current.computedScore),
+                            String.format(Locale.getDefault(), "%.1f", current.computedScore)
                         ),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = "${current.rubricName} · ${current.ratedOn}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(8.dp))
                     LinearProgressIndicator(
                         progress = { (current.computedScore / 10.0).toFloat() },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     )
                     current.notes?.let {
                         Spacer(Modifier.height(8.dp))
@@ -524,7 +526,7 @@ private fun RatingSection(state: GameDetailUiState, onRate: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.game_detail_rating_history),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium
                 )
                 state.ratings.drop(1).forEach { rating ->
                     Text(
@@ -532,7 +534,7 @@ private fun RatingSection(state: GameDetailUiState, onRate: () -> Unit) {
                             String.format(Locale.getDefault(), "%.1f", rating.computedScore)
                         } (${rating.rubricName})",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -548,13 +550,13 @@ private fun MetadataSection(game: GameEntity, designers: List<String>) {
         game.weight?.let {
             KeyValueRow(
                 stringResource(R.string.game_detail_weight),
-                String.format(Locale.getDefault(), "%.2f", it),
+                String.format(Locale.getDefault(), "%.2f", it)
             )
         }
         game.bggRating?.let {
             KeyValueRow(
                 stringResource(R.string.game_detail_bgg_rating),
-                String.format(Locale.getDefault(), "%.1f", it),
+                String.format(Locale.getDefault(), "%.1f", it)
             )
         }
         designers.takeIf { it.isNotEmpty() }?.let {
@@ -567,8 +569,8 @@ private fun MetadataSection(game: GameEntity, designers: List<String>) {
                 stringResource(
                     R.string.unit_money,
                     game.currency,
-                    String.format(Locale.getDefault(), "%.2f", it),
-                ),
+                    String.format(Locale.getDefault(), "%.2f", it)
+                )
             )
         }
         KeyValueRow(stringResource(R.string.game_edit_date_added), game.dateAdded)
@@ -580,35 +582,30 @@ private fun MetadataSection(game: GameEntity, designers: List<String>) {
 }
 
 @Composable
-private fun LendSection(
-    game: GameEntity,
-    state: GameDetailUiState,
-    onLend: () -> Unit,
-    onReturn: () -> Unit,
-) {
+private fun LendSection(game: GameEntity, state: GameDetailUiState, onLend: () -> Unit, onReturn: () -> Unit) {
     HorizontalDivider(Modifier.padding(vertical = 8.dp))
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
             if (game.inPossession) {
                 Text(
                     text = stringResource(R.string.collection_filter_in_possession),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             } else {
                 Text(
                     text = stringResource(R.string.game_detail_lent_to, game.lentTo.orEmpty()),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 state.daysOnLoan?.let {
                     Text(
                         text = stringResource(R.string.game_detail_lent_since, it.toInt()),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

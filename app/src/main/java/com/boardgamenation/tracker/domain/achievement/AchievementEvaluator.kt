@@ -7,9 +7,9 @@ import com.boardgamenation.tracker.data.db.dao.AchievementStatsDao
 import com.boardgamenation.tracker.data.db.entity.AchievementEntity
 import com.boardgamenation.tracker.data.db.entity.AchievementUnlockEntity
 import com.boardgamenation.tracker.domain.stats.Streaks
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.json.Json
 
 /**
  * Every number the rules can be measured against, gathered once.
@@ -46,15 +46,11 @@ data class AchievementSnapshot(
     val longestLossRun: Int = 0,
     val bestWinRate: Double = 0.0,
     /** Win rate needs a minimum sample, and that minimum varies per rule. */
-    val bestWinRateByMinPlays: Map<Int, Double> = emptyMap(),
+    val bestWinRateByMinPlays: Map<Int, Double> = emptyMap()
 )
 
 /** What one rule currently reads, and whether that is enough to unlock it. */
-data class RuleProgress(
-    val current: Double,
-    val target: Double,
-    val satisfied: Boolean,
-) {
+data class RuleProgress(val current: Double, val target: Double, val satisfied: Boolean) {
     val fraction: Float
         get() = if (target <= 0.0) 0f else (current / target).coerceIn(0.0, 1.0).toFloat()
 }
@@ -71,7 +67,7 @@ data class RuleProgress(
 class AchievementEvaluator @Inject constructor(
     private val achievementDao: AchievementDao,
     private val statsDao: AchievementStatsDao,
-    private val clock: AppClock,
+    private val clock: AppClock
 ) {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -118,7 +114,7 @@ class AchievementEvaluator @Inject constructor(
             longestWinRun = Streaks.longestRunOf(results, value = true),
             longestLossRun = Streaks.longestRunOf(results, value = false),
             bestWinRate = rates.values.maxOrNull() ?: 0.0,
-            bestWinRateByMinPlays = rates,
+            bestWinRateByMinPlays = rates
         )
     }
 
@@ -136,7 +132,9 @@ class AchievementEvaluator @Inject constructor(
         val target = effectiveTarget(rule, snapshot)
         val satisfied = when {
             target <= 0.0 -> false
+
             rule.comparison == Comparison.AT_LEAST -> current >= target
+
             // "At most" only counts once there is something to measure: a brand-new
             // collection has a cost-per-play of zero, which is not an accomplishment.
             else -> current > 0.0 && current <= target
@@ -156,47 +154,49 @@ class AchievementEvaluator @Inject constructor(
             rule.target
         }
 
-    private fun currentValue(rule: AchievementRule, s: AchievementSnapshot): Double =
-        when (rule.type) {
-            RuleType.COUNT_THRESHOLD, RuleType.BREADTH -> metricValue(rule.metric, s)
+    private fun currentValue(rule: AchievementRule, s: AchievementSnapshot): Double = when (rule.type) {
+        RuleType.COUNT_THRESHOLD, RuleType.BREADTH -> metricValue(rule.metric, s)
 
-            RuleType.PER_GAME_THRESHOLD -> s.maxPlaysOfSingleGame.toDouble()
+        RuleType.PER_GAME_THRESHOLD -> s.maxPlaysOfSingleGame.toDouble()
 
-            RuleType.STREAK -> when (rule.period) {
-                Period.DAY -> s.longestDayStreak.toDouble()
-                Period.WEEK -> s.longestWeekStreak.toDouble()
-                Period.MONTH -> s.longestMonthStreak.toDouble()
-                Period.NONE -> 0.0
-            }
-
-            RuleType.TIME_WINDOW -> when (rule.period) {
-                Period.DAY -> s.maxPlaysInOneDay.toDouble()
-                Period.WEEK -> s.maxPlaysInOneWeek.toDouble()
-                Period.MONTH -> s.maxPlaysInOneMonth.toDouble()
-                Period.NONE -> 0.0
-            }
-
-            RuleType.ATTRIBUTE -> when (rule.attribute) {
-                Attribute.SESSION_PLAYER_COUNT -> s.maxSessionPlayerCount.toDouble()
-                Attribute.SESSION_DURATION_HOURS -> s.maxSessionDurationMinutes / 60.0
-                Attribute.GAME_WEIGHT -> s.maxWeightPlayed
-                Attribute.NONE -> 0.0
-            }
-
-            RuleType.RATIO -> s.bestWinRateByMinPlays[rule.minPlays] ?: 0.0
-
-            RuleType.COLLECTION -> when (rule.scope) {
-                // Inverted deliberately: the achievement is having none left, so progress
-                // is "games played" out of "games owned".
-                Scope.NO_UNPLAYED_GAMES ->
-                    (s.gamesOwned - s.unplayedOwnedCount).toDouble()
-                Scope.COST_PER_PLAY_UNDER -> s.lowestCostPerPlay
-                Scope.MECHANIC_COMPLETED -> s.fullyPlayedMechanics.toDouble()
-                Scope.NONE -> 0.0
-            }
-
-            RuleType.UNKNOWN -> 0.0
+        RuleType.STREAK -> when (rule.period) {
+            Period.DAY -> s.longestDayStreak.toDouble()
+            Period.WEEK -> s.longestWeekStreak.toDouble()
+            Period.MONTH -> s.longestMonthStreak.toDouble()
+            Period.NONE -> 0.0
         }
+
+        RuleType.TIME_WINDOW -> when (rule.period) {
+            Period.DAY -> s.maxPlaysInOneDay.toDouble()
+            Period.WEEK -> s.maxPlaysInOneWeek.toDouble()
+            Period.MONTH -> s.maxPlaysInOneMonth.toDouble()
+            Period.NONE -> 0.0
+        }
+
+        RuleType.ATTRIBUTE -> when (rule.attribute) {
+            Attribute.SESSION_PLAYER_COUNT -> s.maxSessionPlayerCount.toDouble()
+            Attribute.SESSION_DURATION_HOURS -> s.maxSessionDurationMinutes / 60.0
+            Attribute.GAME_WEIGHT -> s.maxWeightPlayed
+            Attribute.NONE -> 0.0
+        }
+
+        RuleType.RATIO -> s.bestWinRateByMinPlays[rule.minPlays] ?: 0.0
+
+        RuleType.COLLECTION -> when (rule.scope) {
+            // Inverted deliberately: the achievement is having none left, so progress
+            // is "games played" out of "games owned".
+            Scope.NO_UNPLAYED_GAMES ->
+                (s.gamesOwned - s.unplayedOwnedCount).toDouble()
+
+            Scope.COST_PER_PLAY_UNDER -> s.lowestCostPerPlay
+
+            Scope.MECHANIC_COMPLETED -> s.fullyPlayedMechanics.toDouble()
+
+            Scope.NONE -> 0.0
+        }
+
+        RuleType.UNKNOWN -> 0.0
+    }
 
     private fun metricValue(metric: Metric, s: AchievementSnapshot): Double = when (metric) {
         Metric.TOTAL_PLAYS -> s.totalPlays.toDouble()
@@ -242,7 +242,7 @@ class AchievementEvaluator @Inject constructor(
                     achievementId = definition.id,
                     unlockedAt = now,
                     progressValue = progress.current,
-                    sessionId = triggeringSessionId,
+                    sessionId = triggeringSessionId
                 )
             }
         }
@@ -272,14 +272,16 @@ class AchievementEvaluator @Inject constructor(
             when {
                 existing != null && !progress.satisfied ->
                     achievementDao.deleteUnlock(definition.id)
+
                 existing != null ->
                     achievementDao.updateProgress(definition.id, progress.current)
+
                 progress.satisfied -> achievementDao.insertUnlock(
                     AchievementUnlockEntity(
                         achievementId = definition.id,
                         unlockedAt = clock.nowMillis(),
-                        progressValue = progress.current,
-                    ),
+                        progressValue = progress.current
+                    )
                 )
             }
         }

@@ -3,6 +3,8 @@ package com.boardgamenation.tracker.ui.gameedit
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,8 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -43,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -62,7 +62,7 @@ fun GameEditScreen(
     onSaved: (Long) -> Unit,
     onSearchBgg: () -> Unit,
     bggEnabled: Boolean,
-    viewModel: GameEditViewModel = hiltViewModel(),
+    viewModel: GameEditViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val saved by viewModel.saved.collectAsStateWithLifecycle()
@@ -75,16 +75,19 @@ fun GameEditScreen(
                 title = {
                     Text(
                         stringResource(
-                            if (state.isNew) R.string.game_edit_new_title
-                            else R.string.game_edit_edit_title,
-                        ),
+                            if (state.isNew) {
+                                R.string.game_edit_new_title
+                            } else {
+                                R.string.game_edit_edit_title
+                            }
+                        )
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
                 },
@@ -93,21 +96,21 @@ fun GameEditScreen(
                         IconButton(onClick = onSearchBgg) {
                             Icon(
                                 Icons.Filled.Search,
-                                contentDescription = stringResource(R.string.game_edit_search_bgg),
+                                contentDescription = stringResource(R.string.game_edit_search_bgg)
                             )
                         }
                     }
                     Button(onClick = viewModel::save, enabled = state.canSave) {
                         Text(stringResource(R.string.action_save))
                     }
-                },
+                }
             )
-        },
+        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 OutlinedTextField(
@@ -121,7 +124,7 @@ fun GameEditScreen(
                         null
                     },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -131,14 +134,14 @@ fun GameEditScreen(
                         value = state.yearPublished,
                         label = stringResource(R.string.game_edit_year),
                         onChange = { value -> viewModel.update { it.copy(yearPublished = value) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     NumberField(
                         value = state.weight,
                         label = stringResource(R.string.game_edit_weight),
                         decimal = true,
                         onChange = { value -> viewModel.update { it.copy(weight = value) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -149,20 +152,20 @@ fun GameEditScreen(
                         value = state.minPlayers,
                         label = stringResource(R.string.game_edit_min_players),
                         onChange = { value -> viewModel.update { it.copy(minPlayers = value) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     NumberField(
                         value = state.maxPlayers,
                         label = stringResource(R.string.game_edit_max_players),
                         onChange = { value -> viewModel.update { it.copy(maxPlayers = value) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     OutlinedTextField(
                         value = state.bestPlayerCount,
                         onValueChange = { v -> viewModel.update { it.copy(bestPlayerCount = v) } },
                         label = { Text(stringResource(R.string.game_edit_best_players)) },
                         singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -173,13 +176,13 @@ fun GameEditScreen(
                         value = state.minPlaytime,
                         label = stringResource(R.string.game_edit_min_playtime),
                         onChange = { value -> viewModel.update { it.copy(minPlaytime = value) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     NumberField(
                         value = state.maxPlaytime,
                         label = stringResource(R.string.game_edit_max_playtime),
                         onChange = { value -> viewModel.update { it.copy(maxPlaytime = value) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -190,7 +193,7 @@ fun GameEditScreen(
                     onValueChange = { v -> viewModel.update { it.copy(publisher = v) } },
                     label = { Text(stringResource(R.string.game_edit_publisher)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -202,21 +205,21 @@ fun GameEditScreen(
                         value = state.dateAdded,
                         label = stringResource(R.string.game_edit_date_added),
                         onChange = { v -> viewModel.update { it.copy(dateAdded = v) } },
-                        modifier = Modifier.weight(1.4f),
+                        modifier = Modifier.weight(1.4f)
                     )
                     NumberField(
                         value = state.price,
                         label = stringResource(R.string.game_edit_price),
                         decimal = true,
                         onChange = { v -> viewModel.update { it.copy(price = v) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     OutlinedTextField(
                         value = state.currency,
                         onValueChange = { v -> viewModel.update { it.copy(currency = v) } },
                         label = { Text(stringResource(R.string.game_edit_currency)) },
                         singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -226,7 +229,7 @@ fun GameEditScreen(
                     value = state.purchaseNote,
                     onValueChange = { v -> viewModel.update { it.copy(purchaseNote = v) } },
                     label = { Text(stringResource(R.string.game_edit_purchase_note)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -238,7 +241,7 @@ fun GameEditScreen(
                         FilterChip(
                             selected = state.status == status,
                             onClick = { viewModel.update { it.copy(status = status) } },
-                            label = { Text(stringResource(status.labelRes())) },
+                            label = { Text(stringResource(status.labelRes())) }
                         )
                     }
                 }
@@ -249,7 +252,7 @@ fun GameEditScreen(
                     Column {
                         Text(
                             text = stringResource(R.string.game_edit_wishlist_priority),
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelLarge
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             (1..5).forEach { priority ->
@@ -258,7 +261,7 @@ fun GameEditScreen(
                                     onClick = {
                                         viewModel.update { it.copy(wishlistPriority = priority) }
                                     },
-                                    label = { Text(priority.toString()) },
+                                    label = { Text(priority.toString()) }
                                 )
                             }
                         }
@@ -274,7 +277,7 @@ fun GameEditScreen(
                         FilterChip(
                             selected = state.scoringMode == mode,
                             onClick = { viewModel.update { it.copy(scoringMode = mode) } },
-                            label = { Text(stringResource(mode.labelRes())) },
+                            label = { Text(stringResource(mode.labelRes())) }
                         )
                     }
                 }
@@ -284,11 +287,14 @@ fun GameEditScreen(
                 item {
                     ToggleRow(
                         label = stringResource(
-                            if (state.highScoreWins) R.string.game_edit_high_score_wins
-                            else R.string.game_edit_low_score_wins,
+                            if (state.highScoreWins) {
+                                R.string.game_edit_high_score_wins
+                            } else {
+                                R.string.game_edit_low_score_wins
+                            }
                         ),
                         checked = state.highScoreWins,
-                        onChange = { v -> viewModel.update { it.copy(highScoreWins = v) } },
+                        onChange = { v -> viewModel.update { it.copy(highScoreWins = v) } }
                     )
                 }
             }
@@ -303,12 +309,12 @@ fun GameEditScreen(
                             checked = state.suddenDeathPossible,
                             onChange = { v ->
                                 viewModel.update { it.copy(suddenDeathPossible = v) }
-                            },
+                            }
                         )
                         Text(
                             text = stringResource(R.string.game_edit_sudden_death_help),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -318,7 +324,7 @@ fun GameEditScreen(
                 ToggleRow(
                     label = stringResource(R.string.game_edit_is_expansion),
                     checked = state.isExpansion,
-                    onChange = { v -> viewModel.update { it.copy(isExpansion = v) } },
+                    onChange = { v -> viewModel.update { it.copy(isExpansion = v) } }
                 )
             }
 
@@ -326,7 +332,7 @@ fun GameEditScreen(
                 item {
                     BaseGamePicker(
                         state = state,
-                        onSelect = { id -> viewModel.update { it.copy(baseGameId = id) } },
+                        onSelect = { id -> viewModel.update { it.copy(baseGameId = id) } }
                     )
                 }
             }
@@ -338,7 +344,7 @@ fun GameEditScreen(
                     label = stringResource(R.string.collection_filter_mechanic),
                     tags = state.mechanics,
                     onAdd = { viewModel.addTag(TagKind.MECHANIC, it) },
-                    onRemove = { viewModel.removeTag(TagKind.MECHANIC, it) },
+                    onRemove = { viewModel.removeTag(TagKind.MECHANIC, it) }
                 )
             }
 
@@ -347,7 +353,7 @@ fun GameEditScreen(
                     label = stringResource(R.string.collection_filter_category),
                     tags = state.categories,
                     onAdd = { viewModel.addTag(TagKind.CATEGORY, it) },
-                    onRemove = { viewModel.removeTag(TagKind.CATEGORY, it) },
+                    onRemove = { viewModel.removeTag(TagKind.CATEGORY, it) }
                 )
             }
 
@@ -356,7 +362,7 @@ fun GameEditScreen(
                     label = stringResource(R.string.game_edit_designers),
                     tags = state.designers,
                     onAdd = { viewModel.addTag(TagKind.DESIGNER, it) },
-                    onRemove = { viewModel.removeTag(TagKind.DESIGNER, it) },
+                    onRemove = { viewModel.removeTag(TagKind.DESIGNER, it) }
                 )
             }
 
@@ -366,7 +372,7 @@ fun GameEditScreen(
                     onValueChange = { v -> viewModel.update { it.copy(notes = v) } },
                     label = { Text(stringResource(R.string.game_edit_notes)) },
                     minLines = 3,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -376,13 +382,7 @@ fun GameEditScreen(
 }
 
 @Composable
-private fun NumberField(
-    value: String,
-    label: String,
-    onChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    decimal: Boolean = false,
-) {
+private fun NumberField(value: String, label: String, onChange: (String) -> Unit, modifier: Modifier = Modifier, decimal: Boolean = false) {
     OutlinedTextField(
         value = value,
         onValueChange = { input ->
@@ -394,9 +394,9 @@ private fun NumberField(
         label = { Text(label) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number,
+            keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number
         ),
-        modifier = modifier,
+        modifier = modifier
     )
 }
 
@@ -404,7 +404,7 @@ private fun NumberField(
 private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         Switch(checked = checked, onCheckedChange = onChange)
@@ -426,7 +426,7 @@ private fun BaseGamePicker(state: GameEditState, onSelect: (Long?) -> Unit) {
                 onClick = {
                     onSelect(null)
                     open = false
-                },
+                }
             )
             state.baseGameOptions.forEach { game ->
                 DropdownMenuItem(
@@ -434,7 +434,7 @@ private fun BaseGamePicker(state: GameEditState, onSelect: (Long?) -> Unit) {
                     onClick = {
                         onSelect(game.id)
                         open = false
-                    },
+                    }
                 )
             }
         }
@@ -443,12 +443,7 @@ private fun BaseGamePicker(state: GameEditState, onSelect: (Long?) -> Unit) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TagEditor(
-    label: String,
-    tags: List<String>,
-    onAdd: (String) -> Unit,
-    onRemove: (String) -> Unit,
-) {
+private fun TagEditor(label: String, tags: List<String>, onAdd: (String) -> Unit, onRemove: (String) -> Unit) {
     var input by remember { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(label, style = MaterialTheme.typography.labelLarge)
@@ -458,7 +453,7 @@ private fun TagEditor(
                 onValueChange = { input = it },
                 label = { Text(stringResource(R.string.game_edit_tag_hint)) },
                 singleLine = true,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(8.dp))
             IconButton(
@@ -466,7 +461,7 @@ private fun TagEditor(
                     onAdd(input)
                     input = ""
                 },
-                enabled = input.isNotBlank(),
+                enabled = input.isNotBlank()
             ) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add))
             }
@@ -480,9 +475,9 @@ private fun TagEditor(
                     trailingIcon = {
                         Icon(
                             Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.action_delete),
+                            contentDescription = stringResource(R.string.action_delete)
                         )
-                    },
+                    }
                 )
             }
         }

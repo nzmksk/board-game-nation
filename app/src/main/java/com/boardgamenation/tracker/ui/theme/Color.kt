@@ -62,7 +62,7 @@ internal val LightColors = lightColorScheme(
     surfaceContainerLow = Color(0xFFF5F7F2),
     surfaceContainerLowest = Color.White,
     outline = Color(0xFF707972),
-    outlineVariant = Color(0xFFC0C9C1),
+    outlineVariant = Color(0xFFC0C9C1)
 )
 
 internal val DarkColors = darkColorScheme(
@@ -94,5 +94,5 @@ internal val DarkColors = darkColorScheme(
     surfaceContainerLow = Color(0xFF191C1A),
     surfaceContainerLowest = Color(0xFF0C0F0D),
     outline = Color(0xFF8A938C),
-    outlineVariant = Color(0xFF404943),
+    outlineVariant = Color(0xFF404943)
 )

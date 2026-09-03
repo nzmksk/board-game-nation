@@ -21,7 +21,7 @@ interface AchievementDao {
         FROM achievements a
         LEFT JOIN achievement_unlocks u ON u.achievement_id = a.id
         ORDER BY a.category, a.sort_order, a.name COLLATE NOCASE
-        """,
+        """
     )
     fun observeAll(): Flow<List<AchievementWithUnlock>>
 
@@ -35,7 +35,7 @@ interface AchievementDao {
         JOIN achievement_unlocks u ON u.achievement_id = a.id
         ORDER BY u.unlocked_at DESC
         LIMIT :limit
-        """,
+        """
     )
     fun observeRecentlyUnlocked(limit: Int): Flow<List<AchievementWithUnlock>>
 
@@ -59,7 +59,7 @@ interface AchievementDao {
             SELECT 1 FROM achievement_unlocks u WHERE u.achievement_id = achievements.id
         )
         ORDER BY sort_order, id
-        """,
+        """
     )
     suspend fun getLockedDefinitions(): List<AchievementEntity>
 
@@ -77,7 +77,7 @@ interface AchievementDao {
             target_value = :targetValue, is_hidden = :isHidden, sort_order = :sortOrder,
             rule_json = :ruleJson
         WHERE code = :code
-        """,
+        """
     )
     suspend fun updateDefinitionByCode(
         code: String,
@@ -88,7 +88,7 @@ interface AchievementDao {
         targetValue: Double?,
         isHidden: Boolean,
         sortOrder: Int,
-        ruleJson: String,
+        ruleJson: String
     )
 
     /**

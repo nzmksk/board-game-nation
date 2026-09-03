@@ -28,7 +28,7 @@ class TimerEngineTest {
     private val players = listOf(
         TimerPlayer(1, "Aina"),
         TimerPlayer(2, "Ben"),
-        TimerPlayer(3, "Chandra"),
+        TimerPlayer(3, "Chandra")
     )
 
     @Before
@@ -37,8 +37,7 @@ class TimerEngineTest {
         config = TimerConfig(turnMs = 60_000, bankMs = 300_000, warningMs = 10_000)
     }
 
-    private fun started(): TimerState =
-        TimerEngine.start(TimerEngine.create(1, players, config), clock.elapsedMillis(), 0)
+    private fun started(): TimerState = TimerEngine.start(TimerEngine.create(1, players, config), clock.elapsedMillis(), 0)
 
     @Test
     fun `everyone starts with a full turn clock and a full bank`() {
@@ -133,7 +132,7 @@ class TimerEngineTest {
         state = TimerEngine.create(
             1,
             players,
-            config.copy(bankExhausted = BankExhaustedBehaviour.AUTO_PASS),
+            config.copy(bankExhausted = BankExhaustedBehaviour.AUTO_PASS)
         )
         state = TimerEngine.start(state, clock.elapsedMillis(), 0)
         clock.advance(400_000)
@@ -237,7 +236,7 @@ class TimerEngineTest {
     fun `nextSeatIndex stays put when everyone else is skipped`() {
         val seats = listOf(
             Seat(1, "Aina", null, 0, 0),
-            Seat(2, "Ben", null, 0, 0, skipped = true),
+            Seat(2, "Ben", null, 0, 0, skipped = true)
         )
         assertEquals(0, TimerEngine.nextSeatIndex(seats, from = 0, direction = 1))
     }
@@ -306,12 +305,11 @@ class TimerEngineTest {
 
     private fun countUpConfig() = TimerConfig(mode = TimerMode.COUNT_UP)
 
-    private fun countingUp(seated: List<TimerPlayer> = players): TimerState =
-        TimerEngine.start(
-            TimerEngine.create(1, seated, countUpConfig()),
-            clock.elapsedMillis(),
-            0,
-        )
+    private fun countingUp(seated: List<TimerPlayer> = players): TimerState = TimerEngine.start(
+        TimerEngine.create(1, seated, countUpConfig()),
+        clock.elapsedMillis(),
+        0
+    )
 
     @Test
     fun `a count-up clock counts the table up from zero`() {

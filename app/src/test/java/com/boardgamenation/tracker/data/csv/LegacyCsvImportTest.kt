@@ -53,7 +53,7 @@ class LegacyCsvImportTest {
             achievementDao = db.achievementDao(),
             timerDao = db.timerDao(),
             bggCacheDao = db.bggCacheDao(),
-            io = dispatcher,
+            io = dispatcher
         )
         importer = CsvImporter(
             context = context,
@@ -65,7 +65,7 @@ class LegacyCsvImportTest {
             rubricDao = db.rubricDao(),
             achievementDao = db.achievementDao(),
             maintenance = maintenance,
-            io = dispatcher,
+            io = dispatcher
         )
     }
 
@@ -106,7 +106,7 @@ class LegacyCsvImportTest {
         CsvSchema.SESSION_PLAYERS to """
             id,session_id,player_id,score,placement,is_winner
             1,1,1,42,1,1
-        """.trimIndent(),
+        """.trimIndent()
     )
 
     @Test
@@ -125,7 +125,7 @@ class LegacyCsvImportTest {
         val designers = db.tagDao().getAll().filter { it.kind == TagKind.DESIGNER }
         assertEquals(
             listOf("Antoine Bauza", "Bruno Cathala"),
-            designers.map { it.name }.sorted(),
+            designers.map { it.name }.sorted()
         )
 
         assertEquals(
@@ -133,7 +133,7 @@ class LegacyCsvImportTest {
             db.tagDao().observeForGame(1).first()
                 .filter { it.kind == TagKind.DESIGNER }
                 .map { it.name }
-                .sorted(),
+                .sorted()
         )
         // A game with an empty designers cell gets nothing rather than a blank tag.
         assertTrue(db.tagDao().observeForGame(3).first().isEmpty())
@@ -156,7 +156,7 @@ class LegacyCsvImportTest {
             .map { it.id }
         assertTrue(
             "designer ids $designerIds should not overwrite restored ids",
-            designerIds.none { it == 40L || it == 41L },
+            designerIds.none { it == 40L || it == 41L }
         )
         // The mechanic and category links from the archive are still intact.
         assertEquals(
@@ -164,7 +164,7 @@ class LegacyCsvImportTest {
             db.tagDao().observeForGame(1).first()
                 .filter { it.kind != TagKind.DESIGNER }
                 .map { it.name }
-                .sorted(),
+                .sorted()
         )
     }
 
@@ -174,7 +174,7 @@ class LegacyCsvImportTest {
 
         assertFalse(
             "sudden_death_possible was absent, so it should be false",
-            db.gameDao().getGame(1)!!.suddenDeathPossible,
+            db.gameDao().getGame(1)!!.suddenDeathPossible
         )
         val session = db.sessionDao().getSession(1)!!
         assertNull("no end_condition column in the archive", session.endCondition)
@@ -182,7 +182,7 @@ class LegacyCsvImportTest {
         assertNull("no mode column in the archive", session.mode)
         assertTrue(
             "no team column in the archive",
-            db.sessionDao().getParticipants(1).all { it.team == null },
+            db.sessionDao().getParticipants(1).all { it.team == null }
         )
     }
 }

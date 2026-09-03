@@ -8,6 +8,7 @@ import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
+import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -20,7 +21,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.time.LocalDate
 
 @RunWith(RobolectricTestRunner::class)
 class SessionDaoTest {
@@ -38,7 +38,7 @@ class SessionDaoTest {
             sessionDao = db.sessionDao(),
             gameDao = db.gameDao(),
             playerDao = db.playerDao(),
-            clock = DatabaseTestFixture.clock,
+            clock = DatabaseTestFixture.clock
         )
         gameId = db.gameDao().insert(DatabaseTestFixture.game("Catan"))
         me = db.playerDao().insert(DatabaseTestFixture.player("Muhammad", isSelf = true))
@@ -52,7 +52,7 @@ class SessionDaoTest {
         scores: List<Pair<Long, Double?>>,
         mode: ScoringMode = ScoringMode.RANKED_SCORES,
         id: Long = 0,
-        highScoreWins: Boolean = true,
+        highScoreWins: Boolean = true
     ) = SessionForm(
         id = id,
         gameId = gameId,
@@ -62,7 +62,7 @@ class SessionDaoTest {
         highScoreWins = highScoreWins,
         participants = scores.map { (playerId, score) ->
             ParticipantForm(playerId = playerId, playerName = "p$playerId", score = score)
-        },
+        }
     )
 
     private fun teamForm(id: Long = 0) = SessionForm(
@@ -74,12 +74,11 @@ class SessionDaoTest {
         winningTeam = "Liberals",
         participants = listOf(
             ParticipantForm(playerId = me, playerName = "Me", team = "Liberals"),
-            ParticipantForm(playerId = ben, playerName = "Ben", team = "Fascists"),
-        ),
+            ParticipantForm(playerId = ben, playerName = "Ben", team = "Fascists")
+        )
     )
 
-    private fun seating(vararg playerIds: Long) =
-        playerIds.map { ParticipantForm(playerId = it, playerName = "p$it") }
+    private fun seating(vararg playerIds: Long) = playerIds.map { ParticipantForm(playerId = it, playerName = "p$it") }
 
     @Test
     fun `saving a session writes its participants in the same breath`() = runTest {
@@ -104,7 +103,7 @@ class SessionDaoTest {
     @Test
     fun `golf scoring inverts who wins`() = runTest {
         val id = repository.save(
-            form(listOf(me to 8.0, ben to 12.0), highScoreWins = false),
+            form(listOf(me to 8.0, ben to 12.0), highScoreWins = false)
         )
         val participants = db.sessionDao().getParticipants(id).associateBy { it.playerId }
         assertTrue(participants.getValue(me).isWinner)
@@ -114,7 +113,7 @@ class SessionDaoTest {
     fun `a co-op result applies to the whole table`() = runTest {
         val id = repository.save(
             form(listOf(me to null, ben to null), mode = ScoringMode.COOPERATIVE)
-                .copy(coopOutcome = CoopOutcome.WIN),
+                .copy(coopOutcome = CoopOutcome.WIN)
         )
 
         val session = db.sessionDao().getSession(id)!!
@@ -145,14 +144,14 @@ class SessionDaoTest {
             ScoringMode.MANUAL_PLACEMENT,
             ScoringMode.COOPERATIVE,
             ScoringMode.TEAM_BASED,
-            ScoringMode.NONE,
+            ScoringMode.NONE
         )
 
         withoutScores.forEach { mode ->
             val id = repository.save(form(listOf(me to 10.0, ben to 8.0), mode = mode))
             assertTrue(
                 "$mode should not keep a score",
-                db.sessionDao().getParticipants(id).all { it.score == null },
+                db.sessionDao().getParticipants(id).all { it.score == null }
             )
         }
 
@@ -173,8 +172,8 @@ class SessionDaoTest {
             scoringMode = ScoringMode.MANUAL_PLACEMENT,
             participants = listOf(
                 ParticipantForm(playerId = ben, playerName = "Ben", score = 8.0),
-                ParticipantForm(playerId = me, playerName = "Me", score = 10.0),
-            ),
+                ParticipantForm(playerId = me, playerName = "Me", score = 10.0)
+            )
         )
 
         val id = repository.save(ordered)
@@ -196,11 +195,11 @@ class SessionDaoTest {
         val id = repository.save(teamForm())
         assertEquals(
             listOf("Fascists", "Liberals"),
-            db.sessionDao().getParticipants(id).mapNotNull { it.team }.sorted(),
+            db.sessionDao().getParticipants(id).mapNotNull { it.team }.sorted()
         )
 
         repository.save(
-            repository.loadForm(id)!!.copy(scoringMode = ScoringMode.RANKED_SCORES),
+            repository.loadForm(id)!!.copy(scoringMode = ScoringMode.RANKED_SCORES)
         )
 
         assertTrue(db.sessionDao().getParticipants(id).all { it.team == null })
@@ -214,7 +213,7 @@ class SessionDaoTest {
         listOf(
             ScoringMode.RANKED_SCORES,
             ScoringMode.MANUAL_PLACEMENT,
-            ScoringMode.NONE,
+            ScoringMode.NONE
         ).forEach { mode ->
             repository.save(repository.loadForm(id)!!.copy(scoringMode = mode))
             assertEquals(mode, repository.loadForm(id)!!.scoringMode)
@@ -231,7 +230,7 @@ class SessionDaoTest {
         assertEquals("Liberals", loaded.winningTeam)
         assertEquals(
             listOf("Fascists", "Liberals"),
-            loaded.participants.mapNotNull { it.team }.sorted(),
+            loaded.participants.mapNotNull { it.team }.sorted()
         )
     }
 
@@ -267,7 +266,7 @@ class SessionDaoTest {
         assertTrue(db.sessionDao().getParticipants(first).first().isNewPlayer)
 
         val second = repository.save(
-            form(listOf(me to 10.0)).copy(playedOn = LocalDate.parse("2026-02-02")),
+            form(listOf(me to 10.0)).copy(playedOn = LocalDate.parse("2026-02-02"))
         )
         assertFalse(db.sessionDao().getParticipants(second).first().isNewPlayer)
     }
@@ -279,9 +278,9 @@ class SessionDaoTest {
                 form.copy(
                     participants = form.participants.map {
                         it.copy(turnOrder = if (it.playerId == ben) 1 else 2)
-                    },
+                    }
                 )
-            },
+            }
         )
 
         val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
@@ -300,7 +299,7 @@ class SessionDaoTest {
         val id = repository.save(
             form(listOf(me to 10.0, ben to 8.0)).let { form ->
                 form.copy(participants = form.participants.map { it.copy(turnOrder = 1) })
-            },
+            }
         )
 
         val seats = db.sessionDao().getParticipants(id).mapNotNull { it.turnOrder }.sorted()
@@ -373,7 +372,7 @@ class SessionDaoTest {
         repository.save(form(listOf(me to 10.0)).copy(durationMinutes = 90))
         repository.save(
             form(listOf(me to 10.0))
-                .copy(playedOn = LocalDate.parse("2026-02-05"), durationMinutes = 5, isIncomplete = true),
+                .copy(playedOn = LocalDate.parse("2026-02-05"), durationMinutes = 5, isIncomplete = true)
         )
         assertEquals(90, repository.newSessionForm(gameId).durationMinutes)
     }
@@ -426,7 +425,7 @@ class SessionDaoTest {
         val other = db.gameDao().insert(DatabaseTestFixture.game("Wingspan"))
         repository.save(form(listOf(me to 10.0, ben to 5.0)))
         repository.save(
-            form(listOf(me to 10.0)).copy(gameId = other, playedOn = LocalDate.parse("2026-02-06")),
+            form(listOf(me to 10.0)).copy(gameId = other, playedOn = LocalDate.parse("2026-02-06"))
         )
 
         assertEquals(2, repository.observeSessions(SessionFilter()).first().size)
@@ -440,7 +439,7 @@ class SessionDaoTest {
         repository.save(form(listOf(me to 1.0)).copy(playedOn = LocalDate.parse("2026-03-20")))
 
         val march = repository.observeSessions(
-            SessionFilter(fromDate = "2026-03-01", toDate = "2026-03-31"),
+            SessionFilter(fromDate = "2026-03-01", toDate = "2026-03-31")
         ).first()
         assertEquals(1, march.size)
         assertEquals("2026-03-20", march.first().playedOn)
@@ -460,12 +459,12 @@ class SessionDaoTest {
                 form.copy(
                     participants = form.participants.map {
                         it.copy(turnOrder = if (it.playerId == ben) 1 else 2)
-                    },
+                    }
                 )
-            },
+            }
         )
         repository.save(
-            form(listOf(me to 12.0)).copy(playedOn = LocalDate.parse("2026-02-08")),
+            form(listOf(me to 12.0)).copy(playedOn = LocalDate.parse("2026-02-08"))
         )
 
         val rows = repository.observeSessions(SessionFilter()).first().associateBy { it.playedOn }
@@ -486,7 +485,7 @@ class SessionDaoTest {
     @Test
     fun `a session loads back into an editable form`() = runTest {
         val id = repository.save(
-            form(listOf(me to 10.0, ben to 8.0)).copy(location = "Kitchen table", notes = "Close one"),
+            form(listOf(me to 10.0, ben to 8.0)).copy(location = "Kitchen table", notes = "Close one")
         )
 
         val loaded = repository.loadForm(id)!!
@@ -512,8 +511,8 @@ class SessionDaoTest {
         db.sessionDao().insertParticipants(
             listOf(
                 SessionPlayerEntity(sessionId = id, playerId = me, score = 42.0, placement = 1),
-                SessionPlayerEntity(sessionId = id, playerId = ben, score = 20.0, placement = 2),
-            ),
+                SessionPlayerEntity(sessionId = id, playerId = ben, score = 20.0, placement = 2)
+            )
         )
         db.gameDao().getGame(gameId)!!.let {
             db.gameDao().update(it.copy(scoringMode = ScoringMode.NONE))
@@ -559,7 +558,7 @@ class SessionDaoTest {
         assertEquals("2026-02-01", db.sessionDao().getSession(id)!!.playedOn)
         assertEquals(
             LocalDate.parse("2026-02-01"),
-            DateUtils.parseIsoOrNull(db.sessionDao().getSession(id)!!.playedOn),
+            DateUtils.parseIsoOrNull(db.sessionDao().getSession(id)!!.playedOn)
         )
     }
 

@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -37,8 +37,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.core.time.DateUtils
 import com.boardgamenation.tracker.data.db.entity.SessionEntity
@@ -56,13 +56,13 @@ import com.boardgamenation.tracker.ui.components.StatTile
 import com.boardgamenation.tracker.ui.quicklog.QuickLogSheet
 import com.boardgamenation.tracker.ui.sessions.SessionRow
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class DashboardState(
     val recent: List<SessionListItem> = emptyList(),
@@ -73,7 +73,7 @@ data class DashboardState(
     val draft: SessionEntity? = null,
     val draftGameTitle: String = "",
     val overdueLoans: Int = 0,
-    val lendingThresholdDays: Int = 30,
+    val lendingThresholdDays: Int = 30
 )
 
 @HiltViewModel
@@ -82,7 +82,7 @@ class DashboardViewModel @Inject constructor(
     private val gameRepository: GameRepository,
     statsRepository: StatsRepository,
     achievementRepository: AchievementRepository,
-    settingsRepository: SettingsRepository,
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val loans = MutableStateFlow(0 to 30)
@@ -93,12 +93,12 @@ class DashboardViewModel @Inject constructor(
         achievementRepository.observeRecentlyUnlocked(3),
         combine(
             statsRepository.ownedBaseGames(),
-            statsRepository.totalPlays(),
+            statsRepository.totalPlays()
         ) { owned, plays -> owned to plays },
         combine(
             sessionRepository.observeLatestDraft(),
-            loans,
-        ) { draft, loanInfo -> draft to loanInfo },
+            loans
+        ) { draft, loanInfo -> draft to loanInfo }
     ) { recent, streak, achievements, (owned, plays), (draft, loanInfo) ->
         DashboardState(
             recent = recent,
@@ -109,7 +109,7 @@ class DashboardViewModel @Inject constructor(
             draft = draft,
             draftGameTitle = draft?.let { gameRepository.getGame(it.gameId)?.title }.orEmpty(),
             overdueLoans = loanInfo.first,
-            lendingThresholdDays = loanInfo.second,
+            lendingThresholdDays = loanInfo.second
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardState())
 
@@ -138,7 +138,7 @@ fun DashboardScreen(
     onOpenSessions: () -> Unit,
     onOpenAchievements: () -> Unit,
     onResumeDraft: (Long) -> Unit,
-    viewModel: DashboardViewModel = hiltViewModel(),
+    viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var quickLogOpen by remember { mutableStateOf(false) }
@@ -149,13 +149,13 @@ fun DashboardScreen(
             ExtendedFloatingActionButton(
                 onClick = { quickLogOpen = true },
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.dashboard_quick_log)) },
+                text = { Text(stringResource(R.string.dashboard_quick_log)) }
             )
-        },
+        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(bottom = 96.dp),
+            contentPadding = PaddingValues(bottom = 96.dp)
         ) {
             // A draft left behind by a killed process is the first thing offered, because
             // an evening's data is the most valuable thing the app could lose.
@@ -163,23 +163,23 @@ fun DashboardScreen(
                 item {
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
                         ),
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp)
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Text(
                                 text = stringResource(R.string.dashboard_draft_title),
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
                             )
                             Text(
                                 text = stringResource(
                                     R.string.dashboard_draft_body,
-                                    state.draftGameTitle,
+                                    state.draftGameTitle
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = { onResumeDraft(draft.id) }) {
@@ -197,25 +197,26 @@ fun DashboardScreen(
             item {
                 Row(
                     Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     StatTile(
                         label = stringResource(R.string.stats_total_games),
                         value = state.gamesOwned.toString(),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     StatTile(
                         label = stringResource(R.string.stats_total_plays),
                         value = state.totalPlays.toString(),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     StatTile(
                         label = stringResource(R.string.dashboard_streak_title),
                         value = state.streak.current.toString(),
                         supporting = stringResource(
-                            R.string.dashboard_streak_longest, state.streak.longest,
+                            R.string.dashboard_streak_longest,
+                            state.streak.longest
                         ),
-                        modifier = Modifier.weight(1.2f),
+                        modifier = Modifier.weight(1.2f)
                     )
                 }
             }
@@ -223,7 +224,7 @@ fun DashboardScreen(
             item {
                 Row(
                     Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(onClick = onStartTimer, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Filled.Timer, contentDescription = null)
@@ -237,9 +238,9 @@ fun DashboardScreen(
                 item {
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
                         ),
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp)
                     ) {
                         Text(
                             text = stringResource(
@@ -249,11 +250,11 @@ fun DashboardScreen(
                                     R.string.dashboard_overdue_loans_plural
                                 },
                                 state.overdueLoans,
-                                state.lendingThresholdDays,
+                                state.lendingThresholdDays
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
@@ -271,12 +272,12 @@ fun DashboardScreen(
                     val achievement = state.recentAchievements[index]
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             Icons.Filled.EmojiEvents,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Column(Modifier.padding(start = 12.dp)) {
                             Text(achievement.name, style = MaterialTheme.typography.bodyLarge)
@@ -285,7 +286,7 @@ fun DashboardScreen(
                                     ?.let { DateUtils.epochMillisToIso(it) }
                                     .orEmpty(),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -304,7 +305,7 @@ fun DashboardScreen(
                 item {
                     EmptyState(
                         title = stringResource(R.string.dashboard_no_sessions),
-                        icon = Icons.Filled.Add,
+                        icon = Icons.Filled.Add
                     )
                 }
             } else {
@@ -312,7 +313,7 @@ fun DashboardScreen(
                     SessionRow(
                         session = state.recent[index],
                         showGameTitle = true,
-                        onClick = { onOpenSession(state.recent[index].id) },
+                        onClick = { onOpenSession(state.recent[index].id) }
                     )
                 }
             }
@@ -329,7 +330,7 @@ fun DashboardScreen(
             onOpenFullForm = { gameId ->
                 quickLogOpen = false
                 onOpenFullForm(gameId)
-            },
+            }
         )
     }
 }

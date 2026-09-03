@@ -19,13 +19,13 @@ import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.data.repository.StatsRepository
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class GameDetailUiState(
     val game: GameEntity? = null,
@@ -42,7 +42,7 @@ data class GameDetailUiState(
     val firstPlayer: FirstPlayerRecord = FirstPlayerRecord(0, 0, null),
 
     val daysOnLoan: Long? = null,
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = true
 ) {
     val currentRating: RatingWithRubric? get() = ratings.firstOrNull()
 
@@ -68,7 +68,7 @@ class GameDetailViewModel @Inject constructor(
     private val gameRepository: GameRepository,
     private val sessionRepository: SessionRepository,
     private val rubricRepository: RubricRepository,
-    statsRepository: StatsRepository,
+    statsRepository: StatsRepository
 ) : ViewModel() {
 
     val gameId: Long = savedStateHandle.toRoute<Route.GameDetail>().gameId
@@ -83,7 +83,7 @@ class GameDetailViewModel @Inject constructor(
         val expansions: List<GameEntity>,
         val ratings: List<RatingWithRubric>,
         val factions: List<FactionRecord>,
-        val firstPlayer: FirstPlayerRecord,
+        val firstPlayer: FirstPlayerRecord
     )
 
     private val _deletePrompt = MutableStateFlow<DeletePrompt?>(null)
@@ -102,8 +102,8 @@ class GameDetailViewModel @Inject constructor(
             rubricRepository.observeRatingsFor(gameId),
             gameRepository.observeFactionRecords(gameId),
             statsRepository.firstPlayerRecord(gameId),
-            ::Extras,
-        ),
+            ::Extras
+        )
     ) { game, aggregates, tags, sessions, extras ->
         GameDetailUiState(
             game = game,
@@ -115,7 +115,7 @@ class GameDetailViewModel @Inject constructor(
             factions = extras.factions,
             firstPlayer = extras.firstPlayer,
             daysOnLoan = gameRepository.daysOnLoan(game?.lentDate),
-            isLoading = false,
+            isLoading = false
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GameDetailUiState())
 
@@ -124,6 +124,7 @@ class GameDetailViewModel @Inject constructor(
             when (val outcome = gameRepository.deleteGame(gameId, confirmed = false)) {
                 is DeleteGameOutcome.NeedsConfirmation ->
                     _deletePrompt.value = DeletePrompt(outcome.sessionCount, outcome.expansionCount)
+
                 DeleteGameOutcome.Deleted -> _deleted.value = true
             }
         }

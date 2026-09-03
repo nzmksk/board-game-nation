@@ -44,10 +44,7 @@ class FakeElapsedTimeSource(var current: Long = 0L) : ElapsedTimeSource {
     }
 }
 
-class FixedClock(
-    private val millis: Long,
-    private val zone: ZoneId = ZoneId.of("UTC"),
-) : AppClock {
+class FixedClock(private val millis: Long, private val zone: ZoneId = ZoneId.of("UTC")) : AppClock {
     override fun nowMillis(): Long = millis
     override fun today(): LocalDate = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
     override fun zone(): ZoneId = zone

@@ -15,8 +15,8 @@ import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
-import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
+import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.model.TurnOrder
 import com.boardgamenation.tracker.domain.share.ShareCard
 import com.boardgamenation.tracker.domain.usecase.DeleteSessionUseCase
@@ -25,6 +25,8 @@ import com.boardgamenation.tracker.domain.usecase.SaveSessionUseCase
 import com.boardgamenation.tracker.share.SessionShareImages
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -33,8 +35,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import javax.inject.Inject
 
 data class SessionEditUiState(
     val form: SessionForm = SessionForm(playedOn = LocalDate.now()),
@@ -59,7 +59,7 @@ data class SessionEditUiState(
 
     /** True while the result card is being drawn, which takes a moment on a big table. */
     val isSharing: Boolean = false,
-    val validationError: Int? = null,
+    val validationError: Int? = null
 )
 
 /** Emitted once, for something the screen has to do rather than draw. */
@@ -83,7 +83,7 @@ class SessionEditViewModel @Inject constructor(
     private val editSession: EditSessionUseCase,
     private val deleteSession: DeleteSessionUseCase,
     private val shareImages: SessionShareImages,
-    private val clock: AppClock,
+    private val clock: AppClock
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<Route.SessionEdit>()
@@ -128,7 +128,7 @@ class SessionEditViewModel @Inject constructor(
                     .takeIf { it != 0L }
                     ?.let { sessionRepository.observeTeamsFor(it).first() }
                     .orEmpty(),
-                isNew = route.sessionId == 0L,
+                isNew = route.sessionId == 0L
             )
         }
     }
@@ -148,14 +148,14 @@ class SessionEditViewModel @Inject constructor(
                     // Anything the user has already entered survives the switch.
                     participants = current.participants.ifEmpty { prefilled.participants },
                     notes = current.notes,
-                    location = current.location,
+                    location = current.location
                 ),
                 availableExpansions = gameRepository.observeExpansions(gameId).first(),
                 suddenDeathPossible = gameRepository.getGame(gameId)?.suddenDeathPossible == true,
                 previousEndReasons = sessionRepository.observeEndReasonsFor(gameId).first(),
                 previousModes = sessionRepository.observeModesFor(gameId).first(),
                 previousTeams = sessionRepository.observeTeamsFor(gameId).first(),
-                validationError = null,
+                validationError = null
             )
         }
     }
@@ -172,8 +172,8 @@ class SessionEditViewModel @Inject constructor(
                 participants = it.participants + ParticipantForm(
                     playerId = player.id,
                     playerName = player.name,
-                    colorHex = player.colorHex,
-                ),
+                    colorHex = player.colorHex
+                )
             )
         }
     }
@@ -185,7 +185,7 @@ class SessionEditViewModel @Inject constructor(
             val id = playerRepository.findOrCreate(name)
             val player = playerRepository.getPlayer(id) ?: return@launch
             _state.value = _state.value.copy(
-                players = playerRepository.observeByRecency().first(),
+                players = playerRepository.observeByRecency().first()
             )
             addPlayer(player)
         }
@@ -196,8 +196,8 @@ class SessionEditViewModel @Inject constructor(
         update { form ->
             form.copy(
                 participants = TurnOrder.normalise(
-                    form.participants.filterNot { it.playerId == playerId },
-                ),
+                    form.participants.filterNot { it.playerId == playerId }
+                )
             )
         }
     }
@@ -219,7 +219,7 @@ class SessionEditViewModel @Inject constructor(
             form.copy(
                 participants = form.participants.map {
                     if (it.playerId == playerId) block(it) else it
-                },
+                }
             )
         }
     }
@@ -272,7 +272,7 @@ class SessionEditViewModel @Inject constructor(
         update {
             it.copy(
                 endCondition = condition,
-                endReason = if (condition == null) null else it.endReason,
+                endReason = if (condition == null) null else it.endReason
             )
         }
     }
@@ -284,7 +284,7 @@ class SessionEditViewModel @Inject constructor(
                     form.expansionIds - gameId
                 } else {
                     form.expansionIds + gameId
-                },
+                }
             )
         }
     }
@@ -294,13 +294,14 @@ class SessionEditViewModel @Inject constructor(
         when {
             form.gameId == 0L -> {
                 _state.value = _state.value.copy(
-                    validationError = R.string.session_edit_needs_game,
+                    validationError = R.string.session_edit_needs_game
                 )
                 return
             }
+
             form.participants.isEmpty() -> {
                 _state.value = _state.value.copy(
-                    validationError = R.string.session_edit_needs_players,
+                    validationError = R.string.session_edit_needs_players
                 )
                 return
             }
@@ -310,7 +311,7 @@ class SessionEditViewModel @Inject constructor(
         viewModelScope.launch {
             val result = if (_state.value.isNew) saveSession(form) else editSession(form)
             _events.emit(
-                SessionEditEvent.Saved(result.sessionId, result.newlyUnlocked.map { it.name }),
+                SessionEditEvent.Saved(result.sessionId, result.newlyUnlocked.map { it.name })
             )
         }
     }

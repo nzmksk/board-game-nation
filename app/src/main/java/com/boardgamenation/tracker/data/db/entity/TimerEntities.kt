@@ -18,10 +18,10 @@ import com.boardgamenation.tracker.domain.model.TimerRunState
             entity = GameEntity::class,
             parentColumns = ["id"],
             childColumns = ["game_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
-    indices = [Index(value = ["game_id"])],
+    indices = [Index(value = ["game_id"])]
 )
 data class TimerPresetEntity(
     @PrimaryKey(autoGenerate = true)
@@ -35,7 +35,7 @@ data class TimerPresetEntity(
     @ColumnInfo(name = "haptics_enabled", defaultValue = "1") val hapticsEnabled: Boolean = true,
     @ColumnInfo(name = "auto_pass_on_bank_empty", defaultValue = "0")
     val autoPassOnBankEmpty: Boolean = false,
-    @ColumnInfo(name = "game_id") val gameId: Long? = null,
+    @ColumnInfo(name = "game_id") val gameId: Long? = null
 )
 
 /**
@@ -59,16 +59,16 @@ data class TimerPresetEntity(
             entity = SessionEntity::class,
             parentColumns = ["id"],
             childColumns = ["session_id"],
-            onDelete = ForeignKey.SET_NULL,
+            onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
             entity = GameEntity::class,
             parentColumns = ["id"],
             childColumns = ["game_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
-    indices = [Index(value = ["session_id"]), Index(value = ["game_id"])],
+    indices = [Index(value = ["session_id"]), Index(value = ["game_id"])]
 )
 data class TimerStateEntity(
     @PrimaryKey
@@ -114,7 +114,7 @@ data class TimerStateEntity(
     @ColumnInfo(name = "saved_at_wall_clock", defaultValue = "0") val savedAtWallClock: Long = 0,
 
     /** Serialised previous state, powering the single level of undo for a misclick. */
-    @ColumnInfo(name = "undo_snapshot") val undoSnapshot: String? = null,
+    @ColumnInfo(name = "undo_snapshot") val undoSnapshot: String? = null
 ) {
     companion object {
         const val SINGLETON_ID = 1L
@@ -129,10 +129,10 @@ data class TimerStateEntity(
             entity = PlayerEntity::class,
             parentColumns = ["id"],
             childColumns = ["player_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
-    indices = [Index(value = ["seat_order"], unique = true), Index(value = ["player_id"])],
+    indices = [Index(value = ["seat_order"], unique = true), Index(value = ["player_id"])]
 )
 data class TimerSeatEntity(
     @PrimaryKey(autoGenerate = true)
@@ -153,5 +153,5 @@ data class TimerSeatEntity(
     @ColumnInfo(name = "timed_out", defaultValue = "0") val timedOut: Boolean = false,
 
     /** Temporarily out of the rotation. */
-    @ColumnInfo(name = "skipped", defaultValue = "0") val skipped: Boolean = false,
+    @ColumnInfo(name = "skipped", defaultValue = "0") val skipped: Boolean = false
 )

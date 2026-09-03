@@ -11,9 +11,9 @@ import com.boardgamenation.tracker.data.backup.DbBackup
 import com.boardgamenation.tracker.data.csv.CsvExporter
 import com.boardgamenation.tracker.data.csv.CsvImporter
 import com.boardgamenation.tracker.data.csv.ImportPreview
-import com.boardgamenation.tracker.data.dev.DevFixtures
 import com.boardgamenation.tracker.data.db.entity.PlayerEntity
 import com.boardgamenation.tracker.data.db.entity.TimerPresetEntity
+import com.boardgamenation.tracker.data.dev.DevFixtures
 import com.boardgamenation.tracker.data.prefs.AppSettings
 import com.boardgamenation.tracker.data.prefs.SettingsRepository
 import com.boardgamenation.tracker.data.repository.BggRepository
@@ -24,6 +24,7 @@ import com.boardgamenation.tracker.domain.model.ImportMode
 import com.boardgamenation.tracker.domain.model.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,13 +32,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class SettingsUiState(
     val settings: AppSettings = AppSettings(),
     val players: List<PlayerEntity> = emptyList(),
     val presets: List<TimerPresetEntity> = emptyList(),
-    val bggConfigured: Boolean = false,
+    val bggConfigured: Boolean = false
 )
 
 /** Feedback from a data operation, shown as a snackbar. */
@@ -55,13 +55,13 @@ class SettingsViewModel @Inject constructor(
     private val maintenance: DataMaintenanceRepository,
     private val devFixtures: DevFixtures,
     private val backupScheduler: BackupScheduler,
-    bggRepository: BggRepository,
+    bggRepository: BggRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = combine(
         settingsRepository.settings,
         playerRepository.observeAll(),
-        timerRepository.observePresets(),
+        timerRepository.observePresets()
     ) { settings, players, presets ->
         SettingsUiState(settings, players, presets, bggRepository.isConfigured)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
@@ -80,25 +80,19 @@ class SettingsViewModel @Inject constructor(
 
     fun setTheme(mode: ThemeMode) = viewModelScope.launch { settingsRepository.setTheme(mode) }
 
-    fun setDynamicColor(enabled: Boolean) =
-        viewModelScope.launch { settingsRepository.setDynamicColor(enabled) }
+    fun setDynamicColor(enabled: Boolean) = viewModelScope.launch { settingsRepository.setDynamicColor(enabled) }
 
-    fun setCurrency(code: String) =
-        viewModelScope.launch { settingsRepository.setCurrency(code) }
+    fun setCurrency(code: String) = viewModelScope.launch { settingsRepository.setCurrency(code) }
 
     fun setSelf(playerId: Long) = viewModelScope.launch { playerRepository.setSelf(playerId) }
 
-    fun setLendingDays(days: Int) =
-        viewModelScope.launch { settingsRepository.setLendingReminderDays(days) }
+    fun setLendingDays(days: Int) = viewModelScope.launch { settingsRepository.setLendingReminderDays(days) }
 
-    fun setDefaultPreset(id: Long) =
-        viewModelScope.launch { settingsRepository.setDefaultTimerPreset(id) }
+    fun setDefaultPreset(id: Long) = viewModelScope.launch { settingsRepository.setDefaultTimerPreset(id) }
 
-    fun setAchievementNotifications(enabled: Boolean) =
-        viewModelScope.launch { settingsRepository.setAchievementNotifications(enabled) }
+    fun setAchievementNotifications(enabled: Boolean) = viewModelScope.launch { settingsRepository.setAchievementNotifications(enabled) }
 
-    fun setBackupsToKeep(count: Int) =
-        viewModelScope.launch { settingsRepository.setBackupsToKeep(count) }
+    fun setBackupsToKeep(count: Int) = viewModelScope.launch { settingsRepository.setBackupsToKeep(count) }
 
     /**
      * The scheduled job is only registered once a folder exists to write to; enabling it
@@ -118,7 +112,7 @@ class SettingsViewModel @Inject constructor(
             runCatching {
                 context.contentResolver.takePersistableUriPermission(
                     uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
             }
             settingsRepository.setBackupDirectory(uri.toString())
@@ -132,8 +126,8 @@ class SettingsViewModel @Inject constructor(
             context.getString(
                 R.string.export_done,
                 result.totalRows,
-                result.location,
-            ),
+                result.location
+            )
         )
     }
 
@@ -143,8 +137,8 @@ class SettingsViewModel @Inject constructor(
             context.getString(
                 R.string.export_done,
                 result.totalRows,
-                result.location,
-            ),
+                result.location
+            )
         )
     }
 
@@ -173,8 +167,8 @@ class SettingsViewModel @Inject constructor(
             DataMessage(
                 context.getString(
                     R.string.import_done,
-                    result.totalRows,
-                ),
+                    result.totalRows
+                )
             )
         }
     }
@@ -188,8 +182,8 @@ class SettingsViewModel @Inject constructor(
         DataMessage(
             context.getString(
                 R.string.backup_done,
-                "${bytes / 1024} KB",
-            ),
+                "${bytes / 1024} KB"
+            )
         )
     }
 
@@ -204,7 +198,7 @@ class SettingsViewModel @Inject constructor(
                 .onSuccess {
                     _restartRequired.value = true
                     _message.value = DataMessage(
-                        context.getString(R.string.restore_done),
+                        context.getString(R.string.restore_done)
                     )
                 }
                 .onFailure {

@@ -16,46 +16,38 @@ import com.boardgamenation.tracker.domain.model.PlacementCalculator
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.model.TurnOrder
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
 
 /** Filters for the session list. Nulls mean "no filter" all the way down to the SQL. */
-data class SessionFilter(
-    val gameId: Long? = null,
-    val playerId: Long? = null,
-    val fromDate: String? = null,
-    val toDate: String? = null,
-)
+data class SessionFilter(val gameId: Long? = null, val playerId: Long? = null, val fromDate: String? = null, val toDate: String? = null)
 
 @Singleton
 class SessionRepository @Inject constructor(
     private val sessionDao: SessionDao,
     private val gameDao: GameDao,
     private val playerDao: PlayerDao,
-    private val clock: AppClock,
+    private val clock: AppClock
 ) {
 
-    fun observeSessions(filter: SessionFilter): Flow<List<SessionListItem>> =
-        sessionDao.observeSessions(
-            gameId = filter.gameId,
-            playerId = filter.playerId,
-            fromDate = filter.fromDate,
-            toDate = filter.toDate,
-        )
+    fun observeSessions(filter: SessionFilter): Flow<List<SessionListItem>> = sessionDao.observeSessions(
+        gameId = filter.gameId,
+        playerId = filter.playerId,
+        fromDate = filter.fromDate,
+        toDate = filter.toDate
+    )
 
     fun observeRecent(limit: Int = 5): Flow<List<SessionListItem>> = sessionDao.observeRecent(limit)
 
     fun observeSession(id: Long): Flow<SessionEntity?> = sessionDao.observeSession(id)
 
-    fun observeParticipants(sessionId: Long): Flow<List<SessionParticipant>> =
-        sessionDao.observeParticipants(sessionId)
+    fun observeParticipants(sessionId: Long): Flow<List<SessionParticipant>> = sessionDao.observeParticipants(sessionId)
 
     fun observeLatestDraft(): Flow<SessionEntity?> = sessionDao.observeLatestDraft()
 
     /** Sudden-death reasons this game has already been given, newest first. */
-    fun observeEndReasonsFor(gameId: Long): Flow<List<String>> =
-        sessionDao.observeEndReasonsFor(gameId)
+    fun observeEndReasonsFor(gameId: Long): Flow<List<String>> = sessionDao.observeEndReasonsFor(gameId)
 
     /** Configurations this game has already been played at, newest first. */
     fun observeModesFor(gameId: Long): Flow<List<String>> = sessionDao.observeModesFor(gameId)
@@ -87,7 +79,7 @@ class SessionRepository @Inject constructor(
             durationMinutes = averageMinutes ?: fallbackMinutes ?: 60,
             scoringMode = game?.scoringMode ?: ScoringMode.RANKED_SCORES,
             highScoreWins = game?.highScoreWins ?: true,
-            participants = lineup.map { it.toParticipant() },
+            participants = lineup.map { it.toParticipant() }
         )
     }
 
@@ -102,8 +94,10 @@ class SessionRepository @Inject constructor(
 
         val scoringMode = when {
             session.isCooperative -> ScoringMode.COOPERATIVE
+
             // A play with sides on it was a team game whatever the game says now.
             stored.any { !it.team.isNullOrBlank() } -> ScoringMode.TEAM_BASED
+
             else -> game?.scoringMode ?: ScoringMode.RANKED_SCORES
         }
 
@@ -148,7 +142,7 @@ class SessionRepository @Inject constructor(
             expansionIds = expansions,
             startedAt = session.startedAt,
             endedAt = session.endedAt,
-            pausedMs = session.pausedMs,
+            pausedMs = session.pausedMs
         )
     }
 
@@ -183,7 +177,7 @@ class SessionRepository @Inject constructor(
             photoUri = form.photoUri,
             notes = form.notes?.takeIf { it.isNotBlank() },
             createdAt = existing?.createdAt ?: now,
-            updatedAt = now,
+            updatedAt = now
         )
 
         val rows = normalised.map { participant ->
@@ -198,7 +192,7 @@ class SessionRepository @Inject constructor(
                 team = participant.team?.takeIf { it.isNotBlank() },
                 isNewPlayer = participant.isNewPlayer,
                 turnTimeMs = participant.turnTimeMs,
-                bankTimeRemainingMs = participant.bankTimeRemainingMs,
+                bankTimeRemainingMs = participant.bankTimeRemainingMs
             )
         }
 
@@ -211,8 +205,8 @@ class SessionRepository @Inject constructor(
                     game.copy(
                         scoringMode = form.scoringMode,
                         highScoreWins = form.highScoreWins,
-                        updatedAt = now,
-                    ),
+                        updatedAt = now
+                    )
                 )
             }
         }
@@ -241,11 +235,15 @@ class SessionRepository @Inject constructor(
             else -> when (form.scoringMode) {
                 ScoringMode.RANKED_SCORES ->
                     PlacementCalculator.derive(form.participants, form.highScoreWins)
+
                 ScoringMode.MANUAL_PLACEMENT -> PlacementCalculator.fromOrder(form.participants)
+
                 ScoringMode.COOPERATIVE ->
                     PlacementCalculator.applyCoop(form.participants, form.coopOutcome)
+
                 ScoringMode.TEAM_BASED ->
                     PlacementCalculator.applyTeams(form.participants, form.winningTeam)
+
                 ScoringMode.NONE -> form.participants.map { it.copy(placement = null) }
             }
         }
@@ -264,7 +262,7 @@ class SessionRepository @Inject constructor(
                 val priorPlays = sessionDao.timesPlayerPlayedGame(
                     playerId = participant.playerId,
                     gameId = form.gameId,
-                    excludingSessionId = form.id,
+                    excludingSessionId = form.id
                 )
                 participant.copy(isNewPlayer = priorPlays == 0)
             }
@@ -285,7 +283,7 @@ class SessionRepository @Inject constructor(
         val owned = flagged.map { participant ->
             participant.copy(
                 score = participant.score.takeIf { form.scoringMode.recordsScores },
-                team = participant.team.takeIf { form.scoringMode.recordsSides },
+                team = participant.team.takeIf { form.scoringMode.recordsSides }
             )
         }
 
@@ -314,9 +312,9 @@ class SessionRepository @Inject constructor(
                 playerCount = players.size,
                 isDraft = true,
                 createdAt = now,
-                updatedAt = now,
+                updatedAt = now
             ),
-            players.map { it.toDraftRow(0) },
+            players.map { it.toDraftRow(0) }
         )
     }
 
@@ -333,7 +331,7 @@ class SessionRepository @Inject constructor(
         startedAt: Long?,
         endedAt: Long?,
         pausedMs: Long,
-        participants: List<ParticipantForm>,
+        participants: List<ParticipantForm>
     ) {
         val draft = sessionDao.getSession(sessionId) ?: return
         sessionDao.saveDraft(
@@ -343,9 +341,9 @@ class SessionRepository @Inject constructor(
                 endedAt = endedAt,
                 pausedMs = pausedMs,
                 playerCount = participants.size,
-                updatedAt = clock.nowMillis(),
+                updatedAt = clock.nowMillis()
             ),
-            participants.map { it.toDraftRow(sessionId) },
+            participants.map { it.toDraftRow(sessionId) }
         )
     }
 
@@ -359,8 +357,7 @@ class SessionRepository @Inject constructor(
 
     suspend fun delete(id: Long) = sessionDao.deleteSession(id)
 
-    suspend fun averageDurationFor(gameId: Long): Int? =
-        sessionDao.averageDurationFor(gameId)?.toInt()
+    suspend fun averageDurationFor(gameId: Long): Int? = sessionDao.averageDurationFor(gameId)?.toInt()
 }
 
 /**
@@ -372,13 +369,13 @@ private fun ParticipantForm.toDraftRow(sessionId: Long) = SessionPlayerEntity(
     playerId = playerId,
     turnOrder = turnOrder,
     turnTimeMs = turnTimeMs,
-    bankTimeRemainingMs = bankTimeRemainingMs,
+    bankTimeRemainingMs = bankTimeRemainingMs
 )
 
 private fun PlayerEntity.toParticipant() = ParticipantForm(
     playerId = id,
     playerName = name,
-    colorHex = colorHex,
+    colorHex = colorHex
 )
 
 private fun SessionParticipant.toParticipantForm() = ParticipantForm(
@@ -393,5 +390,5 @@ private fun SessionParticipant.toParticipantForm() = ParticipantForm(
     team = team,
     isNewPlayer = isNewPlayer,
     turnTimeMs = turnTimeMs,
-    bankTimeRemainingMs = bankTimeRemainingMs,
+    bankTimeRemainingMs = bankTimeRemainingMs
 )

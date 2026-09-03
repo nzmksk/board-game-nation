@@ -14,12 +14,12 @@ import com.boardgamenation.tracker.data.db.query.GameQueryBuilder
 import com.boardgamenation.tracker.domain.model.CollectionFilter
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.TagKind
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** What happens when the user deletes a game that has plays recorded against it. */
 sealed interface DeleteGameOutcome {
@@ -30,8 +30,7 @@ sealed interface DeleteGameOutcome {
      * Blocked pending confirmation, because deleting would cascade [sessionCount] plays
      * out of existence. The UI turns this into an explicit prompt rather than guessing.
      */
-    data class NeedsConfirmation(val sessionCount: Int, val expansionCount: Int) :
-        DeleteGameOutcome
+    data class NeedsConfirmation(val sessionCount: Int, val expansionCount: Int) : DeleteGameOutcome
 }
 
 @Singleton
@@ -40,22 +39,20 @@ class GameRepository @Inject constructor(
     private val gameDao: GameDao,
     private val tagDao: TagDao,
     private val sessionDao: SessionDao,
-    private val clock: AppClock,
+    private val clock: AppClock
 ) {
 
     fun observeCollection(filter: Flow<CollectionFilter>): Flow<List<GameListItem>> =
         filter.flatMapLatest { gameDao.observeCollection(GameQueryBuilder.build(it)) }
 
-    fun observeCollection(filter: CollectionFilter): Flow<List<GameListItem>> =
-        gameDao.observeCollection(GameQueryBuilder.build(filter))
+    fun observeCollection(filter: CollectionFilter): Flow<List<GameListItem>> = gameDao.observeCollection(GameQueryBuilder.build(filter))
 
     fun observeGame(id: Long): Flow<GameEntity?> = gameDao.observeGame(id)
 
     fun observeAggregates(id: Long): Flow<GameAggregates> = gameDao.observeAggregates(id)
 
     /** Win rate per faction for this game, across everybody who has played it. */
-    fun observeFactionRecords(gameId: Long): Flow<List<FactionRecord>> =
-        gameDao.observeFactionRecords(gameId)
+    fun observeFactionRecords(gameId: Long): Flow<List<FactionRecord>> = gameDao.observeFactionRecords(gameId)
 
     fun observeTags(gameId: Long): Flow<List<TagEntity>> = tagDao.observeForGame(gameId)
 
@@ -63,8 +60,7 @@ class GameRepository @Inject constructor(
 
     fun observeTagsInUse(): Flow<List<TagEntity>> = tagDao.observeInUse()
 
-    fun observeExpansions(baseGameId: Long): Flow<List<GameEntity>> =
-        gameDao.observeExpansionsOf(baseGameId)
+    fun observeExpansions(baseGameId: Long): Flow<List<GameEntity>> = gameDao.observeExpansionsOf(baseGameId)
 
     fun observeBaseGames(): Flow<List<GameEntity>> = gameDao.observeBaseGames()
 
@@ -90,8 +86,8 @@ class GameRepository @Inject constructor(
             game.copy(
                 dateAdded = game.dateAdded.ifBlank { DateUtils.toIso(clock.today()) },
                 createdAt = if (game.createdAt == 0L) now else game.createdAt,
-                updatedAt = now,
-            ),
+                updatedAt = now
+            )
         )
         if (tagIds.isNotEmpty()) gameDao.replaceTags(id, tagIds)
         return id
@@ -103,9 +99,8 @@ class GameRepository @Inject constructor(
     }
 
     /** Resolves free-text tag names to ids, creating any that are new. */
-    suspend fun resolveTags(names: List<String>, kind: TagKind): List<Long> =
-        names.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
-            .map { tagDao.upsertByName(it, kind) }
+    suspend fun resolveTags(names: List<String>, kind: TagKind): List<Long> = names.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        .map { tagDao.upsertByName(it, kind) }
 
     /**
      * Checks before deleting rather than after. A game with plays takes its whole
@@ -156,6 +151,5 @@ class GameRepository @Inject constructor(
     }
 
     /** Days a game has been out, for the badge on the collection row. */
-    fun daysOnLoan(lentDate: String?): Long? =
-        DateUtils.parseIsoOrNull(lentDate)?.let { DateUtils.daysBetween(it, clock.today()) }
+    fun daysOnLoan(lentDate: String?): Long? = DateUtils.parseIsoOrNull(lentDate)?.let { DateUtils.daysBetween(it, clock.today()) }
 }

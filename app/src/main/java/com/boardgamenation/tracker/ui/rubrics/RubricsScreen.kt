@@ -39,14 +39,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.data.db.entity.RubricCriterionEntity
 import com.boardgamenation.tracker.data.db.entity.RubricEntity
 import com.boardgamenation.tracker.data.repository.RubricRepository
 import com.boardgamenation.tracker.ui.components.EmptyState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Locale
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -55,14 +57,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.util.Locale
-import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class RubricsViewModel @Inject constructor(
-    private val repository: RubricRepository,
-) : ViewModel() {
+class RubricsViewModel @Inject constructor(private val repository: RubricRepository) : ViewModel() {
 
     val rubrics: StateFlow<List<RubricEntity>> = repository.observeRubrics()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -84,7 +82,7 @@ class RubricsViewModel @Inject constructor(
         if (name.isBlank()) return
         viewModelScope.launch {
             repository.saveRubric(
-                RubricEntity(name = name.trim(), description = description.ifBlank { null }),
+                RubricEntity(name = name.trim(), description = description.ifBlank { null })
             )
         }
     }
@@ -99,8 +97,8 @@ class RubricsViewModel @Inject constructor(
                     name = name.trim(),
                     weight = weight,
                     maxScore = maxScore,
-                    sortOrder = order,
-                ),
+                    sortOrder = order
+                )
             )
         }
     }
@@ -116,10 +114,7 @@ class RubricsViewModel @Inject constructor(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RubricsScreen(
-    onBack: () -> Unit,
-    viewModel: RubricsViewModel = hiltViewModel(),
-) {
+fun RubricsScreen(onBack: () -> Unit, viewModel: RubricsViewModel = hiltViewModel()) {
     val rubrics by viewModel.rubrics.collectAsStateWithLifecycle()
     val criteria by viewModel.criteria.collectAsStateWithLifecycle()
     val expandedId by viewModel.expandedRubricId.collectAsStateWithLifecycle()
@@ -134,22 +129,22 @@ fun RubricsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
-                },
+                }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { addRubricOpen = true }) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.rubrics_add))
             }
-        },
+        }
     ) { padding ->
         if (rubrics.isEmpty()) {
             EmptyState(
                 title = stringResource(R.string.rubrics_empty),
-                modifier = Modifier.padding(padding),
+                modifier = Modifier.padding(padding)
             )
             return@Scaffold
         }
@@ -157,38 +152,38 @@ fun RubricsScreen(
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(rubrics.size, key = { rubrics[it].id }) { index ->
                 val rubric = rubrics[index]
                 val isExpanded = expandedId == rubric.id
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(Modifier.padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(
                                 Modifier
                                     .weight(1f)
-                                    .padding(end = 8.dp),
+                                    .padding(end = 8.dp)
                             ) {
                                 Text(rubric.name, style = MaterialTheme.typography.titleSmall)
                                 rubric.description?.let {
                                     Text(
                                         text = it,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
                             TextButton(onClick = { viewModel.toggleExpanded(rubric.id) }) {
                                 Text(
                                     stringResource(
-                                        if (isExpanded) R.string.cd_collapse else R.string.cd_expand,
-                                    ),
+                                        if (isExpanded) R.string.cd_collapse else R.string.cd_expand
+                                    )
                                 )
                             }
                         }
@@ -198,12 +193,12 @@ fun RubricsScreen(
                             criteria.forEach { criterion ->
                                 Row(
                                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(Modifier.weight(1f)) {
                                         Text(
                                             text = criterion.name,
-                                            style = MaterialTheme.typography.bodyMedium,
+                                            style = MaterialTheme.typography.bodyMedium
                                         )
                                         Text(
                                             text = String.format(
@@ -212,16 +207,16 @@ fun RubricsScreen(
                                                 stringResource(R.string.rubrics_criterion_weight),
                                                 criterion.weight,
                                                 stringResource(R.string.rubrics_criterion_max),
-                                                criterion.maxScore,
+                                                criterion.maxScore
                                             ),
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                     IconButton(onClick = { viewModel.deleteCriterion(criterion.id) }) {
                                         Icon(
                                             Icons.Filled.Delete,
-                                            contentDescription = stringResource(R.string.action_delete),
+                                            contentDescription = stringResource(R.string.action_delete)
                                         )
                                     }
                                 }
@@ -253,12 +248,12 @@ fun RubricsScreen(
                         value = name,
                         onValueChange = { name = it },
                         label = { Text(stringResource(R.string.rubrics_name)) },
-                        singleLine = true,
+                        singleLine = true
                     )
                     OutlinedTextField(
                         value = description,
                         onValueChange = { description = it },
-                        label = { Text(stringResource(R.string.rubrics_description)) },
+                        label = { Text(stringResource(R.string.rubrics_description)) }
                     )
                 }
             },
@@ -268,14 +263,14 @@ fun RubricsScreen(
                         viewModel.addRubric(name, description)
                         addRubricOpen = false
                     },
-                    enabled = name.isNotBlank(),
+                    enabled = name.isNotBlank()
                 ) { Text(stringResource(R.string.action_save)) }
             },
             dismissButton = {
                 TextButton(onClick = { addRubricOpen = false }) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 
@@ -292,7 +287,7 @@ fun RubricsScreen(
                         value = name,
                         onValueChange = { name = it },
                         label = { Text(stringResource(R.string.rubrics_criterion_name)) },
-                        singleLine = true,
+                        singleLine = true
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
@@ -301,7 +296,7 @@ fun RubricsScreen(
                             label = { Text(stringResource(R.string.rubrics_criterion_weight)) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                         OutlinedTextField(
                             value = maxScore,
@@ -309,7 +304,7 @@ fun RubricsScreen(
                             label = { Text(stringResource(R.string.rubrics_criterion_max)) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -321,18 +316,18 @@ fun RubricsScreen(
                             rubricId,
                             name,
                             weight.toDoubleOrNull() ?: 1.0,
-                            maxScore.toDoubleOrNull() ?: 10.0,
+                            maxScore.toDoubleOrNull() ?: 10.0
                         )
                         addCriterionFor = null
                     },
-                    enabled = name.isNotBlank(),
+                    enabled = name.isNotBlank()
                 ) { Text(stringResource(R.string.action_save)) }
             },
             dismissButton = {
                 TextButton(onClick = { addCriterionFor = null }) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 }

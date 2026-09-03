@@ -53,11 +53,7 @@ import com.boardgamenation.tracker.ui.components.LoadingRows
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionListScreen(
-    onOpenSession: (Long) -> Unit,
-    onNewSession: () -> Unit,
-    viewModel: SessionListViewModel = hiltViewModel(),
-) {
+fun SessionListScreen(onOpenSession: (Long) -> Unit, onNewSession: () -> Unit, viewModel: SessionListViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -66,39 +62,40 @@ fun SessionListScreen(
             ExtendedFloatingActionButton(
                 onClick = onNewSession,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.session_edit_new)) },
+                text = { Text(stringResource(R.string.session_edit_new)) }
             )
-        },
+        }
     ) { padding ->
         Column(Modifier.padding(padding)) {
             FilterRow(
                 state = state,
                 onGame = viewModel::setGame,
                 onPlayer = viewModel::setPlayer,
-                onClear = viewModel::clearFilters,
+                onClear = viewModel::clearFilters
             )
 
             when {
                 state.isLoading -> LoadingRows()
+
                 state.sessions.isEmpty() -> EmptyState(
                     title = stringResource(
                         if (state.filter.gameId != null || state.filter.playerId != null) {
                             R.string.sessions_empty_filtered
                         } else {
                             R.string.sessions_empty
-                        },
+                        }
                     ),
-                    icon = Icons.AutoMirrored.Filled.List,
+                    icon = Icons.AutoMirrored.Filled.List
                 )
 
                 else -> LazyColumn(
-                    contentPadding = PaddingValues(bottom = 96.dp),
+                    contentPadding = PaddingValues(bottom = 96.dp)
                 ) {
                     items(state.sessions, key = { it.id }) { session ->
                         SessionRow(
                             session = session,
                             showGameTitle = true,
-                            onClick = { onOpenSession(session.id) },
+                            onClick = { onOpenSession(session.id) }
                         )
                     }
                 }
@@ -108,12 +105,7 @@ fun SessionListScreen(
 }
 
 @Composable
-private fun FilterRow(
-    state: SessionListUiState,
-    onGame: (Long?) -> Unit,
-    onPlayer: (Long?) -> Unit,
-    onClear: () -> Unit,
-) {
+private fun FilterRow(state: SessionListUiState, onGame: (Long?) -> Unit, onPlayer: (Long?) -> Unit, onClear: () -> Unit) {
     var gameMenu by remember { mutableStateOf(false) }
     var playerMenu by remember { mutableStateOf(false) }
 
@@ -123,7 +115,7 @@ private fun FilterRow(
             .horizontalScroll(rememberScrollState())
             .padding(horizontal = 12.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         val filteredGame = state.games.firstOrNull { it.id == state.filter.gameId }
         val filteredPlayer = state.players.firstOrNull { it.id == state.filter.playerId }
@@ -133,7 +125,7 @@ private fun FilterRow(
                 selected = true,
                 onClick = onClear,
                 label = { Text(stringResource(R.string.action_clear)) },
-                leadingIcon = { Icon(Icons.Filled.Close, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Filled.Close, contentDescription = null) }
             )
         }
 
@@ -143,7 +135,7 @@ private fun FilterRow(
                 onClick = { gameMenu = true },
                 label = {
                     Text(filteredGame?.title ?: stringResource(R.string.session_filter_any_game))
-                },
+                }
             )
             DropdownMenu(expanded = gameMenu, onDismissRequest = { gameMenu = false }) {
                 DropdownMenuItem(
@@ -151,7 +143,7 @@ private fun FilterRow(
                     onClick = {
                         onGame(null)
                         gameMenu = false
-                    },
+                    }
                 )
                 state.games.forEach { game ->
                     DropdownMenuItem(
@@ -159,7 +151,7 @@ private fun FilterRow(
                         onClick = {
                             onGame(game.id)
                             gameMenu = false
-                        },
+                        }
                     )
                 }
             }
@@ -171,7 +163,7 @@ private fun FilterRow(
                 onClick = { playerMenu = true },
                 label = {
                     Text(filteredPlayer?.name ?: stringResource(R.string.session_filter_any_player))
-                },
+                }
             )
             DropdownMenu(expanded = playerMenu, onDismissRequest = { playerMenu = false }) {
                 DropdownMenuItem(
@@ -179,7 +171,7 @@ private fun FilterRow(
                     onClick = {
                         onPlayer(null)
                         playerMenu = false
-                    },
+                    }
                 )
                 state.players.forEach { player ->
                     DropdownMenuItem(
@@ -187,7 +179,7 @@ private fun FilterRow(
                         onClick = {
                             onPlayer(player.id)
                             playerMenu = false
-                        },
+                        }
                     )
                 }
             }
@@ -198,27 +190,22 @@ private fun FilterRow(
 /** Shared by the session list, the dashboard, and a game's play history. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SessionRow(
-    session: SessionListItem,
-    showGameTitle: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun SessionRow(session: SessionListItem, showGameTitle: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 3.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
     ) {
         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
             if (showGameTitle) {
                 GameThumbnail(
                     path = session.thumbnailPath,
                     title = session.gameTitle,
-                    size = 44.dp,
+                    size = 44.dp
                 )
                 Spacer(Modifier.width(12.dp))
             }
@@ -228,14 +215,14 @@ fun SessionRow(
                         text = session.gameTitle,
                         style = MaterialTheme.typography.titleSmall,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 Text(
                     text = "${session.playedOn} · ${DurationFormat.minutes(session.durationMinutes)}" +
                         " · ${stringResource(R.string.session_players_count, session.playerCount)}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 // A result means little without what it was played at -- a co-op's
                 // level, a competitive game's scenario or board side -- so the
@@ -244,16 +231,20 @@ fun SessionRow(
                     outcome = when {
                         session.isCooperative && session.coopWon ->
                             stringResource(R.string.session_coop_win)
+
                         session.isCooperative ->
                             stringResource(R.string.session_coop_loss)
+
                         // A side won, so the side is the result; who was on it is detail.
                         !session.winningTeam.isNullOrBlank() ->
                             stringResource(R.string.session_team_won, session.winningTeam)
+
                         !session.winnerNames.isNullOrBlank() ->
                             stringResource(R.string.session_winner, session.winnerNames)
+
                         else -> null
                     },
-                    mode = session.mode,
+                    mode = session.mode
                 )
                 outcome?.let {
                     Text(
@@ -261,7 +252,7 @@ fun SessionRow(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 // Flows rather than a Row: these badges wrap onto a second line on a
@@ -275,7 +266,7 @@ fun SessionRow(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     session.firstPlayerName?.let { name ->
@@ -284,21 +275,21 @@ fun SessionRow(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     if (session.isIncomplete) {
                         Text(
                             text = stringResource(R.string.session_incomplete),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     if (session.isTeachingGame) {
                         Text(
                             text = stringResource(R.string.session_teaching),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

@@ -13,6 +13,7 @@ import com.boardgamenation.tracker.data.repository.SessionFilter
 import com.boardgamenation.tracker.data.repository.SessionRepository
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,14 +21,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 data class SessionListUiState(
     val sessions: List<SessionListItem> = emptyList(),
     val games: List<GameEntity> = emptyList(),
     val players: List<PlayerEntity> = emptyList(),
     val filter: SessionFilter = SessionFilter(),
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = true
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,7 +36,7 @@ class SessionListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sessionRepository: SessionRepository,
     gameRepository: GameRepository,
-    playerRepository: PlayerRepository,
+    playerRepository: PlayerRepository
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<Route.Sessions>()
@@ -46,22 +46,22 @@ class SessionListViewModel @Inject constructor(
     private val filter = MutableStateFlow(
         SessionFilter(
             gameId = route.gameId.takeIf { it != 0L },
-            playerId = route.playerId.takeIf { it != 0L },
-        ),
+            playerId = route.playerId.takeIf { it != 0L }
+        )
     )
 
     val uiState: StateFlow<SessionListUiState> = combine(
         filter.flatMapLatest { sessionRepository.observeSessions(it) },
         gameRepository.observeBaseGames(),
         playerRepository.observeActive(),
-        filter,
+        filter
     ) { sessions, games, players, currentFilter ->
         SessionListUiState(
             sessions = sessions,
             games = games,
             players = players,
             filter = currentFilter,
-            isLoading = false,
+            isLoading = false
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SessionListUiState())
 

@@ -14,18 +14,15 @@ import androidx.room.Index
             entity = SessionEntity::class,
             parentColumns = ["id"],
             childColumns = ["session_id"],
-            onDelete = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = GameEntity::class,
             parentColumns = ["id"],
             childColumns = ["game_id"],
-            onDelete = ForeignKey.CASCADE,
-        ),
+            onDelete = ForeignKey.CASCADE
+        )
     ],
-    indices = [Index(value = ["game_id"])],
+    indices = [Index(value = ["game_id"])]
 )
-data class SessionExpansionEntity(
-    @ColumnInfo(name = "session_id") val sessionId: Long,
-    @ColumnInfo(name = "game_id") val gameId: Long,
-)
+data class SessionExpansionEntity(@ColumnInfo(name = "session_id") val sessionId: Long, @ColumnInfo(name = "game_id") val gameId: Long)

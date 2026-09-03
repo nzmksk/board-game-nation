@@ -12,7 +12,7 @@ import androidx.room.PrimaryKey
  */
 @Entity(
     tableName = "achievements",
-    indices = [Index(value = ["code"], unique = true)],
+    indices = [Index(value = ["code"], unique = true)]
 )
 data class AchievementEntity(
     @PrimaryKey(autoGenerate = true)
@@ -35,7 +35,7 @@ data class AchievementEntity(
     @ColumnInfo(name = "sort_order", defaultValue = "0") val sortOrder: Int = 0,
 
     /** Serialised rule descriptor, evaluated by AchievementEvaluator. */
-    @ColumnInfo(name = "rule_json") val ruleJson: String,
+    @ColumnInfo(name = "rule_json") val ruleJson: String
 )
 
 /**
@@ -49,19 +49,19 @@ data class AchievementEntity(
             entity = AchievementEntity::class,
             parentColumns = ["id"],
             childColumns = ["achievement_id"],
-            onDelete = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = SessionEntity::class,
             parentColumns = ["id"],
             childColumns = ["session_id"],
-            onDelete = ForeignKey.SET_NULL,
-        ),
+            onDelete = ForeignKey.SET_NULL
+        )
     ],
     indices = [
         Index(value = ["achievement_id"], unique = true),
-        Index(value = ["session_id"]),
-    ],
+        Index(value = ["session_id"])
+    ]
 )
 data class AchievementUnlockEntity(
     @PrimaryKey(autoGenerate = true)
@@ -71,5 +71,5 @@ data class AchievementUnlockEntity(
     @ColumnInfo(name = "progress_value") val progressValue: Double,
 
     /** The session that tipped it over, when one did. */
-    @ColumnInfo(name = "session_id") val sessionId: Long? = null,
+    @ColumnInfo(name = "session_id") val sessionId: Long? = null
 )

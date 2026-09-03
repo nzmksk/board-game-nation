@@ -3,9 +3,9 @@ package com.boardgamenation.tracker.data.repository
 import com.boardgamenation.tracker.data.db.dao.PlayerDao
 import com.boardgamenation.tracker.data.db.entity.PlayerEntity
 import com.boardgamenation.tracker.data.db.projection.PlayerRow
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
 
 /** Deleting a player who appears in sessions would rewrite history, so it is refused. */
 sealed interface DeletePlayerOutcome {
@@ -14,9 +14,7 @@ sealed interface DeletePlayerOutcome {
 }
 
 @Singleton
-class PlayerRepository @Inject constructor(
-    private val playerDao: PlayerDao,
-) {
+class PlayerRepository @Inject constructor(private val playerDao: PlayerDao) {
 
     fun observeActive(): Flow<List<PlayerEntity>> = playerDao.observeActive()
 

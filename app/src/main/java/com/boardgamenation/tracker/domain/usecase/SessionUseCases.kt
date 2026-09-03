@@ -7,10 +7,7 @@ import com.boardgamenation.tracker.domain.model.SessionForm
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class SaveSessionResult(
-    val sessionId: Long,
-    val newlyUnlocked: List<AchievementEntity>,
-)
+data class SaveSessionResult(val sessionId: Long, val newlyUnlocked: List<AchievementEntity>)
 
 /**
  * Saving a play and re-evaluating achievements are one operation, not two.
@@ -22,7 +19,7 @@ data class SaveSessionResult(
 @Singleton
 class SaveSessionUseCase @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val achievementRepository: AchievementRepository,
+    private val achievementRepository: AchievementRepository
 ) {
     suspend operator fun invoke(form: SessionForm): SaveSessionResult {
         val id = sessionRepository.save(form)
@@ -38,7 +35,7 @@ class SaveSessionUseCase @Inject constructor(
 @Singleton
 class DeleteSessionUseCase @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val achievementRepository: AchievementRepository,
+    private val achievementRepository: AchievementRepository
 ) {
     suspend operator fun invoke(sessionId: Long) {
         sessionRepository.delete(sessionId)
@@ -50,7 +47,7 @@ class DeleteSessionUseCase @Inject constructor(
 @Singleton
 class EditSessionUseCase @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val achievementRepository: AchievementRepository,
+    private val achievementRepository: AchievementRepository
 ) {
     suspend operator fun invoke(form: SessionForm): SaveSessionResult {
         val id = sessionRepository.save(form)

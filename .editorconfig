@@ -26,3 +26,9 @@ indent_size = 2
 
 [*.xml]
 indent_size = 4
+
+[*.gradle.kts]
+# The build scripts document non-obvious decisions on the vals they belong to. The kdoc
+# rule allows KDoc only on declarations a doc tool would publish, which a build script has
+# none of, so it would force every one of those comments down to a bare // block.
+ktlint_standard_kdoc = disabled

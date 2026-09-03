@@ -20,7 +20,7 @@ data class ParticipantForm(
 
     val isNewPlayer: Boolean = false,
     val turnTimeMs: Long? = null,
-    val bankTimeRemainingMs: Long? = null,
+    val bankTimeRemainingMs: Long? = null
 )
 
 /**
@@ -73,7 +73,7 @@ data class SessionForm(
      * forcing [scoringMode] to NONE, but the mode is written back onto the game after a
      * save, so one quick log silently reset the game's remembered scoring.
      */
-    val derivePlacements: Boolean = true,
+    val derivePlacements: Boolean = true
 ) {
     val isCooperative: Boolean get() = scoringMode == ScoringMode.COOPERATIVE
 
@@ -104,10 +104,7 @@ data class SessionForm(
  */
 object PlacementCalculator {
 
-    fun derive(
-        participants: List<ParticipantForm>,
-        highScoreWins: Boolean,
-    ): List<ParticipantForm> {
+    fun derive(participants: List<ParticipantForm>, highScoreWins: Boolean): List<ParticipantForm> {
         val (scored, unscored) = participants.partition { it.score != null }
         if (scored.isEmpty()) {
             return participants.map { it.copy(placement = null, isWinner = false) }
@@ -118,7 +115,7 @@ object PlacementCalculator {
                 compareByDescending { it.score!! }
             } else {
                 compareBy { it.score!! }
-            },
+            }
         )
 
         val placed = mutableListOf<ParticipantForm>()
@@ -132,7 +129,7 @@ object PlacementCalculator {
             previousScore = participant.score
             placed += participant.copy(
                 placement = currentPlacement,
-                isWinner = currentPlacement == 1,
+                isWinner = currentPlacement == 1
             )
         }
 
@@ -149,10 +146,9 @@ object PlacementCalculator {
      * Applies manual ordering: the list order *is* the ranking, everyone above the first
      * gap is placed sequentially, and only position one wins.
      */
-    fun fromOrder(participants: List<ParticipantForm>): List<ParticipantForm> =
-        participants.mapIndexed { index, participant ->
-            participant.copy(placement = index + 1, isWinner = index == 0)
-        }
+    fun fromOrder(participants: List<ParticipantForm>): List<ParticipantForm> = participants.mapIndexed { index, participant ->
+        participant.copy(placement = index + 1, isWinner = index == 0)
+    }
 
     /**
      * Applies a team result: everyone on the winning side wins, everyone else does not.
@@ -161,24 +157,18 @@ object PlacementCalculator {
      * "liberals" typed again are the same side to everybody except a string comparison.
      * Nobody is placed: a side winning says nothing about the order within it.
      */
-    fun applyTeams(
-        participants: List<ParticipantForm>,
-        winningTeam: String?,
-    ): List<ParticipantForm> {
+    fun applyTeams(participants: List<ParticipantForm>, winningTeam: String?): List<ParticipantForm> {
         val winner = winningTeam?.trim()?.lowercase()
         return participants.map { participant ->
             participant.copy(
                 placement = null,
-                isWinner = winner != null && participant.team?.trim()?.lowercase() == winner,
+                isWinner = winner != null && participant.team?.trim()?.lowercase() == winner
             )
         }
     }
 
     /** In a co-op the table shares one result, so every participant gets the same flag. */
-    fun applyCoop(
-        participants: List<ParticipantForm>,
-        outcome: CoopOutcome?,
-    ): List<ParticipantForm> {
+    fun applyCoop(participants: List<ParticipantForm>, outcome: CoopOutcome?): List<ParticipantForm> {
         val won = outcome == CoopOutcome.WIN
         return participants.map { it.copy(placement = null, isWinner = won) }
     }
@@ -225,13 +215,12 @@ object TurnOrder {
                     alreadySeated -> participant.copy(turnOrder = null)
                     else -> participant.copy(turnOrder = nextSeat)
                 }
-            },
+            }
         )
     }
 
     /** Forgets the order entirely, for when it was recorded wrongly. */
-    fun clear(participants: List<ParticipantForm>): List<ParticipantForm> =
-        participants.map { it.copy(turnOrder = null) }
+    fun clear(participants: List<ParticipantForm>): List<ParticipantForm> = participants.map { it.copy(turnOrder = null) }
 
     /**
      * Records only who went first, which is all the quick sheet asks for. A null player

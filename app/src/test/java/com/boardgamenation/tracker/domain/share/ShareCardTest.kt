@@ -4,11 +4,11 @@ import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.LocalDate
 
 /**
  * The card is a picture that leaves the app, so the cases that matter are the ones where
@@ -25,7 +25,7 @@ class ShareCardTest {
         winningTeam: String? = null,
         mode: String? = null,
         endReason: String? = null,
-        participants: List<ParticipantForm>,
+        participants: List<ParticipantForm>
     ) = SessionForm(
         gameId = 1,
         gameTitle = "Wingspan",
@@ -36,7 +36,7 @@ class ShareCardTest {
         winningTeam = winningTeam,
         mode = mode,
         endReason = endReason,
-        participants = participants,
+        participants = participants
     )
 
     private fun player(
@@ -48,7 +48,7 @@ class ShareCardTest {
         faction: String? = null,
         team: String? = null,
         turnOrder: Int? = null,
-        isNewPlayer: Boolean = false,
+        isNewPlayer: Boolean = false
     ) = ParticipantForm(
         playerId = id,
         playerName = name,
@@ -58,7 +58,7 @@ class ShareCardTest {
         faction = faction,
         team = team,
         turnOrder = turnOrder,
-        isNewPlayer = isNewPlayer,
+        isNewPlayer = isNewPlayer
     )
 
     private fun namesOn(card: ShareCard) = card.standings.map { it.name }
@@ -70,9 +70,9 @@ class ShareCardTest {
                 participants = listOf(
                     player(1, "Hafiz", score = 71.0, placement = 3),
                     player(2, "Aina", score = 94.0, placement = 1, isWinner = true),
-                    player(3, "Ben", score = 88.0, placement = 2),
-                ),
-            ),
+                    player(3, "Ben", score = 88.0, placement = 2)
+                )
+            )
         )
 
         assertEquals(ShareResult.RANKED, card.result)
@@ -89,9 +89,9 @@ class ShareCardTest {
                 participants = listOf(
                     player(1, "Hafiz", score = 94.0, placement = 1, isWinner = true),
                     player(2, "Aina", score = 94.0, placement = 1, isWinner = true),
-                    player(3, "Ben", score = 60.0, placement = 3),
-                ),
-            ),
+                    player(3, "Ben", score = 60.0, placement = 3)
+                )
+            )
         )
 
         assertEquals(listOf("Hafiz", "Aina", "Ben"), namesOn(card))
@@ -111,9 +111,9 @@ class ShareCardTest {
                 participants = listOf(
                     player(1, "Hafiz"),
                     player(2, "Aina"),
-                    player(3, "Ben", isWinner = true),
-                ),
-            ),
+                    player(3, "Ben", isWinner = true)
+                )
+            )
         )
 
         assertEquals(ShareResult.RANKED, card.result)
@@ -129,9 +129,9 @@ class ShareCardTest {
                 coopOutcome = CoopOutcome.WIN,
                 participants = listOf(
                     player(1, "Hafiz", isWinner = true),
-                    player(2, "Aina", isWinner = true),
-                ),
-            ),
+                    player(2, "Aina", isWinner = true)
+                )
+            )
         )
 
         assertEquals(ShareResult.COOP_WIN, card.result)
@@ -145,8 +145,8 @@ class ShareCardTest {
             form(
                 scoringMode = ScoringMode.COOPERATIVE,
                 coopOutcome = CoopOutcome.NA,
-                participants = listOf(player(1, "Hafiz"), player(2, "Aina")),
-            ),
+                participants = listOf(player(1, "Hafiz"), player(2, "Aina"))
+            )
         )
 
         assertEquals(ShareResult.UNRESOLVED, card.result)
@@ -164,9 +164,9 @@ class ShareCardTest {
                     player(1, "Hafiz", team = "Liberals"),
                     player(2, "Aina", team = "Fascists", isWinner = true),
                     player(3, "Ben", team = "Liberals"),
-                    player(4, "Sara", team = "Fascists", isWinner = true),
-                ),
-            ),
+                    player(4, "Sara", team = "Fascists", isWinner = true)
+                )
+            )
         )
 
         assertEquals(ShareResult.TEAMS, card.result)
@@ -185,9 +185,9 @@ class ShareCardTest {
                 participants = listOf(
                     player(1, "Hafiz"),
                     player(2, "Aina", team = "Fascists"),
-                    player(3, "Ben", team = "Liberals", isWinner = true),
-                ),
-            ),
+                    player(3, "Ben", team = "Liberals", isWinner = true)
+                )
+            )
         )
 
         assertEquals(listOf("Ben", "Aina", "Hafiz"), namesOn(card))
@@ -200,9 +200,9 @@ class ShareCardTest {
                 participants = listOf(
                     player(1, "Hafiz", turnOrder = 2),
                     player(2, "Aina", turnOrder = 1),
-                    player(3, "Ben"),
-                ),
-            ),
+                    player(3, "Ben")
+                )
+            )
         )
 
         assertEquals(listOf("Aina", "Hafiz"), card.turnOrder)
@@ -211,7 +211,7 @@ class ShareCardTest {
     @Test
     fun `a play with no seating recorded carries none`() {
         val card = ShareCard.of(
-            form(participants = listOf(player(1, "Hafiz"), player(2, "Aina"))),
+            form(participants = listOf(player(1, "Hafiz"), player(2, "Aina")))
         )
 
         assertEquals(emptyList<String>(), card.turnOrder)
@@ -223,8 +223,8 @@ class ShareCardTest {
             form(
                 mode = "   ",
                 endReason = "",
-                participants = listOf(player(1, "Hafiz", faction = " ", team = "")),
-            ),
+                participants = listOf(player(1, "Hafiz", faction = " ", team = ""))
+            )
         )
 
         assertNull(card.mode)
@@ -246,9 +246,9 @@ class ShareCardTest {
                 participants = listOf(
                     player(1, "Hafiz", score = 71.0, placement = 3),
                     player(2, "Aina", score = 94.0, placement = 1, isWinner = true),
-                    player(3, "Ben", score = 88.0, placement = 2, isNewPlayer = true),
-                ),
-            ),
+                    player(3, "Ben", score = 88.0, placement = 2, isNewPlayer = true)
+                )
+            )
         )
 
         assertEquals(listOf("Aina", "Ben", "Hafiz"), namesOn(card))
@@ -264,9 +264,9 @@ class ShareCardTest {
                 coopOutcome = CoopOutcome.WIN,
                 participants = listOf(
                     player(1, "Hafiz", isWinner = true, isNewPlayer = true),
-                    player(2, "Aina", isWinner = true, isNewPlayer = true),
-                ),
-            ),
+                    player(2, "Aina", isWinner = true, isNewPlayer = true)
+                )
+            )
         )
 
         assertTrue(card.standings.all { it.isNewPlayer })
@@ -275,7 +275,7 @@ class ShareCardTest {
     @Test
     fun `the card knows whether there are scores to print`() {
         val scored = ShareCard.of(
-            form(participants = listOf(player(1, "Hafiz", score = 12.0))),
+            form(participants = listOf(player(1, "Hafiz", score = 12.0)))
         )
         val unscored = ShareCard.of(form(participants = listOf(player(1, "Hafiz"))))
 

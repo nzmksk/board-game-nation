@@ -37,8 +37,7 @@ class HeadToHeadTest {
     @After
     fun tearDown() = db.close()
 
-    private suspend fun opponent(name: String) =
-        db.playerDao().insert(DatabaseTestFixture.player(name))
+    private suspend fun opponent(name: String) = db.playerDao().insert(DatabaseTestFixture.player(name))
 
     /**
      * Plays out a record between the owner and one opponent. [unfinished] plays are
@@ -52,25 +51,28 @@ class HeadToHeadTest {
                 DatabaseTestFixture.session(
                     gameId,
                     playedOn = "2026-02-01",
-                    isIncomplete = incomplete,
-                ),
+                    isIncomplete = incomplete
+                )
             )
             val selfWon = index < wins
             db.sessionDao().insertParticipants(
                 listOf(
                     DatabaseTestFixture.participant(
-                        sessionId, me, isWinner = !incomplete && selfWon,
+                        sessionId,
+                        me,
+                        isWinner = !incomplete && selfWon
                     ),
                     DatabaseTestFixture.participant(
-                        sessionId, opponentId, isWinner = !incomplete && !selfWon,
-                    ),
-                ),
+                        sessionId,
+                        opponentId,
+                        isWinner = !incomplete && !selfWon
+                    )
+                )
             )
         }
     }
 
-    private suspend fun names() =
-        db.statsDao().observeHeadToHead().first().map { it.opponentName }
+    private suspend fun names() = db.statsDao().observeHeadToHead().first().map { it.opponentName }
 
     @Test
     fun `records rank by wins first, then by fewest losses`() = runTest {

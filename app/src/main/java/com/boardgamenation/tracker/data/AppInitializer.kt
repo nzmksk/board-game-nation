@@ -7,11 +7,11 @@ import com.boardgamenation.tracker.data.repository.RubricRepository
 import com.boardgamenation.tracker.data.repository.TimerRepository
 import com.boardgamenation.tracker.di.ApplicationScope
 import com.boardgamenation.tracker.timer.TimerController
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Work that has to happen once per launch, before the user can do any damage.
@@ -29,7 +29,7 @@ class AppInitializer @Inject constructor(
     private val timerController: TimerController,
     private val settingsRepository: SettingsRepository,
     private val backupScheduler: BackupScheduler,
-    @param:ApplicationScope private val scope: CoroutineScope,
+    @param:ApplicationScope private val scope: CoroutineScope
 ) {
 
     fun initialise() {

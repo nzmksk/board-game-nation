@@ -17,7 +17,7 @@ import java.util.Locale
  */
 object Csv {
 
-    const val BOM = "﻿"
+    const val BOM = ""
     const val CRLF = "\r\n"
 
     /** Quotes only when required, and doubles any embedded quote as the RFC specifies. */
@@ -29,11 +29,9 @@ object Csv {
         return "\"" + value.replace("\"", "\"\"") + "\""
     }
 
-    fun formatDouble(value: Double?): String =
-        value?.let { stripTrailingZeros(String.format(Locale.ROOT, "%.6f", it)) } ?: ""
+    fun formatDouble(value: Double?): String = value?.let { stripTrailingZeros(String.format(Locale.ROOT, "%.6f", it)) } ?: ""
 
-    private fun stripTrailingZeros(text: String): String =
-        if (!text.contains('.')) text else text.trimEnd('0').trimEnd('.')
+    private fun stripTrailingZeros(text: String): String = if (!text.contains('.')) text else text.trimEnd('0').trimEnd('.')
 
     fun formatInt(value: Int?): String = value?.toString() ?: ""
 
@@ -70,16 +68,10 @@ class CsvWriter(private val out: BufferedWriter) {
 data class CsvError(val line: Int, val message: String)
 
 /** One parsed row, addressable by column name. */
-class CsvRow(
-    private val headers: Map<String, Int>,
-    private val values: List<String>,
-    val lineNumber: Int,
-) {
-    fun string(column: String): String? =
-        headers[column]?.let { values.getOrNull(it) }?.takeIf { it.isNotEmpty() }
+class CsvRow(private val headers: Map<String, Int>, private val values: List<String>, val lineNumber: Int) {
+    fun string(column: String): String? = headers[column]?.let { values.getOrNull(it) }?.takeIf { it.isNotEmpty() }
 
-    fun requireString(column: String): String =
-        string(column) ?: throw CsvFieldException(column, "is required")
+    fun requireString(column: String): String = string(column) ?: throw CsvFieldException(column, "is required")
 
     fun int(column: String): Int? = string(column)?.let {
         it.toIntOrNull() ?: throw CsvFieldException(column, "is not a whole number: $it")
@@ -105,8 +97,7 @@ class CsvRow(
     }
 }
 
-class CsvFieldException(val column: String, val problem: String) :
-    Exception("Column '$column' $problem")
+class CsvFieldException(val column: String, val problem: String) : Exception("Column '$column' $problem")
 
 /**
  * A streaming RFC 4180 parser.
@@ -136,11 +127,14 @@ object CsvParser {
                     current.append('"')
                     index++
                 }
+
                 c == '"' -> inQuotes = !inQuotes
+
                 c == ',' && !inQuotes -> {
                     values += current.toString()
                     current.setLength(0)
                 }
+
                 else -> current.append(c)
             }
             index++
@@ -192,6 +186,5 @@ object CsvParser {
 data class CsvTable(val headers: List<String>, val rows: List<CsvRow>) {
 
     /** Validates the shape before a single row is touched, as the spec requires. */
-    fun missingColumns(required: List<String>): List<String> =
-        required.filterNot { it.lowercase(Locale.ROOT) in headers }
+    fun missingColumns(required: List<String>): List<String> = required.filterNot { it.lowercase(Locale.ROOT) in headers }
 }

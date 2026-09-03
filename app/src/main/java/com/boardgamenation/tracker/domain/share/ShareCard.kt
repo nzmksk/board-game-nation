@@ -3,8 +3,8 @@ package com.boardgamenation.tracker.domain.share
 import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.SessionForm
-import java.util.Locale
 import java.time.LocalDate
+import java.util.Locale
 
 /**
  * What the table's result actually was, which is what decides how the card reads.
@@ -25,7 +25,7 @@ enum class ShareResult {
     COOP_LOSS,
 
     /** Played and logged, but with no outcome recorded. The card shows the lineup. */
-    UNRESOLVED,
+    UNRESOLVED
 }
 
 /** One player's line on the card. */
@@ -39,7 +39,7 @@ data class ShareStanding(
     val isWinner: Boolean,
 
     /** Whether this play was their first of this game. */
-    val isNewPlayer: Boolean,
+    val isNewPlayer: Boolean
 ) {
     /** `12` rather than `12.0`, and `7.5` kept as `7.5`. */
     val scoreText: String? get() = score?.let(::formatScore)
@@ -74,7 +74,7 @@ data class ShareCard(
     val turnOrder: List<String>,
 
     val isIncomplete: Boolean,
-    val isTeachingGame: Boolean,
+    val isTeachingGame: Boolean
 ) {
     val playerCount: Int get() = standings.size
 
@@ -111,7 +111,7 @@ data class ShareCard(
                     .sortedBy { it.turnOrder }
                     .map { it.playerName },
                 isIncomplete = form.isIncomplete,
-                isTeachingGame = form.isTeachingGame,
+                isTeachingGame = form.isTeachingGame
             )
         }
 
@@ -139,10 +139,7 @@ data class ShareCard(
          * together, so splitting one up to interleave it with the other would be
          * describing a competition that did not happen.
          */
-        private fun order(
-            participants: List<ParticipantForm>,
-            result: ShareResult,
-        ): List<ParticipantForm> = when (result) {
+        private fun order(participants: List<ParticipantForm>, result: ShareResult): List<ParticipantForm> = when (result) {
             ShareResult.TEAMS -> bySide(participants)
 
             // Placement first, then winners, and every sort here is stable so anyone the
@@ -151,7 +148,7 @@ data class ShareCard(
             // placing anybody, which leaves every placement null.
             else -> participants.sortedWith(
                 compareBy(nullsLast<Int>(), ParticipantForm::placement)
-                    .thenByDescending { it.isWinner },
+                    .thenByDescending { it.isWinner }
             )
         }
 
@@ -164,7 +161,7 @@ data class ShareCard(
                     // of the record, not a third team.
                     compareByDescending<Map.Entry<String, List<ParticipantForm>>> { (_, side) ->
                         side.any { it.isWinner }
-                    }.thenBy { (key, _) -> if (key.isEmpty()) 1 else 0 },
+                    }.thenBy { (key, _) -> if (key.isEmpty()) 1 else 0 }
                 )
                 .flatMap { it.value }
         }
@@ -178,7 +175,7 @@ data class ShareCard(
             team = team?.trim()?.takeIf(String::isNotEmpty),
             score = score,
             isWinner = isWinner,
-            isNewPlayer = isNewPlayer,
+            isNewPlayer = isNewPlayer
         )
     }
 }
@@ -190,5 +187,4 @@ data class ShareCard(
  * `Locale.ROOT` for the same reason the CSV writer uses it -- the separator has to be a
  * `.` whatever the device is set to, or a half-point score reads as a thousands group.
  */
-internal fun formatScore(score: Double): String =
-    String.format(Locale.ROOT, "%.2f", score).trimEnd('0').trimEnd('.')
+internal fun formatScore(score: Double): String = String.format(Locale.ROOT, "%.2f", score).trimEnd('0').trimEnd('.')

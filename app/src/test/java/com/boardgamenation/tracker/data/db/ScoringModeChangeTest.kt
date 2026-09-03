@@ -5,6 +5,7 @@ import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.share.ShareCard
+import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -14,7 +15,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.time.LocalDate
 
 /**
  * Changing a play's scoring mode, run the whole way through: log with scores, switch the
@@ -38,7 +38,10 @@ class ScoringModeChangeTest {
     fun setUp() = runTest {
         db = DatabaseTestFixture.database()
         repository = SessionRepository(
-            db.sessionDao(), db.gameDao(), db.playerDao(), DatabaseTestFixture.clock,
+            db.sessionDao(),
+            db.gameDao(),
+            db.playerDao(),
+            DatabaseTestFixture.clock
         )
         gameId = db.gameDao().insert(DatabaseTestFixture.game("Catan"))
         me = db.playerDao().insert(DatabaseTestFixture.player("Muhammad", isSelf = true))
@@ -57,8 +60,8 @@ class ScoringModeChangeTest {
         scoringMode = mode,
         participants = listOf(
             ParticipantForm(playerId = me, playerName = "Muhammad", score = 10.0),
-            ParticipantForm(playerId = ben, playerName = "Ben", score = 8.0),
-        ),
+            ParticipantForm(playerId = ben, playerName = "Ben", score = 8.0)
+        )
     )
 
     @Test
@@ -71,7 +74,7 @@ class ScoringModeChangeTest {
             ScoringMode.MANUAL_PLACEMENT,
             ScoringMode.COOPERATIVE,
             ScoringMode.TEAM_BASED,
-            ScoringMode.NONE,
+            ScoringMode.NONE
         ).forEach { mode ->
             // 3-5. Open it, change the scoring, save.
             val reopened = repository.loadForm(id)!!

@@ -31,26 +31,20 @@ import com.boardgamenation.tracker.domain.model.ScoringMode
 import com.boardgamenation.tracker.domain.model.SessionEndCondition
 import com.boardgamenation.tracker.domain.model.TagKind
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.util.zip.ZipInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 
 /** How one file in the import set looks before anything is committed. */
-data class FileSummary(
-    val fileName: String,
-    val totalRows: Int,
-    val newRows: Int,
-    val updatedRows: Int,
-    val skippedRows: Int,
-)
+data class FileSummary(val fileName: String, val totalRows: Int, val newRows: Int, val updatedRows: Int, val skippedRows: Int)
 
 data class ImportPreview(
     val summaries: List<FileSummary>,
     val errors: List<CsvError>,
     val missingFiles: List<String>,
-    val headerProblems: List<String>,
+    val headerProblems: List<String>
 ) {
     /** Missing columns are fatal; missing optional files and bad rows are not. */
     val canProceed: Boolean get() = headerProblems.isEmpty() && summaries.isNotEmpty()
@@ -61,17 +55,17 @@ data class ImportPreview(
             val label = summary.fileName.removeSuffix(".csv").replace('_', ' ')
             when {
                 summary.updatedRows == 0 -> "${summary.totalRows} $label: all new"
+
                 summary.newRows == 0 -> "${summary.totalRows} $label: all updated"
-                else -> "${summary.totalRows} $label: ${summary.newRows} new, " +
-                    "${summary.updatedRows} updated"
+
+                else ->
+                    "${summary.totalRows} $label: ${summary.newRows} new, " +
+                        "${summary.updatedRows} updated"
             }
         }
 }
 
-data class ImportResult(
-    val rowsWritten: Map<String, Int>,
-    val errors: List<CsvError>,
-) {
+data class ImportResult(val rowsWritten: Map<String, Int>, val errors: List<CsvError>) {
     val totalRows: Int get() = rowsWritten.values.sum()
 }
 
@@ -98,12 +92,11 @@ class CsvImporter @Inject constructor(
     private val rubricDao: RubricDao,
     private val achievementDao: AchievementDao,
     private val maintenance: DataMaintenanceRepository,
-    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) {
 
     /** Reads the file set without writing anything. */
-    suspend fun preview(uri: Uri, mode: ImportMode): ImportPreview =
-        withContext(io) { preview(readSource(uri), mode) }
+    suspend fun preview(uri: Uri, mode: ImportMode): ImportPreview = withContext(io) { preview(readSource(uri), mode) }
 
     suspend fun preview(files: Map<String, String>, mode: ImportMode): ImportPreview = withContext(io) {
         val headerProblems = mutableListOf<String>()
@@ -130,12 +123,7 @@ class CsvImporter @Inject constructor(
     }
 
     /** Counts how the rows would land, so the user confirms against real numbers. */
-    private suspend fun summarise(
-        name: String,
-        table: CsvTable,
-        mode: ImportMode,
-        errors: MutableList<CsvError>,
-    ): FileSummary {
+    private suspend fun summarise(name: String, table: CsvTable, mode: ImportMode, errors: MutableList<CsvError>): FileSummary {
         if (mode == ImportMode.REPLACE) {
             return FileSummary(name, table.rows.size, table.rows.size, 0, 0)
         }
@@ -146,12 +134,16 @@ class CsvImporter @Inject constructor(
             try {
                 val exists = when (name) {
                     CsvSchema.GAMES -> findGame(row) != null
+
                     CsvSchema.PLAYERS -> playerDao.findByName(row.requireString("name")) != null
+
                     CsvSchema.TAGS -> tagDao.find(
                         row.requireString("name"),
-                        TagKind.fromStorage(row.string("kind")),
+                        TagKind.fromStorage(row.string("kind"))
                     ) != null
+
                     CsvSchema.SESSIONS -> false
+
                     else -> false
                 }
                 if (exists) updated++ else new++
@@ -168,8 +160,7 @@ class CsvImporter @Inject constructor(
      * halfway through a 5,000-row session file leaves the database exactly as it was
      * rather than half-imported.
      */
-    suspend fun import(uri: Uri, mode: ImportMode): ImportResult =
-        withContext(io) { import(readSource(uri), mode) }
+    suspend fun import(uri: Uri, mode: ImportMode): ImportResult = withContext(io) { import(readSource(uri), mode) }
 
     suspend fun import(files: Map<String, String>, mode: ImportMode): ImportResult = withContext(io) {
         val errors = mutableListOf<CsvError>()
@@ -196,23 +187,45 @@ class CsvImporter @Inject constructor(
             val sessionIds =
                 importSessions(files[CsvSchema.SESSIONS], mode, gameIds, errors, written)
             importSessionPlayers(
-                files[CsvSchema.SESSION_PLAYERS], sessionIds, playerIds, errors, written,
+                files[CsvSchema.SESSION_PLAYERS],
+                sessionIds,
+                playerIds,
+                errors,
+                written
             )
             importSessionExpansions(
-                files[CsvSchema.SESSION_EXPANSIONS], sessionIds, gameIds, errors, written,
+                files[CsvSchema.SESSION_EXPANSIONS],
+                sessionIds,
+                gameIds,
+                errors,
+                written
             )
             val rubricIds = importRubrics(files[CsvSchema.RUBRICS], mode, errors, written)
             val criterionIds = importCriteria(
-                files[CsvSchema.RUBRIC_CRITERIA], rubricIds, errors, written,
+                files[CsvSchema.RUBRIC_CRITERIA],
+                rubricIds,
+                errors,
+                written
             )
             val ratingIds = importRatings(
-                files[CsvSchema.GAME_RATINGS], gameIds, rubricIds, errors, written,
+                files[CsvSchema.GAME_RATINGS],
+                gameIds,
+                rubricIds,
+                errors,
+                written
             )
             importRatingScores(
-                files[CsvSchema.GAME_RATING_SCORES], ratingIds, criterionIds, errors, written,
+                files[CsvSchema.GAME_RATING_SCORES],
+                ratingIds,
+                criterionIds,
+                errors,
+                written
             )
             importUnlocks(
-                files[CsvSchema.ACHIEVEMENT_UNLOCKS], sessionIds, errors, written,
+                files[CsvSchema.ACHIEVEMENT_UNLOCKS],
+                sessionIds,
+                errors,
+                written
             )
 
             // Second pass: an expansion can name a base game that had not been inserted
@@ -223,7 +236,6 @@ class CsvImporter @Inject constructor(
         ImportResult(written, errors)
     }
 
-
     // --- per-table importers --------------------------------------------------------
 
     /** Returns a map of the id in the file to the id in this database. */
@@ -231,7 +243,7 @@ class CsvImporter @Inject constructor(
         text: String?,
         mode: ImportMode,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ): Map<Long, Long> {
         val ids = mutableMapOf<Long, Long>()
         val table = text?.let { CsvParser.parse(it) } ?: return ids
@@ -271,7 +283,7 @@ class CsvImporter @Inject constructor(
                     suddenDeathPossible = row.boolean("sudden_death_possible"),
                     notes = row.string("notes"),
                     createdAt = row.long("created_at") ?: 0L,
-                    updatedAt = row.long("updated_at") ?: 0L,
+                    updatedAt = row.long("updated_at") ?: 0L
                 )
 
                 val existing = if (mode == ImportMode.MERGE) findGame(row) else null
@@ -299,11 +311,7 @@ class CsvImporter @Inject constructor(
         return row.string("title")?.let { gameDao.getGameByTitle(it) }
     }
 
-    private suspend fun relinkBaseGames(
-        text: String?,
-        gameIds: Map<Long, Long>,
-        errors: MutableList<CsvError>,
-    ) {
+    private suspend fun relinkBaseGames(text: String?, gameIds: Map<Long, Long>, errors: MutableList<CsvError>) {
         val table = text?.let { CsvParser.parse(it) } ?: return
         table.rows.forEach { row ->
             try {
@@ -314,7 +322,7 @@ class CsvImporter @Inject constructor(
                 if (localBase == null) {
                     errors += CsvError(
                         row.lineNumber,
-                        "games: base game $incomingBase was not in the file, link skipped",
+                        "games: base game $incomingBase was not in the file, link skipped"
                     )
                     return@forEach
                 }
@@ -329,7 +337,7 @@ class CsvImporter @Inject constructor(
         text: String?,
         mode: ImportMode,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ): Map<Long, Long> {
         val ids = mutableMapOf<Long, Long>()
         val table = text?.let { CsvParser.parse(it) } ?: return ids
@@ -342,8 +350,10 @@ class CsvImporter @Inject constructor(
                 val newId = if (mode == ImportMode.REPLACE) {
                     tagDao.insert(
                         com.boardgamenation.tracker.data.db.entity.TagEntity(
-                            id = incomingId, name = name, kind = kind,
-                        ),
+                            id = incomingId,
+                            name = name,
+                            kind = kind
+                        )
                     ).takeIf { it > 0 } ?: incomingId
                 } else {
                     tagDao.upsertByName(name, kind)
@@ -363,7 +373,7 @@ class CsvImporter @Inject constructor(
         gameIds: Map<Long, Long>,
         tagIds: Map<Long, Long>,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ) {
         val table = text?.let { CsvParser.parse(it) } ?: return
         val links = mutableListOf<GameTagCrossRef>()
@@ -396,11 +406,7 @@ class CsvImporter @Inject constructor(
      * the file verbatim, and upserting new tags before that would hand out low
      * autoincrement ids that collide with the ones still to be restored.
      */
-    private suspend fun importLegacyDesigners(
-        text: String?,
-        gameIds: Map<Long, Long>,
-        errors: MutableList<CsvError>,
-    ) {
+    private suspend fun importLegacyDesigners(text: String?, gameIds: Map<Long, Long>, errors: MutableList<CsvError>) {
         val table = text?.let { CsvParser.parse(it) } ?: return
         if (LEGACY_DESIGNERS_COLUMN !in table.headers) return
 
@@ -416,7 +422,7 @@ class CsvImporter @Inject constructor(
                     ?.forEach { name ->
                         links += GameTagCrossRef(
                             gameId = gameId,
-                            tagId = tagDao.upsertByName(name, TagKind.DESIGNER),
+                            tagId = tagDao.upsertByName(name, TagKind.DESIGNER)
                         )
                     }
             } catch (e: Exception) {
@@ -430,7 +436,7 @@ class CsvImporter @Inject constructor(
         text: String?,
         mode: ImportMode,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ): Map<Long, Long> {
         val ids = mutableMapOf<Long, Long>()
         val table = text?.let { CsvParser.parse(it) } ?: return ids
@@ -445,7 +451,7 @@ class CsvImporter @Inject constructor(
                     isSelf = row.boolean("is_self"),
                     colorHex = row.string("color_hex"),
                     notes = row.string("notes"),
-                    archived = row.boolean("archived"),
+                    archived = row.boolean("archived")
                 )
                 val existing = if (mode == ImportMode.MERGE) playerDao.findByName(name) else null
                 val newId = if (existing != null) {
@@ -469,7 +475,7 @@ class CsvImporter @Inject constructor(
         mode: ImportMode,
         gameIds: Map<Long, Long>,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ): Map<Long, Long> {
         val ids = mutableMapOf<Long, Long>()
         val table = text?.let { CsvParser.parse(it) } ?: return ids
@@ -505,7 +511,7 @@ class CsvImporter @Inject constructor(
                     photoUri = row.string("photo_uri"),
                     notes = row.string("notes"),
                     createdAt = row.long("created_at") ?: 0L,
-                    updatedAt = row.long("updated_at") ?: 0L,
+                    updatedAt = row.long("updated_at") ?: 0L
                 )
                 val existing = if (mode == ImportMode.MERGE) {
                     sessionDao.findByNaturalKey(gameId, playedOn, playerCount)
@@ -535,7 +541,7 @@ class CsvImporter @Inject constructor(
         sessionIds: Map<Long, Long>,
         playerIds: Map<Long, Long>,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ) {
         val table = text?.let { CsvParser.parse(it) } ?: return
         val rows = mutableListOf<SessionPlayerEntity>()
@@ -545,7 +551,8 @@ class CsvImporter @Inject constructor(
                 val playerId = playerIds[row.long("player_id")]
                 if (sessionId == null || playerId == null) {
                     errors += CsvError(
-                        row.lineNumber, "session_players: unknown session or player, skipped",
+                        row.lineNumber,
+                        "session_players: unknown session or player, skipped"
                     )
                     return@forEach
                 }
@@ -562,7 +569,7 @@ class CsvImporter @Inject constructor(
                     team = row.string("team"),
                     isNewPlayer = row.boolean("is_new_player"),
                     turnTimeMs = row.long("turn_time_ms"),
-                    bankTimeRemainingMs = row.long("bank_time_remaining_ms"),
+                    bankTimeRemainingMs = row.long("bank_time_remaining_ms")
                 )
             } catch (e: Exception) {
                 errors += CsvError(row.lineNumber, "session_players: ${e.message}")
@@ -577,7 +584,7 @@ class CsvImporter @Inject constructor(
         sessionIds: Map<Long, Long>,
         gameIds: Map<Long, Long>,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ) {
         val table = text?.let { CsvParser.parse(it) } ?: return
         val rows = mutableListOf<SessionExpansionEntity>()
@@ -587,7 +594,8 @@ class CsvImporter @Inject constructor(
                 val gameId = gameIds[row.long("game_id")]
                 if (sessionId == null || gameId == null) {
                     errors += CsvError(
-                        row.lineNumber, "session_expansions: unknown session or game, skipped",
+                        row.lineNumber,
+                        "session_expansions: unknown session or game, skipped"
                     )
                     return@forEach
                 }
@@ -604,7 +612,7 @@ class CsvImporter @Inject constructor(
         text: String?,
         mode: ImportMode,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ): Map<Long, Long> {
         val ids = mutableMapOf<Long, Long>()
         val table = text?.let { CsvParser.parse(it) } ?: return ids
@@ -617,7 +625,7 @@ class CsvImporter @Inject constructor(
                     id = if (mode == ImportMode.REPLACE) incomingId else 0L,
                     name = name,
                     description = row.string("description"),
-                    archived = row.boolean("archived"),
+                    archived = row.boolean("archived")
                 )
                 val existing =
                     if (mode == ImportMode.MERGE) rubricDao.findRubricByName(name) else null
@@ -641,7 +649,7 @@ class CsvImporter @Inject constructor(
         text: String?,
         rubricIds: Map<Long, Long>,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ): Map<Long, Long> {
         val ids = mutableMapOf<Long, Long>()
         val table = text?.let { CsvParser.parse(it) } ?: return ids
@@ -661,8 +669,8 @@ class CsvImporter @Inject constructor(
                         description = row.string("description"),
                         weight = row.double("weight") ?: 1.0,
                         maxScore = row.double("max_score") ?: 10.0,
-                        sortOrder = row.int("sort_order") ?: 0,
-                    ),
+                        sortOrder = row.int("sort_order") ?: 0
+                    )
                 )
                 ids[incomingId] = newId
                 count++
@@ -679,7 +687,7 @@ class CsvImporter @Inject constructor(
         gameIds: Map<Long, Long>,
         rubricIds: Map<Long, Long>,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ): Map<Long, Long> {
         val ids = mutableMapOf<Long, Long>()
         val table = text?.let { CsvParser.parse(it) } ?: return ids
@@ -691,7 +699,8 @@ class CsvImporter @Inject constructor(
                 val rubricId = rubricIds[row.long("rubric_id")]
                 if (gameId == null || rubricId == null) {
                     errors += CsvError(
-                        row.lineNumber, "game_ratings: unknown game or rubric, skipped",
+                        row.lineNumber,
+                        "game_ratings: unknown game or rubric, skipped"
                     )
                     return@forEach
                 }
@@ -701,8 +710,8 @@ class CsvImporter @Inject constructor(
                         rubricId = rubricId,
                         ratedOn = row.requireString("rated_on"),
                         computedScore = row.double("computed_score") ?: 0.0,
-                        notes = row.string("notes"),
-                    ),
+                        notes = row.string("notes")
+                    )
                 )
                 ids[incomingId] = newId
                 count++
@@ -719,7 +728,7 @@ class CsvImporter @Inject constructor(
         ratingIds: Map<Long, Long>,
         criterionIds: Map<Long, Long>,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ) {
         val table = text?.let { CsvParser.parse(it) } ?: return
         val rows = mutableListOf<GameRatingScoreEntity>()
@@ -729,14 +738,15 @@ class CsvImporter @Inject constructor(
                 val criterionId = criterionIds[row.long("criterion_id")]
                 if (ratingId == null || criterionId == null) {
                     errors += CsvError(
-                        row.lineNumber, "game_rating_scores: unknown rating or criterion, skipped",
+                        row.lineNumber,
+                        "game_rating_scores: unknown rating or criterion, skipped"
                     )
                     return@forEach
                 }
                 rows += GameRatingScoreEntity(
                     gameRatingId = ratingId,
                     criterionId = criterionId,
-                    score = row.double("score") ?: 0.0,
+                    score = row.double("score") ?: 0.0
                 )
             } catch (e: Exception) {
                 errors += CsvError(row.lineNumber, "game_rating_scores: ${e.message}")
@@ -750,7 +760,7 @@ class CsvImporter @Inject constructor(
         text: String?,
         sessionIds: Map<Long, Long>,
         errors: MutableList<CsvError>,
-        written: MutableMap<String, Int>,
+        written: MutableMap<String, Int>
     ) {
         val table = text?.let { CsvParser.parse(it) } ?: return
         val rows = mutableListOf<AchievementUnlockEntity>()
@@ -762,7 +772,8 @@ class CsvImporter @Inject constructor(
                     // A code this build does not know about, probably from a newer
                     // version. Recorded rather than silently dropped.
                     errors += CsvError(
-                        row.lineNumber, "achievement_unlocks: unknown achievement '$code', skipped",
+                        row.lineNumber,
+                        "achievement_unlocks: unknown achievement '$code', skipped"
                     )
                     return@forEach
                 }
@@ -770,7 +781,7 @@ class CsvImporter @Inject constructor(
                     achievementId = definition.id,
                     unlockedAt = row.long("unlocked_at") ?: 0L,
                     progressValue = row.double("progress_value") ?: 0.0,
-                    sessionId = row.long("session_id")?.let { sessionIds[it] },
+                    sessionId = row.long("session_id")?.let { sessionIds[it] }
                 )
             } catch (e: Exception) {
                 errors += CsvError(row.lineNumber, "achievement_unlocks: ${e.message}")

@@ -32,7 +32,7 @@ data class GameListItem(
     @ColumnInfo(name = "play_count") val playCount: Int,
     @ColumnInfo(name = "last_played") val lastPlayed: String?,
     @ColumnInfo(name = "rating") val rating: Double?,
-    @ColumnInfo(name = "cost_per_play") val costPerPlay: Double?,
+    @ColumnInfo(name = "cost_per_play") val costPerPlay: Double?
 )
 
 /** Aggregate figures for one game, shown on its detail screen. */
@@ -47,7 +47,7 @@ data class GameAggregates(
     @ColumnInfo(name = "first_played") val firstPlayed: String?,
     @ColumnInfo(name = "last_played") val lastPlayed: String?,
     @ColumnInfo(name = "wins") val wins: Int,
-    @ColumnInfo(name = "self_plays") val selfPlays: Int,
+    @ColumnInfo(name = "self_plays") val selfPlays: Int
 )
 
 /** A session row as shown in lists, with the game name resolved. */
@@ -77,7 +77,7 @@ data class SessionListItem(
     @ColumnInfo(name = "winner_names") val winnerNames: String?,
 
     /** Whoever holds the first seat, or null on a play nobody recorded an order for. */
-    @ColumnInfo(name = "first_player_name") val firstPlayerName: String?,
+    @ColumnInfo(name = "first_player_name") val firstPlayerName: String?
 )
 
 /** A participant joined to their player record, for session detail. */
@@ -97,7 +97,7 @@ data class SessionParticipant(
 
     @ColumnInfo(name = "is_new_player") val isNewPlayer: Boolean,
     @ColumnInfo(name = "turn_time_ms") val turnTimeMs: Long?,
-    @ColumnInfo(name = "bank_time_remaining_ms") val bankTimeRemainingMs: Long?,
+    @ColumnInfo(name = "bank_time_remaining_ms") val bankTimeRemainingMs: Long?
 )
 
 /**
@@ -112,17 +112,14 @@ data class FactionRecord(
 
     /** Completed plays with this faction. Abandoned games have no result to count. */
     @ColumnInfo(name = "plays") val plays: Int,
-    @ColumnInfo(name = "wins") val wins: Int,
+    @ColumnInfo(name = "wins") val wins: Int
 ) {
     /** Whole percent, matching how every other win rate in the app is shown. */
     val winPercent: Int get() = if (plays > 0) wins * 100 / plays else 0
 }
 
 /** A generic label/value pair backing the chart cards. */
-data class LabelledValue(
-    @ColumnInfo(name = "label") val label: String,
-    @ColumnInfo(name = "value") val value: Double,
-)
+data class LabelledValue(@ColumnInfo(name = "label") val label: String, @ColumnInfo(name = "value") val value: Double)
 
 data class PlayerStandingRow(
     @ColumnInfo(name = "player_id") val playerId: Long,
@@ -130,7 +127,7 @@ data class PlayerStandingRow(
     @ColumnInfo(name = "color_hex") val colorHex: String?,
     @ColumnInfo(name = "plays") val plays: Int,
     @ColumnInfo(name = "wins") val wins: Int,
-    @ColumnInfo(name = "avg_score") val avgScore: Double?,
+    @ColumnInfo(name = "avg_score") val avgScore: Double?
 )
 
 /** Head-to-head record between the device owner and one opponent. */
@@ -140,7 +137,7 @@ data class HeadToHeadRow(
     @ColumnInfo(name = "color_hex") val colorHex: String?,
     @ColumnInfo(name = "shared_plays") val sharedPlays: Int,
     @ColumnInfo(name = "self_wins") val selfWins: Int,
-    @ColumnInfo(name = "opponent_wins") val opponentWins: Int,
+    @ColumnInfo(name = "opponent_wins") val opponentWins: Int
 )
 
 /**
@@ -153,7 +150,7 @@ data class GameWinRateRow(
     @ColumnInfo(name = "title") val title: String,
     @ColumnInfo(name = "plays") val plays: Int,
     @ColumnInfo(name = "wins") val wins: Int,
-    @ColumnInfo(name = "win_rate") val winRate: Double,
+    @ColumnInfo(name = "win_rate") val winRate: Double
 )
 
 /**
@@ -174,7 +171,7 @@ data class FirstPlayerRecord(
      * per play, the winners divided by the players, averaged. Null until there is a
      * play to average.
      */
-    @ColumnInfo(name = "expected_win_rate") val expectedWinRate: Double?,
+    @ColumnInfo(name = "expected_win_rate") val expectedWinRate: Double?
 ) {
     /** Whole percent, matching how every other win rate in the app is shown. */
     val winPercent: Int get() = if (plays > 0) wins * 100 / plays else 0
@@ -195,7 +192,7 @@ data class CostPerPlayRow(
     @ColumnInfo(name = "price") val price: Double,
     @ColumnInfo(name = "currency") val currency: String,
     @ColumnInfo(name = "play_count") val playCount: Int,
-    @ColumnInfo(name = "cost_per_play") val costPerPlay: Double,
+    @ColumnInfo(name = "cost_per_play") val costPerPlay: Double
 )
 
 /**
@@ -207,7 +204,7 @@ data class DurationVsExpectedRow(
     @ColumnInfo(name = "title") val title: String,
     @ColumnInfo(name = "actual_avg") val actualAvg: Double,
     @ColumnInfo(name = "stated_avg") val statedAvg: Double,
-    @ColumnInfo(name = "play_count") val playCount: Int,
+    @ColumnInfo(name = "play_count") val playCount: Int
 )
 
 /** A rating joined with the rubric that produced it. */
@@ -217,7 +214,7 @@ data class RatingWithRubric(
     @ColumnInfo(name = "rubric_name") val rubricName: String,
     @ColumnInfo(name = "rated_on") val ratedOn: String,
     @ColumnInfo(name = "computed_score") val computedScore: Double,
-    @ColumnInfo(name = "notes") val notes: String?,
+    @ColumnInfo(name = "notes") val notes: String?
 )
 
 data class CriterionScoreRow(
@@ -227,7 +224,7 @@ data class CriterionScoreRow(
     @ColumnInfo(name = "weight") val weight: Double,
     @ColumnInfo(name = "max_score") val maxScore: Double,
     @ColumnInfo(name = "sort_order") val sortOrder: Int,
-    @ColumnInfo(name = "score") val score: Double?,
+    @ColumnInfo(name = "score") val score: Double?
 )
 
 /** An achievement definition plus its unlock row, when it has one. */
@@ -243,7 +240,7 @@ data class AchievementWithUnlock(
     @ColumnInfo(name = "sort_order") val sortOrder: Int,
     @ColumnInfo(name = "rule_json") val ruleJson: String,
     @ColumnInfo(name = "unlocked_at") val unlockedAt: Long?,
-    @ColumnInfo(name = "progress_value") val progressValue: Double?,
+    @ColumnInfo(name = "progress_value") val progressValue: Double?
 )
 
 /** A timer seat joined to the player sitting in it. */
@@ -258,20 +255,20 @@ data class TimerSeatWithPlayer(
     @ColumnInfo(name = "total_turn_time_ms") val totalTurnTimeMs: Long,
     @ColumnInfo(name = "turns_taken") val turnsTaken: Int,
     @ColumnInfo(name = "timed_out") val timedOut: Boolean,
-    @ColumnInfo(name = "skipped") val skipped: Boolean,
+    @ColumnInfo(name = "skipped") val skipped: Boolean
 )
 
 data class PlayerRow(
     @Embedded val player: PlayerEntity,
     @ColumnInfo(name = "plays") val plays: Int,
-    @ColumnInfo(name = "wins") val wins: Int,
+    @ColumnInfo(name = "wins") val wins: Int
 )
 
 /** A single scalar plus its label, used by the dashboard tiles. */
 data class NamedTotal(
     @ColumnInfo(name = "label") val label: String,
     @ColumnInfo(name = "count") val count: Int,
-    @ColumnInfo(name = "total") val total: Double,
+    @ColumnInfo(name = "total") val total: Double
 )
 
 /**
@@ -291,7 +288,7 @@ data class TableCountSummary(
     val rubricCriteria: Int,
     val gameRatings: Int,
     val gameRatingScores: Int,
-    val achievementUnlocks: Int,
+    val achievementUnlocks: Int
 ) {
     val total: Int
         get() = games + tags + gameTags + players + sessions + sessionPlayers +

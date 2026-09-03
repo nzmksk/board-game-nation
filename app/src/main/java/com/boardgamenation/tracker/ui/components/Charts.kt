@@ -1,5 +1,6 @@
 package com.boardgamenation.tracker.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,9 +31,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.Canvas
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.ui.theme.LocalChartColors
 
@@ -81,7 +81,7 @@ fun HorizontalBarChart(
      * length a bar does not fill reads as the rest of the scale rather than as the
      * edge of the chart.
      */
-    scaleMax: Double? = null,
+    scaleMax: Double? = null
 ) {
     if (data.isEmpty()) {
         EmptyChartMessage(modifier)
@@ -103,14 +103,14 @@ fun HorizontalBarChart(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.width(104.dp),
+                    modifier = Modifier.width(104.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(18.dp)
-                        .semantics { contentDescription = "$label: $valueText" },
+                        .semantics { contentDescription = "$label: $valueText" }
                 ) {
                     Canvas(Modifier.fillMaxWidth().height(18.dp)) {
                         val top = size.height * 0.15f
@@ -123,7 +123,7 @@ fun HorizontalBarChart(
                                 width = size.width,
                                 height = barHeight,
                                 cornerPx = BarCorner.toPx(),
-                                roundedEnd = RoundedEnd.RIGHT,
+                                roundedEnd = RoundedEnd.RIGHT
                             )
                         }
                         val fraction = (value / max).toFloat().coerceIn(0f, 1f)
@@ -136,7 +136,7 @@ fun HorizontalBarChart(
                                 width = barWidth,
                                 height = barHeight,
                                 cornerPx = BarCorner.toPx(),
-                                roundedEnd = RoundedEnd.RIGHT,
+                                roundedEnd = RoundedEnd.RIGHT
                             )
                         }
                     }
@@ -147,7 +147,7 @@ fun HorizontalBarChart(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    modifier = Modifier.width(valueWidth),
+                    modifier = Modifier.width(valueWidth)
                 )
             }
         }
@@ -160,7 +160,7 @@ fun VerticalBarChart(
     data: List<Pair<String, Double>>,
     modifier: Modifier = Modifier,
     height: androidx.compose.ui.unit.Dp = 140.dp,
-    valueFormatter: (Double) -> String = { it.toInt().toString() },
+    valueFormatter: (Double) -> String = { it.toInt().toString() }
 ) {
     if (data.isEmpty()) {
         EmptyChartMessage(modifier)
@@ -176,7 +176,7 @@ fun VerticalBarChart(
                 .fillMaxWidth()
                 .height(height)
                 .clipToBounds()
-                .semantics { contentDescription = summary },
+                .semantics { contentDescription = summary }
         ) {
             val gap = BarGap.toPx()
             val slot = size.width / data.size
@@ -188,7 +188,7 @@ fun VerticalBarChart(
                 color = colors.grid,
                 start = Offset(0f, 0f),
                 end = Offset(size.width, 0f),
-                strokeWidth = 1f,
+                strokeWidth = 1f
             )
 
             data.forEachIndexed { index, (_, value) ->
@@ -202,7 +202,7 @@ fun VerticalBarChart(
                         width = barWidth,
                         height = barHeight,
                         cornerPx = BarCorner.toPx(),
-                        roundedEnd = RoundedEnd.TOP,
+                        roundedEnd = RoundedEnd.TOP
                     )
                 }
             }
@@ -211,7 +211,7 @@ fun VerticalBarChart(
                 color = colors.axis,
                 start = Offset(0f, size.height),
                 end = Offset(size.width, size.height),
-                strokeWidth = 1f,
+                strokeWidth = 1f
             )
         }
         Spacer(Modifier.height(4.dp))
@@ -223,7 +223,7 @@ fun VerticalBarChart(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Clip,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -236,7 +236,7 @@ fun LineChart(
     data: List<Pair<String, Double>>,
     modifier: Modifier = Modifier,
     height: androidx.compose.ui.unit.Dp = 150.dp,
-    valueFormatter: (Double) -> String = { it.toInt().toString() },
+    valueFormatter: (Double) -> String = { it.toInt().toString() }
 ) {
     if (data.size < 2) {
         EmptyChartMessage(modifier)
@@ -251,7 +251,7 @@ fun LineChart(
             Modifier
                 .fillMaxWidth()
                 .height(height)
-                .semantics { contentDescription = summary },
+                .semantics { contentDescription = summary }
         ) {
             val stepX = size.width / (data.size - 1).coerceAtLeast(1)
             val inset = 10f
@@ -263,14 +263,14 @@ fun LineChart(
                     color = colors.grid,
                     start = Offset(0f, y),
                     end = Offset(size.width, y),
-                    strokeWidth = 1f,
+                    strokeWidth = 1f
                 )
             }
 
             val points = data.mapIndexed { index, (_, value) ->
                 Offset(
                     x = index * stepX,
-                    y = inset + plotHeight * (1f - (value / max).toFloat().coerceIn(0f, 1f)),
+                    y = inset + plotHeight * (1f - (value / max).toFloat().coerceIn(0f, 1f))
                 )
             }
 
@@ -281,7 +281,7 @@ fun LineChart(
             drawPath(
                 path = path,
                 color = colors.magnitude,
-                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
+                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
             )
 
             // Only the endpoints get a marker. A dot on every month would turn a trend
@@ -295,12 +295,12 @@ fun LineChart(
             Text(
                 text = data.first().first,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = data.last().first,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -314,11 +314,7 @@ fun LineChart(
  * would make "an hour over" and "an hour under" look like the same fact.
  */
 @Composable
-fun DivergingBarChart(
-    data: List<Triple<String, Double, String>>,
-    modifier: Modifier = Modifier,
-    maxRows: Int = 8,
-) {
+fun DivergingBarChart(data: List<Triple<String, Double, String>>, modifier: Modifier = Modifier, maxRows: Int = 8) {
     if (data.isEmpty()) {
         EmptyChartMessage(modifier)
         return
@@ -336,21 +332,21 @@ fun DivergingBarChart(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.width(96.dp),
+                    modifier = Modifier.width(96.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Canvas(
                     Modifier
                         .weight(1f)
                         .height(18.dp)
-                        .semantics { contentDescription = "$label: $valueLabel" },
+                        .semantics { contentDescription = "$label: $valueLabel" }
                 ) {
                     val centre = size.width / 2f
                     drawLine(
                         color = colors.axis,
                         start = Offset(centre, 0f),
                         end = Offset(centre, size.height),
-                        strokeWidth = 1f,
+                        strokeWidth = 1f
                     )
                     val fraction = (kotlin.math.abs(delta) / extent).toFloat().coerceIn(0f, 1f)
                     val barWidth = centre * fraction
@@ -363,7 +359,7 @@ fun DivergingBarChart(
                             width = barWidth,
                             height = size.height * 0.7f,
                             cornerPx = BarCorner.toPx(),
-                            roundedEnd = if (runsLong) RoundedEnd.RIGHT else RoundedEnd.LEFT,
+                            roundedEnd = if (runsLong) RoundedEnd.RIGHT else RoundedEnd.LEFT
                         )
                     }
                 }
@@ -373,7 +369,7 @@ fun DivergingBarChart(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    modifier = Modifier.width(72.dp),
+                    modifier = Modifier.width(72.dp)
                 )
             }
         }
@@ -393,7 +389,7 @@ private fun DrawScope.drawEndRoundedBar(
     width: Float,
     height: Float,
     cornerPx: Float,
-    roundedEnd: RoundedEnd,
+    roundedEnd: RoundedEnd
 ) {
     val radius = CornerRadius(cornerPx.coerceAtMost(width / 2f).coerceAtMost(height / 2f))
     val zero = CornerRadius.Zero
@@ -412,6 +408,6 @@ private fun EmptyChartMessage(modifier: Modifier = Modifier) {
         text = stringResource(R.string.stats_no_data),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(vertical = 12.dp),
+        modifier = modifier.padding(vertical = 12.dp)
     )
 }

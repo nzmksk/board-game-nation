@@ -18,13 +18,13 @@ import com.boardgamenation.tracker.domain.model.ActiveClock
 import com.boardgamenation.tracker.domain.model.TimerRunState
 import com.boardgamenation.tracker.domain.timer.TimerProjection
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * Keeps the clock alive and visible.
@@ -57,9 +57,13 @@ class TimerService : Service() {
                 stopEverything()
                 return START_NOT_STICKY
             }
+
             ACTION_PAUSE -> scope.launch { controller.pause() }
+
             ACTION_RESUME -> scope.launch { controller.resume() }
+
             ACTION_PASS -> scope.launch { controller.passTurn() }
+
             else -> Unit
         }
 
@@ -91,10 +95,7 @@ class TimerService : Service() {
         }
     }
 
-    private fun NotificationManagerCompat.notifyIfPermitted(
-        id: Int,
-        notification: android.app.Notification,
-    ) {
+    private fun NotificationManagerCompat.notifyIfPermitted(id: Int, notification: android.app.Notification) {
         // POST_NOTIFICATIONS may be denied on API 33+. The foreground notification itself
         // is still shown by the system; the update is simply skipped.
         runCatching { notify(id, notification) }
@@ -106,7 +107,7 @@ class TimerService : Service() {
             0,
             Intent(this, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         // A count-up clock has nobody up: the whole notification is that a game is
@@ -121,9 +122,12 @@ class TimerService : Service() {
         }
         val clockLabel = when {
             countUp -> getString(R.string.timer_clock_elapsed)
+
             projection?.activeClock == ActiveClock.BANK -> getString(R.string.timer_clock_bank)
+
             projection?.activeClock == ActiveClock.OVERTIME ->
                 getString(R.string.timer_clock_overtime)
+
             else -> getString(R.string.timer_clock_turn)
         }
         val time = projection?.let { DurationFormat.longClock(it.displayMs) }.orEmpty()
@@ -146,32 +150,31 @@ class TimerService : Service() {
                 builder.addAction(
                     0,
                     getString(R.string.timer_action_pass),
-                    servicePendingIntent(ACTION_PASS, 1),
+                    servicePendingIntent(ACTION_PASS, 1)
                 )
             }
             builder.addAction(
                 0,
                 getString(R.string.timer_action_pause),
-                servicePendingIntent(ACTION_PAUSE, 2),
+                servicePendingIntent(ACTION_PAUSE, 2)
             )
         } else {
             builder.addAction(
                 0,
                 getString(R.string.timer_action_resume),
-                servicePendingIntent(ACTION_RESUME, 3),
+                servicePendingIntent(ACTION_RESUME, 3)
             )
         }
 
         return builder.build()
     }
 
-    private fun servicePendingIntent(action: String, requestCode: Int): PendingIntent =
-        PendingIntent.getService(
-            this,
-            requestCode,
-            Intent(this, TimerService::class.java).setAction(action),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
+    private fun servicePendingIntent(action: String, requestCode: Int): PendingIntent = PendingIntent.getService(
+        this,
+        requestCode,
+        Intent(this, TimerService::class.java).setAction(action),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
 
     /**
      * A partial wake lock, held only while the clock is actually running. It is what
@@ -212,7 +215,7 @@ class TimerService : Service() {
             CHANNEL_ID,
             getString(R.string.timer_channel_name),
             // Low importance: the notification is a status readout, not an interruption.
-            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = getString(R.string.timer_channel_description)
             setShowBadge(false)

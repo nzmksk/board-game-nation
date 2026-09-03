@@ -6,12 +6,12 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,13 +23,13 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -77,11 +77,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun CollectionScreen(
-    onOpenGame: (Long) -> Unit,
-    onAddGame: () -> Unit,
-    viewModel: CollectionViewModel = hiltViewModel(),
-) {
+fun CollectionScreen(onOpenGame: (Long) -> Unit, onAddGame: () -> Unit, viewModel: CollectionViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var searchActive by remember { mutableStateOf(false) }
     var sortMenuOpen by remember { mutableStateOf(false) }
@@ -97,7 +93,7 @@ fun CollectionScreen(
                     onSelectAll = viewModel::selectAll,
                     onSetStatus = viewModel::bulkSetStatus,
                     onAddTag = { tagPickerOpen = true },
-                    onDelete = { bulkDeleteOpen = true },
+                    onDelete = { bulkDeleteOpen = true }
                 )
             } else {
                 TopAppBar(
@@ -115,15 +111,15 @@ fun CollectionScreen(
                                         R.string.collection_layout_grid
                                     } else {
                                         R.string.collection_layout_list
-                                    },
-                                ),
+                                    }
+                                )
                             )
                         }
                         Box {
                             IconButton(onClick = { sortMenuOpen = true }) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.Sort,
-                                    contentDescription = stringResource(R.string.action_sort),
+                                    contentDescription = stringResource(R.string.action_sort)
                                 )
                             }
                             SortMenu(
@@ -134,10 +130,10 @@ fun CollectionScreen(
                                 onSelect = {
                                     viewModel.setSort(it)
                                     sortMenuOpen = false
-                                },
+                                }
                             )
                         }
-                    },
+                    }
                 )
             }
         },
@@ -146,10 +142,10 @@ fun CollectionScreen(
                 ExtendedFloatingActionButton(
                     onClick = onAddGame,
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.collection_add_game)) },
+                    text = { Text(stringResource(R.string.collection_add_game)) }
                 )
             }
-        },
+        }
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             SearchBar(
@@ -166,11 +162,11 @@ fun CollectionScreen(
                                 IconButton(onClick = { viewModel.onSearchChange("") }) {
                                     Icon(
                                         Icons.Filled.Close,
-                                        contentDescription = stringResource(R.string.action_clear),
+                                        contentDescription = stringResource(R.string.action_clear)
                                     )
                                 }
                             }
-                        },
+                        }
                     )
                 },
                 expanded = false,
@@ -178,7 +174,7 @@ fun CollectionScreen(
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {}
 
             FilterChipRow(
@@ -190,14 +186,14 @@ fun CollectionScreen(
                 onRated = viewModel::setRated,
                 onInPossession = viewModel::toggleInPossession,
                 onExpansions = viewModel::toggleExpansions,
-                onClear = viewModel::clearFilters,
+                onClear = viewModel::clearFilters
             )
 
             Text(
                 text = stringResource(R.string.collection_count, state.games.size),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
 
             when {
@@ -205,27 +201,27 @@ fun CollectionScreen(
 
                 state.games.isEmpty() && state.filter.isActive -> EmptyState(
                     title = stringResource(R.string.collection_empty_filtered),
-                    icon = Icons.Filled.Casino,
+                    icon = Icons.Filled.Casino
                 )
 
                 state.games.isEmpty() -> EmptyState(
                     title = stringResource(R.string.collection_empty),
                     body = stringResource(R.string.collection_empty_body),
-                    icon = Icons.Filled.Casino,
+                    icon = Icons.Filled.Casino
                 )
 
                 state.layout == CollectionLayout.LIST -> GameList(
                     games = state.games,
                     selection = state.selection,
                     onOpen = onOpenGame,
-                    onToggleSelect = viewModel::toggleSelection,
+                    onToggleSelect = viewModel::toggleSelection
                 )
 
                 else -> GameGrid(
                     games = state.games,
                     selection = state.selection,
                     onOpen = onOpenGame,
-                    onToggleSelect = viewModel::toggleSelection,
+                    onToggleSelect = viewModel::toggleSelection
                 )
             }
         }
@@ -244,7 +240,7 @@ fun CollectionScreen(
                                 viewModel.bulkAddTag(tag.id)
                                 tagPickerOpen = false
                             },
-                            label = { Text(tag.name) },
+                            label = { Text(tag.name) }
                         )
                     }
                 }
@@ -253,7 +249,7 @@ fun CollectionScreen(
                 TextButton(onClick = { tagPickerOpen = false }) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 
@@ -268,7 +264,7 @@ fun CollectionScreen(
                 bulkDeleteOpen = false
                 viewModel.bulkDelete()
             },
-            onDismiss = { bulkDeleteOpen = false },
+            onDismiss = { bulkDeleteOpen = false }
         )
     }
 }
@@ -281,7 +277,7 @@ private fun SelectionTopBar(
     onSelectAll: () -> Unit,
     onSetStatus: (GameStatus) -> Unit,
     onAddTag: () -> Unit,
-    onDelete: () -> Unit,
+    onDelete: () -> Unit
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     TopAppBar(
@@ -295,14 +291,14 @@ private fun SelectionTopBar(
             IconButton(onClick = onSelectAll) {
                 Icon(
                     Icons.Filled.Check,
-                    contentDescription = stringResource(R.string.action_select_all),
+                    contentDescription = stringResource(R.string.action_select_all)
                 )
             }
             Box {
                 IconButton(onClick = { menuOpen = true }) {
                     Icon(
                         Icons.AutoMirrored.Filled.Sort,
-                        contentDescription = stringResource(R.string.action_more_options),
+                        contentDescription = stringResource(R.string.action_more_options)
                     )
                 }
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
@@ -312,7 +308,7 @@ private fun SelectionTopBar(
                             onClick = {
                                 onSetStatus(status)
                                 menuOpen = false
-                            },
+                            }
                         )
                     }
                     HorizontalDivider()
@@ -321,23 +317,23 @@ private fun SelectionTopBar(
                         onClick = {
                             onAddTag()
                             menuOpen = false
-                        },
+                        }
                     )
                     DropdownMenuItem(
                         text = {
                             Text(
                                 text = stringResource(R.string.collection_bulk_delete),
-                                color = MaterialTheme.colorScheme.error,
+                                color = MaterialTheme.colorScheme.error
                             )
                         },
                         onClick = {
                             onDelete()
                             menuOpen = false
-                        },
+                        }
                     )
                 }
             }
-        },
+        }
     )
 }
 
@@ -347,7 +343,7 @@ private fun SortMenu(
     current: CollectionSort,
     ascending: Boolean,
     onDismiss: () -> Unit,
-    onSelect: (CollectionSort) -> Unit,
+    onSelect: (CollectionSort) -> Unit
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         CollectionSort.entries.forEach { sort ->
@@ -355,7 +351,7 @@ private fun SortMenu(
                 text = {
                     Text(
                         text = stringResource(sort.labelRes()),
-                        fontWeight = if (sort == current) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = if (sort == current) FontWeight.Bold else FontWeight.Normal
                     )
                 },
                 trailingIcon = {
@@ -363,7 +359,7 @@ private fun SortMenu(
                         Text(if (ascending) "↑" else "↓")
                     }
                 },
-                onClick = { onSelect(sort) },
+                onClick = { onSelect(sort) }
             )
         }
     }
@@ -379,7 +375,7 @@ private fun FilterChipRow(
     onRated: (Boolean?) -> Unit,
     onInPossession: () -> Unit,
     onExpansions: () -> Unit,
-    onClear: () -> Unit,
+    onClear: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -387,7 +383,7 @@ private fun FilterChipRow(
             .horizontalScroll(rememberScrollState())
             .padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         if (state.filter.activeCount > 0) {
             FilterChip(
@@ -396,7 +392,7 @@ private fun FilterChipRow(
                 label = {
                     Text(stringResource(R.string.collection_filter_clear, state.filter.activeCount))
                 },
-                leadingIcon = { Icon(Icons.Filled.Close, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Filled.Close, contentDescription = null) }
             )
         }
 
@@ -404,7 +400,7 @@ private fun FilterChipRow(
             FilterChip(
                 selected = status in state.filter.statuses,
                 onClick = { onToggleStatus(status) },
-                label = { Text(stringResource(status.labelRes())) },
+                label = { Text(stringResource(status.labelRes())) }
             )
         }
 
@@ -412,7 +408,7 @@ private fun FilterChipRow(
             FilterChip(
                 selected = state.filter.playerCount == count,
                 onClick = { onPlayerCount(count) },
-                label = { Text(stringResource(R.string.collection_filter_players_value, count)) },
+                label = { Text(stringResource(R.string.collection_filter_players_value, count)) }
             )
         }
 
@@ -420,29 +416,29 @@ private fun FilterChipRow(
             FilterChip(
                 selected = state.filter.playtime == bucket,
                 onClick = { onPlaytime(bucket) },
-                label = { Text(stringResource(bucket.labelRes())) },
+                label = { Text(stringResource(bucket.labelRes())) }
             )
         }
 
         FilterChip(
             selected = state.filter.rated == true,
             onClick = { onRated(true) },
-            label = { Text(stringResource(R.string.collection_filter_rated)) },
+            label = { Text(stringResource(R.string.collection_filter_rated)) }
         )
         FilterChip(
             selected = state.filter.rated == false,
             onClick = { onRated(false) },
-            label = { Text(stringResource(R.string.collection_filter_unrated)) },
+            label = { Text(stringResource(R.string.collection_filter_unrated)) }
         )
         FilterChip(
             selected = state.filter.inPossessionOnly,
             onClick = onInPossession,
-            label = { Text(stringResource(R.string.collection_filter_in_possession)) },
+            label = { Text(stringResource(R.string.collection_filter_in_possession)) }
         )
         FilterChip(
             selected = !state.filter.includeExpansions,
             onClick = onExpansions,
-            label = { Text(stringResource(R.string.collection_filter_hide_expansions)) },
+            label = { Text(stringResource(R.string.collection_filter_hide_expansions)) }
         )
 
         // Capped per kind rather than over one flat list. Designers moved into the same
@@ -455,7 +451,7 @@ private fun FilterChipRow(
                 FilterChip(
                     selected = tag.id in state.filter.tagIds,
                     onClick = { onToggleTag(tag.id) },
-                    label = { Text(tag.name) },
+                    label = { Text(tag.name) }
                 )
             }
         }
@@ -463,17 +459,15 @@ private fun FilterChipRow(
 }
 
 @Composable
-private fun GameList(
-    games: List<GameListItem>,
-    selection: Set<Long>,
-    onOpen: (Long) -> Unit,
-    onToggleSelect: (Long) -> Unit,
-) {
+private fun GameList(games: List<GameListItem>, selection: Set<Long>, onOpen: (Long) -> Unit, onToggleSelect: (Long) -> Unit) {
     LazyColumn(
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = 12.dp, end = 12.dp, top = 4.dp, bottom = 96.dp,
+            start = 12.dp,
+            end = 12.dp,
+            top = 4.dp,
+            bottom = 96.dp
         ),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // Keyed so recomposition survives reordering, which is what keeps a 500-row list
         // smooth when the sort changes.
@@ -482,7 +476,7 @@ private fun GameList(
                 game = game,
                 selected = game.id in selection,
                 onOpen = { onOpen(game.id) },
-                onToggleSelect = { onToggleSelect(game.id) },
+                onToggleSelect = { onToggleSelect(game.id) }
             )
         }
     }
@@ -490,27 +484,22 @@ private fun GameList(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun GameRow(
-    game: GameListItem,
-    selected: Boolean,
-    onOpen: () -> Unit,
-    onToggleSelect: () -> Unit,
-) {
+private fun GameRow(game: GameListItem, selected: Boolean, onOpen: () -> Unit, onToggleSelect: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.secondaryContainer
             } else {
                 MaterialTheme.colorScheme.surfaceContainerLow
-            },
+            }
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = onOpen, onLongClick = onToggleSelect),
+            .combinedClickable(onClick = onOpen, onLongClick = onToggleSelect)
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             GameThumbnail(path = game.thumbnailPath, title = game.title)
             Spacer(Modifier.width(12.dp))
@@ -519,20 +508,20 @@ private fun GameRow(
                     text = game.title,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = game.subtitle(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (game.lentTo != null) {
                     Text(
                         text = stringResource(R.string.game_detail_lent_to, game.lentTo),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.tertiary,
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }
@@ -541,14 +530,14 @@ private fun GameRow(
                 if (game.playCount > 0) {
                     Text(
                         text = stringResource(R.string.stats_plays_value, game.playCount),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
                 game.rating?.let {
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f", it),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -557,26 +546,24 @@ private fun GameRow(
 }
 
 @Composable
-private fun GameGrid(
-    games: List<GameListItem>,
-    selection: Set<Long>,
-    onOpen: (Long) -> Unit,
-    onToggleSelect: (Long) -> Unit,
-) {
+private fun GameGrid(games: List<GameListItem>, selection: Set<Long>, onOpen: (Long) -> Unit, onToggleSelect: (Long) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 112.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = 12.dp, end = 12.dp, top = 4.dp, bottom = 96.dp,
+            start = 12.dp,
+            end = 12.dp,
+            top = 4.dp,
+            bottom = 96.dp
         ),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(games, key = { it.id }) { game ->
             GameTile(
                 game = game,
                 selected = game.id in selection,
                 onOpen = { onOpen(game.id) },
-                onToggleSelect = { onToggleSelect(game.id) },
+                onToggleSelect = { onToggleSelect(game.id) }
             )
         }
     }
@@ -584,35 +571,30 @@ private fun GameGrid(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun GameTile(
-    game: GameListItem,
-    selected: Boolean,
-    onOpen: () -> Unit,
-    onToggleSelect: () -> Unit,
-) {
+private fun GameTile(game: GameListItem, selected: Boolean, onOpen: () -> Unit, onToggleSelect: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.secondaryContainer
             } else {
                 MaterialTheme.colorScheme.surfaceContainerLow
-            },
+            }
         ),
-        modifier = Modifier.combinedClickable(onClick = onOpen, onLongClick = onToggleSelect),
+        modifier = Modifier.combinedClickable(onClick = onOpen, onLongClick = onToggleSelect)
     ) {
         Column(Modifier.padding(8.dp)) {
             GameThumbnail(
                 path = game.thumbnailPath,
                 title = game.title,
                 size = 96.dp,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = game.title,
                 style = MaterialTheme.typography.labelLarge,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = if (game.playCount > 0) {
@@ -621,7 +603,7 @@ private fun GameTile(
                     stringResource(R.string.game_detail_never_played)
                 },
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -636,7 +618,7 @@ private fun GameListItem.subtitle(): String {
                     stringResource(R.string.unit_players_single, minPlayers)
                 } else {
                     stringResource(R.string.unit_players_range, minPlayers, maxPlayers)
-                },
+                }
             )
         }
         maxPlaytimeMinutes?.let { add(DurationFormat.minutes(it)) }

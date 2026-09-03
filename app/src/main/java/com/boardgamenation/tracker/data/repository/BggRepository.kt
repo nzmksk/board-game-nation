@@ -19,6 +19,9 @@ import com.boardgamenation.tracker.di.IoDispatcher
 import com.boardgamenation.tracker.domain.model.GameStatus
 import com.boardgamenation.tracker.domain.model.TagKind
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -26,9 +29,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.ResponseBody
 import retrofit2.Response
-import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** Progress reported while a collection import runs. */
 sealed interface BggImportProgress {
@@ -49,7 +49,7 @@ class BggRepository @Inject constructor(
     private val gameRepository: GameRepository,
     private val httpClient: OkHttpClient,
     private val clock: AppClock,
-    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) {
 
     /**
@@ -73,44 +73,43 @@ class BggRepository @Inject constructor(
      * says so. Metadata about a published board game does not change often enough to
      * justify asking again every time a detail screen opens.
      */
-    suspend fun things(ids: List<Long>, forceRefresh: Boolean = false): List<BggThing> =
-        withContext(io) {
-            requireConfigured()
-            if (ids.isEmpty()) return@withContext emptyList()
+    suspend fun things(ids: List<Long>, forceRefresh: Boolean = false): List<BggThing> = withContext(io) {
+        requireConfigured()
+        if (ids.isEmpty()) return@withContext emptyList()
 
-            val notBefore = clock.nowMillis() - CACHE_TTL_MS
-            val cached = mutableListOf<BggThing>()
-            val missing = mutableListOf<Long>()
+        val notBefore = clock.nowMillis() - CACHE_TTL_MS
+        val cached = mutableListOf<BggThing>()
+        val missing = mutableListOf<Long>()
 
-            ids.distinct().forEach { id ->
-                val hit = if (forceRefresh) null else cacheDao.getFresh(id, notBefore)
-                if (hit != null) {
-                    cached += parser.parseThings(hit.xml)
-                } else {
-                    missing += id
-                }
+        ids.distinct().forEach { id ->
+            val hit = if (forceRefresh) null else cacheDao.getFresh(id, notBefore)
+            if (hit != null) {
+                cached += parser.parseThings(hit.xml)
+            } else {
+                missing += id
             }
-
-            // Batched 20 at a time, which is what the endpoint accepts, so importing a
-            // 200-game collection is ten requests rather than two hundred.
-            missing.chunked(BATCH_SIZE).forEach { batch ->
-                val body = call { api.things(batch.joinToString(",")) }
-                val parsed = parser.parseThings(body)
-                parsed.forEach { thing ->
-                    cacheDao.put(
-                        BggThingCacheEntity(
-                            bggId = thing.bggId,
-                            // The slice for one id keeps a cache entry independent of the
-                            // batch it happened to arrive in.
-                            xml = sliceForId(body, thing.bggId) ?: body,
-                            fetchedAt = clock.nowMillis(),
-                        ),
-                    )
-                }
-                cached += parsed
-            }
-            cached.distinctBy { it.bggId }
         }
+
+        // Batched 20 at a time, which is what the endpoint accepts, so importing a
+        // 200-game collection is ten requests rather than two hundred.
+        missing.chunked(BATCH_SIZE).forEach { batch ->
+            val body = call { api.things(batch.joinToString(",")) }
+            val parsed = parser.parseThings(body)
+            parsed.forEach { thing ->
+                cacheDao.put(
+                    BggThingCacheEntity(
+                        bggId = thing.bggId,
+                        // The slice for one id keeps a cache entry independent of the
+                        // batch it happened to arrive in.
+                        xml = sliceForId(body, thing.bggId) ?: body,
+                        fetchedAt = clock.nowMillis()
+                    )
+                )
+            }
+            cached += parsed
+        }
+        cached.distinctBy { it.bggId }
+    }
 
     /**
      * Downloads a user's collection.
@@ -122,7 +121,7 @@ class BggRepository @Inject constructor(
     suspend fun fetchCollection(
         username: String,
         ownedOnly: Boolean = true,
-        onProgress: suspend (BggImportProgress) -> Unit = {},
+        onProgress: suspend (BggImportProgress) -> Unit = {}
     ): List<BggCollectionItem> = withContext(io) {
         requireConfigured()
         var delayMs = QUEUE_INITIAL_DELAY_MS
@@ -138,8 +137,8 @@ class BggRepository @Inject constructor(
                     onProgress(
                         BggImportProgress.Queued(
                             attempt = attempt + 1,
-                            retryInSeconds = (delayMs / 1000).toInt(),
-                        ),
+                            retryInSeconds = (delayMs / 1000).toInt()
+                        )
                     )
                     delay(delayMs)
                     delayMs = (delayMs * 2).coerceAtMost(QUEUE_MAX_DELAY_MS)
@@ -151,8 +150,8 @@ class BggRepository @Inject constructor(
                         onProgress(
                             BggImportProgress.Queued(
                                 attempt = attempt + 1,
-                                retryInSeconds = (delayMs / 1000).toInt(),
-                            ),
+                                retryInSeconds = (delayMs / 1000).toInt()
+                            )
                         )
                         delay(delayMs)
                         delayMs = (delayMs * 2).coerceAtMost(QUEUE_MAX_DELAY_MS)
@@ -180,7 +179,7 @@ class BggRepository @Inject constructor(
         things: List<BggThing>,
         status: GameStatus = GameStatus.OWNED,
         downloadImages: Boolean = true,
-        onProgress: suspend (Int, Int) -> Unit = { _, _ -> },
+        onProgress: suspend (Int, Int) -> Unit = { _, _ -> }
     ): Int = withContext(io) {
         var imported = 0
         things.forEachIndexed { index, thing ->
@@ -206,8 +205,8 @@ class BggRepository @Inject constructor(
                         bggRating = thing.rating ?: existing.bggRating,
                         publisher = thing.publishers.firstOrNull() ?: existing.publisher,
                         thumbnailPath = thumbnail,
-                        isExpansion = thing.isExpansion,
-                    ),
+                        isExpansion = thing.isExpansion
+                    )
                 )
                 existing.id
             } else {
@@ -230,8 +229,8 @@ class BggRepository @Inject constructor(
                         status = status,
                         isExpansion = thing.isExpansion,
                         createdAt = now,
-                        updatedAt = now,
-                    ),
+                        updatedAt = now
+                    )
                 )
             }
 

@@ -17,7 +17,7 @@ data class TimerConfig(
     val warningMs: Long = 10_000,
     val soundEnabled: Boolean = true,
     val hapticsEnabled: Boolean = true,
-    val bankExhausted: BankExhaustedBehaviour = BankExhaustedBehaviour.FLAG_AND_OVERTIME,
+    val bankExhausted: BankExhaustedBehaviour = BankExhaustedBehaviour.FLAG_AND_OVERTIME
 )
 
 /**
@@ -37,7 +37,7 @@ data class Seat(
     val totalTurnTimeMs: Long = 0,
     val turnsTaken: Int = 0,
     val timedOut: Boolean = false,
-    val skipped: Boolean = false,
+    val skipped: Boolean = false
 )
 
 /**
@@ -80,7 +80,7 @@ data class TimerState(
     val pauseAnchorElapsedMs: Long? = null,
 
     /** One level of undo, for a misclicked pass. */
-    val undoSnapshot: TimerState? = null,
+    val undoSnapshot: TimerState? = null
 ) {
     val isRunning: Boolean get() = runState == TimerRunState.RUNNING
     val activeSeatOrNull: Seat? get() = seats.getOrNull(activeSeat)
@@ -99,7 +99,7 @@ data class TimerProjection(
     /** The number under the active player: turn remaining, or bank, or overtime. */
     val displayMs: Long,
     val isWarning: Boolean,
-    val elapsedPlayMs: Long,
+    val elapsedPlayMs: Long
 ) {
     val activePlayer: SeatDisplay? get() = seats.getOrNull(activeSeat)
 }
@@ -110,7 +110,7 @@ data class SeatDisplay(
     val bankRemainingMs: Long,
     val totalTurnTimeMs: Long,
     val isActive: Boolean,
-    val clock: ActiveClock,
+    val clock: ActiveClock
 ) {
     val playerId: Long get() = seat.playerId
     val name: String get() = seat.name
@@ -131,11 +131,7 @@ data class SeatDisplay(
 object TimerEngine {
 
     /** Seats everyone with full clocks, in the order given. */
-    fun create(
-        gameId: Long,
-        players: List<TimerPlayer>,
-        config: TimerConfig,
-    ): TimerState = TimerState(
+    fun create(gameId: Long, players: List<TimerPlayer>, config: TimerConfig): TimerState = TimerState(
         gameId = gameId,
         config = config,
         seats = players.map { player ->
@@ -144,18 +140,17 @@ object TimerEngine {
                 name = player.name,
                 colorHex = player.colorHex,
                 turnRemainingMs = config.turnMs,
-                bankRemainingMs = config.bankMs,
+                bankRemainingMs = config.bankMs
             )
-        },
+        }
     )
 
-    fun start(state: TimerState, nowElapsedMs: Long, nowWallMs: Long): TimerState =
-        state.copy(
-            runState = TimerRunState.RUNNING,
-            anchorElapsedMs = nowElapsedMs,
-            startedAtWallMs = state.startedAtWallMs ?: nowWallMs,
-            pauseAnchorElapsedMs = null,
-        )
+    fun start(state: TimerState, nowElapsedMs: Long, nowWallMs: Long): TimerState = state.copy(
+        runState = TimerRunState.RUNNING,
+        anchorElapsedMs = nowElapsedMs,
+        startedAtWallMs = state.startedAtWallMs ?: nowWallMs,
+        pauseAnchorElapsedMs = null
+    )
 
     /**
      * Folds everything spent since the anchor into the active seat and re-anchors.
@@ -173,7 +168,7 @@ object TimerEngine {
         if (state.isCountUp) {
             return state.copy(
                 tableTimeMs = state.tableTimeMs + spent,
-                anchorElapsedMs = nowElapsedMs,
+                anchorElapsedMs = nowElapsedMs
             )
         }
 
@@ -184,11 +179,11 @@ object TimerEngine {
             turnRemainingMs = turnRemaining,
             bankRemainingMs = bankRemaining,
             totalTurnTimeMs = seat.totalTurnTimeMs + spent,
-            timedOut = seat.timedOut || bankRemaining <= 0,
+            timedOut = seat.timedOut || bankRemaining <= 0
         )
         return state.copy(
             seats = state.seats.replaceAt(state.activeSeat, updated),
-            anchorElapsedMs = nowElapsedMs,
+            anchorElapsedMs = nowElapsedMs
         )
     }
 
@@ -226,7 +221,7 @@ object TimerEngine {
 
         val refreshed = seat.copy(
             turnRemainingMs = committed.config.turnMs,
-            turnsTaken = seat.turnsTaken + 1,
+            turnsTaken = seat.turnsTaken + 1
         )
         val seats = committed.seats.replaceAt(committed.activeSeat, refreshed)
         val next = nextSeatIndex(seats, committed.activeSeat, committed.direction)
@@ -236,7 +231,7 @@ object TimerEngine {
             activeSeat = next,
             anchorElapsedMs = nowElapsedMs,
             // Snapshots never nest: one level of undo, as specified.
-            undoSnapshot = state.copy(undoSnapshot = null),
+            undoSnapshot = state.copy(undoSnapshot = null)
         )
     }
 
@@ -248,7 +243,7 @@ object TimerEngine {
             runState = state.runState,
             accumulatedPausedMs = state.accumulatedPausedMs,
             pauseAnchorElapsedMs = state.pauseAnchorElapsedMs,
-            undoSnapshot = null,
+            undoSnapshot = null
         )
     }
 
@@ -256,7 +251,7 @@ object TimerEngine {
         if (!state.isRunning) return state
         return commit(state, nowElapsedMs).copy(
             runState = TimerRunState.PAUSED,
-            pauseAnchorElapsedMs = nowElapsedMs,
+            pauseAnchorElapsedMs = nowElapsedMs
         )
     }
 
@@ -270,15 +265,14 @@ object TimerEngine {
             runState = TimerRunState.RUNNING,
             anchorElapsedMs = nowElapsedMs,
             accumulatedPausedMs = state.accumulatedPausedMs + pausedFor,
-            pauseAnchorElapsedMs = null,
+            pauseAnchorElapsedMs = null
         )
     }
 
-    fun stop(state: TimerState, nowElapsedMs: Long): TimerState =
-        commit(state, nowElapsedMs).copy(
-            runState = TimerRunState.STOPPED,
-            pauseAnchorElapsedMs = null,
-        )
+    fun stop(state: TimerState, nowElapsedMs: Long): TimerState = commit(state, nowElapsedMs).copy(
+        runState = TimerRunState.STOPPED,
+        pauseAnchorElapsedMs = null
+    )
 
     /** For games with a direction-reversal effect. */
     fun reverseDirection(state: TimerState): TimerState = state.copy(direction = -state.direction)
@@ -318,7 +312,9 @@ object TimerEngine {
 
         val displays = state.seats.mapIndexed { index, seat ->
             val isActive = index == state.activeSeat
-            val (turn, bank) = if (isActive && spent > 0) spend(seat, spent) else {
+            val (turn, bank) = if (isActive && spent > 0) {
+                spend(seat, spent)
+            } else {
                 seat.turnRemainingMs to seat.bankRemainingMs
             }
             SeatDisplay(
@@ -327,7 +323,7 @@ object TimerEngine {
                 bankRemainingMs = bank,
                 totalTurnTimeMs = seat.totalTurnTimeMs + if (isActive) spent else 0,
                 isActive = isActive,
-                clock = clockFor(turn, bank),
+                clock = clockFor(turn, bank)
             )
         }
 
@@ -345,7 +341,7 @@ object TimerEngine {
             activeClock = clock,
             displayMs = display,
             isWarning = state.isRunning && display in 1..state.config.warningMs,
-            elapsedPlayMs = elapsedPlayMs(state, nowElapsedMs),
+            elapsedPlayMs = elapsedPlayMs(state, nowElapsedMs)
         )
     }
 
@@ -364,7 +360,7 @@ object TimerEngine {
                     bankRemainingMs = seat.bankRemainingMs,
                     totalTurnTimeMs = seat.totalTurnTimeMs,
                     isActive = false,
-                    clock = ActiveClock.TURN,
+                    clock = ActiveClock.TURN
                 )
             },
             activeSeat = state.activeSeat,
@@ -372,7 +368,7 @@ object TimerEngine {
             displayMs = elapsed,
             // Nothing is running out, so there is nothing to warn about.
             isWarning = false,
-            elapsedPlayMs = elapsed,
+            elapsedPlayMs = elapsed
         )
     }
 
@@ -402,9 +398,8 @@ object TimerEngine {
      * on. The default is to flag and keep counting: this is a friendly game aid, not a
      * tournament enforcer.
      */
-    fun shouldAutoPass(projection: TimerProjection): Boolean =
-        projection.state.config.bankExhausted == BankExhaustedBehaviour.AUTO_PASS &&
-            projection.activeClock == ActiveClock.OVERTIME
+    fun shouldAutoPass(projection: TimerProjection): Boolean = projection.state.config.bankExhausted == BankExhaustedBehaviour.AUTO_PASS &&
+        projection.activeClock == ActiveClock.OVERTIME
 
     /**
      * The next seat that is actually playing. Falls back to the current seat when
@@ -421,6 +416,5 @@ object TimerEngine {
         return from
     }
 
-    private fun <T> List<T>.replaceAt(index: Int, value: T): List<T> =
-        toMutableList().also { if (index in it.indices) it[index] = value }
+    private fun <T> List<T>.replaceAt(index: Int, value: T): List<T> = toMutableList().also { if (index in it.indices) it[index] = value }
 }

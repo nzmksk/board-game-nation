@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.data.db.entity.RubricCriterionEntity
@@ -46,13 +46,13 @@ import com.boardgamenation.tracker.data.repository.GameRepository
 import com.boardgamenation.tracker.data.repository.RubricRepository
 import com.boardgamenation.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Locale
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.Locale
-import javax.inject.Inject
 
 data class RateGameState(
     val gameTitle: String = "",
@@ -62,7 +62,7 @@ data class RateGameState(
     val scores: Map<Long, Double> = emptyMap(),
     val notes: String = "",
     val computed: Double = 0.0,
-    val saved: Boolean = false,
+    val saved: Boolean = false
 ) {
     val canSave: Boolean get() = selectedRubricId != 0L && scores.isNotEmpty()
 }
@@ -72,7 +72,7 @@ class RateGameViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val rubricRepository: RubricRepository,
     private val achievementRepository: AchievementRepository,
-    gameRepository: GameRepository,
+    gameRepository: GameRepository
 ) : ViewModel() {
 
     private val gameId: Long = savedStateHandle.toRoute<Route.RateGame>().gameId
@@ -86,7 +86,7 @@ class RateGameViewModel @Inject constructor(
             val game = gameRepository.getGame(gameId)
             _state.value = _state.value.copy(
                 gameTitle = game?.title.orEmpty(),
-                rubrics = rubrics,
+                rubrics = rubrics
             )
             rubrics.firstOrNull()?.let { selectRubric(it.id) }
         }
@@ -101,7 +101,7 @@ class RateGameViewModel @Inject constructor(
                 // Scores belong to a rubric's criteria, so switching rubric starts over
                 // rather than carrying meaningless ids across.
                 scores = emptyMap(),
-                computed = 0.0,
+                computed = 0.0
             )
         }
     }
@@ -110,7 +110,7 @@ class RateGameViewModel @Inject constructor(
         val scores = _state.value.scores + (criterionId to score)
         _state.value = _state.value.copy(
             scores = scores,
-            computed = rubricRepository.computeScore(_state.value.criteria, scores),
+            computed = rubricRepository.computeScore(_state.value.criteria, scores)
         )
     }
 
@@ -126,7 +126,7 @@ class RateGameViewModel @Inject constructor(
                 gameId = gameId,
                 rubricId = current.selectedRubricId,
                 scores = current.scores,
-                notes = current.notes,
+                notes = current.notes
             )
             // Rating a game can complete a "rate N games" achievement.
             achievementRepository.evaluateAfterSession(null)
@@ -137,10 +137,7 @@ class RateGameViewModel @Inject constructor(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun RateGameScreen(
-    onBack: () -> Unit,
-    viewModel: RateGameViewModel = hiltViewModel(),
-) {
+fun RateGameScreen(onBack: () -> Unit, viewModel: RateGameViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.saved) { if (state.saved) onBack() }
@@ -153,7 +150,7 @@ fun RateGameScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
                 },
@@ -161,19 +158,19 @@ fun RateGameScreen(
                     Button(onClick = viewModel::save, enabled = state.canSave) {
                         Text(stringResource(R.string.rate_save))
                     }
-                },
+                }
             )
-        },
+        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 Text(
                     text = stringResource(R.string.rate_choose_rubric),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
             item {
@@ -182,7 +179,7 @@ fun RateGameScreen(
                         FilterChip(
                             selected = state.selectedRubricId == rubric.id,
                             onClick = { viewModel.selectRubric(rubric.id) },
-                            label = { Text(rubric.name) },
+                            label = { Text(rubric.name) }
                         )
                     }
                 }
@@ -193,7 +190,7 @@ fun RateGameScreen(
                     Text(
                         text = stringResource(R.string.rate_needs_rubric),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -203,18 +200,18 @@ fun RateGameScreen(
                 // visible rather than a black box revealed on save.
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
                     ),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = stringResource(
                             R.string.rate_computed,
-                            String.format(Locale.getDefault(), "%.1f", state.computed),
+                            String.format(Locale.getDefault(), "%.1f", state.computed)
                         ),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
             }
@@ -227,37 +224,40 @@ fun RateGameScreen(
                         Text(
                             text = criterion.name,
                             style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                         Text(
                             text = String.format(
-                                Locale.getDefault(), "%.1f / %.0f", score, criterion.maxScore,
+                                Locale.getDefault(),
+                                "%.1f / %.0f",
+                                score,
+                                criterion.maxScore
                             ),
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelLarge
                         )
                     }
                     criterion.description?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Slider(
                         value = score.toFloat(),
                         onValueChange = { viewModel.setScore(criterion.id, it.toDouble()) },
                         valueRange = 0f..criterion.maxScore.toFloat(),
-                        steps = (criterion.maxScore.toInt() * 2) - 1,
+                        steps = (criterion.maxScore.toInt() * 2) - 1
                     )
                     Text(
                         text = String.format(
                             Locale.getDefault(),
                             "%s ×%.1f",
                             stringResource(R.string.rubrics_criterion_weight),
-                            criterion.weight,
+                            criterion.weight
                         ),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -268,7 +268,7 @@ fun RateGameScreen(
                     onValueChange = viewModel::setNotes,
                     label = { Text(stringResource(R.string.rate_notes)) },
                     minLines = 3,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 

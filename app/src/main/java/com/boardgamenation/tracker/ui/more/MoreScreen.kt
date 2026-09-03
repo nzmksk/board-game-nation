@@ -40,14 +40,14 @@ fun MoreScreen(
     onPlayers: () -> Unit,
     onRubrics: () -> Unit,
     onBggImport: () -> Unit,
-    onSettings: () -> Unit,
+    onSettings: () -> Unit
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_more)) }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_more)) }) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(vertical = 8.dp),
+            contentPadding = PaddingValues(vertical = 8.dp)
         ) {
             item {
                 MoreRow(Icons.Filled.Home, stringResource(R.string.dashboard_title), onDashboard)
@@ -56,7 +56,7 @@ fun MoreScreen(
                 MoreRow(
                     Icons.Filled.EmojiEvents,
                     stringResource(R.string.achievements_title),
-                    onAchievements,
+                    onAchievements
                 )
             }
             item {
@@ -70,7 +70,7 @@ fun MoreScreen(
                     MoreRow(
                         Icons.Filled.CloudDownload,
                         stringResource(R.string.bgg_import_title),
-                        onBggImport,
+                        onBggImport
                     )
                 }
             }
@@ -88,7 +88,7 @@ private fun MoreRow(icon: ImageVector, label: String, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.width(16.dp))

@@ -13,5 +13,5 @@ data class BggThingCacheEntity(
     @PrimaryKey
     @ColumnInfo(name = "bgg_id") val bggId: Long,
     @ColumnInfo(name = "xml") val xml: String,
-    @ColumnInfo(name = "fetched_at") val fetchedAt: Long,
+    @ColumnInfo(name = "fetched_at") val fetchedAt: Long
 )

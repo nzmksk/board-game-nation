@@ -64,7 +64,7 @@ fun SettingsScreen(
     onOpenRubrics: () -> Unit,
     onOpenAchievements: () -> Unit,
     onOpenBggImport: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel(),
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
@@ -80,31 +80,31 @@ fun SettingsScreen(
     // Storage Access Framework throughout: the user picks the destination and the app
     // never asks for broad storage permission.
     val exportCsvLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocumentTree(),
+        ActivityResultContracts.OpenDocumentTree()
     ) { uri -> uri?.let(viewModel::exportCsv) }
 
     val exportZipLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/zip"),
+        ActivityResultContracts.CreateDocument("application/zip")
     ) { uri -> uri?.let(viewModel::exportZip) }
 
     val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocumentTree(),
+        ActivityResultContracts.OpenDocumentTree()
     ) { uri -> uri?.let { viewModel.previewImport(it, importMode) } }
 
     val importZipLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
+        ActivityResultContracts.OpenDocument()
     ) { uri -> uri?.let { viewModel.previewImport(it, importMode) } }
 
     val backupLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/octet-stream"),
+        ActivityResultContracts.CreateDocument("application/octet-stream")
     ) { uri -> uri?.let(viewModel::backupDatabase) }
 
     val restoreLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
+        ActivityResultContracts.OpenDocument()
     ) { uri -> restoreUri = uri }
 
     val backupDirLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocumentTree(),
+        ActivityResultContracts.OpenDocumentTree()
     ) { uri -> uri?.let(viewModel::setBackupDirectory) }
 
     LaunchedEffect(message) {
@@ -122,17 +122,17 @@ fun SettingsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
-                },
+                }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHost) },
+        snackbarHost = { SnackbarHost(snackbarHost) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(bottom = 48.dp),
+            contentPadding = PaddingValues(bottom = 48.dp)
         ) {
             if (busy) {
                 item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
@@ -143,14 +143,14 @@ fun SettingsScreen(
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     Text(
                         text = stringResource(R.string.settings_theme),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ThemeMode.entries.forEach { mode ->
                             FilterChip(
                                 selected = state.settings.themeMode == mode,
                                 onClick = { viewModel.setTheme(mode) },
-                                label = { Text(stringResource(mode.labelRes())) },
+                                label = { Text(stringResource(mode.labelRes())) }
                             )
                         }
                     }
@@ -166,7 +166,7 @@ fun SettingsScreen(
                     },
                     checked = state.settings.dynamicColor,
                     enabled = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S,
-                    onChange = viewModel::setDynamicColor,
+                    onChange = viewModel::setDynamicColor
                 )
             }
 
@@ -183,21 +183,21 @@ fun SettingsScreen(
                     },
                     label = { Text(stringResource(R.string.settings_currency)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                 )
             }
             item {
                 Column(Modifier.padding(16.dp)) {
                     Text(
                         text = stringResource(R.string.settings_self_player),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.players.forEach { player ->
                             FilterChip(
                                 selected = player.isSelf,
                                 onClick = { viewModel.setSelf(player.id) },
-                                label = { Text(player.name) },
+                                label = { Text(player.name) }
                             )
                         }
                     }
@@ -208,10 +208,10 @@ fun SettingsScreen(
                     label = stringResource(R.string.settings_lending_days),
                     value = stringResource(
                         R.string.settings_lending_days_value,
-                        state.settings.lendingReminderDays,
+                        state.settings.lendingReminderDays
                     ),
                     onDecrease = { viewModel.setLendingDays(state.settings.lendingReminderDays - 5) },
-                    onIncrease = { viewModel.setLendingDays(state.settings.lendingReminderDays + 5) },
+                    onIncrease = { viewModel.setLendingDays(state.settings.lendingReminderDays + 5) }
                 )
             }
 
@@ -220,14 +220,14 @@ fun SettingsScreen(
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     Text(
                         text = stringResource(R.string.settings_default_preset),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.presets.forEach { preset ->
                             FilterChip(
                                 selected = state.settings.defaultTimerPresetId == preset.id,
                                 onClick = { viewModel.setDefaultPreset(preset.id) },
-                                label = { Text(preset.name) },
+                                label = { Text(preset.name) }
                             )
                         }
                     }
@@ -239,7 +239,7 @@ fun SettingsScreen(
                 SwitchRow(
                     label = stringResource(R.string.settings_achievement_notifications),
                     checked = state.settings.achievementNotifications,
-                    onChange = viewModel::setAchievementNotifications,
+                    onChange = viewModel::setAchievementNotifications
                 )
             }
 
@@ -259,7 +259,7 @@ fun SettingsScreen(
                     ActionRow(
                         "${stringResource(R.string.settings_import_csv)} (${
                             stringResource(R.string.import_mode_replace)
-                        })",
+                        })"
                     ) {
                         importMode = ImportMode.REPLACE
                         importZipLauncher.launch(arrayOf("application/zip", "*/*"))
@@ -275,38 +275,38 @@ fun SettingsScreen(
                         label = stringResource(R.string.settings_backup_directory),
                         supporting = state.settings.backupDirectoryUri.ifBlank {
                             stringResource(R.string.settings_backup_directory_none)
-                        },
+                        }
                     ) { backupDirLauncher.launch(null) }
                     SwitchRow(
                         label = stringResource(R.string.settings_scheduled_backup),
                         supporting = if (state.settings.lastBackupAt > 0) {
                             stringResource(
                                 R.string.settings_last_backup,
-                                DateUtils.epochMillisToIso(state.settings.lastBackupAt),
+                                DateUtils.epochMillisToIso(state.settings.lastBackupAt)
                             )
                         } else {
                             stringResource(R.string.settings_last_backup_never)
                         },
                         checked = state.settings.scheduledBackupEnabled,
-                        onChange = viewModel::setScheduledBackup,
+                        onChange = viewModel::setScheduledBackup
                     )
                     StepperRow(
                         label = stringResource(R.string.settings_backups_to_keep),
                         value = state.settings.backupsToKeep.toString(),
                         onDecrease = { viewModel.setBackupsToKeep(state.settings.backupsToKeep - 1) },
-                        onIncrease = { viewModel.setBackupsToKeep(state.settings.backupsToKeep + 1) },
+                        onIncrease = { viewModel.setBackupsToKeep(state.settings.backupsToKeep + 1) }
                     )
                     HorizontalDivider()
                     if (BuildConfig.DEBUG) {
                         ActionRow(
                             label = stringResource(R.string.settings_generate_fixtures),
                             supporting = stringResource(R.string.settings_generate_fixtures_help),
-                            onClick = viewModel::generateFixtures,
+                            onClick = viewModel::generateFixtures
                         )
                     }
                     ActionRow(
                         label = stringResource(R.string.settings_wipe),
-                        destructive = true,
+                        destructive = true
                     ) { wipeOpen = true }
                 }
             }
@@ -320,9 +320,9 @@ fun SettingsScreen(
                             R.string.settings_bgg_configured
                         } else {
                             R.string.settings_bgg_not_configured
-                        },
+                        }
                     ),
-                    onClick = if (state.bggConfigured) onOpenBggImport else null,
+                    onClick = if (state.bggConfigured) onOpenBggImport else null
                 )
             }
             if (!state.bggConfigured) {
@@ -331,7 +331,7 @@ fun SettingsScreen(
                         text = stringResource(R.string.bgg_disabled_body),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                     )
                 }
             }
@@ -342,7 +342,7 @@ fun SettingsScreen(
             item {
                 ActionRow(
                     stringResource(R.string.settings_achievements_link),
-                    onClick = onOpenAchievements,
+                    onClick = onOpenAchievements
                 )
             }
             item {
@@ -350,13 +350,13 @@ fun SettingsScreen(
                     Text(
                         text = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     // Required attribution wherever BGG data is displayed.
                     Text(
                         text = stringResource(R.string.bgg_attribution),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -373,7 +373,7 @@ fun SettingsScreen(
                 wipeOpen = false
                 viewModel.wipeAll()
             },
-            onDismiss = { wipeOpen = false },
+            onDismiss = { wipeOpen = false }
         )
     }
 
@@ -386,7 +386,7 @@ fun SettingsScreen(
                 restoreUri = null
                 viewModel.restoreDatabase(uri)
             },
-            onDismiss = { restoreUri = null },
+            onDismiss = { restoreUri = null }
         )
     }
 
@@ -403,34 +403,35 @@ fun SettingsScreen(
                     if (summary.errors.isNotEmpty()) {
                         Text(
                             text = stringResource(
-                                R.string.import_preview_errors, summary.errors.size,
+                                R.string.import_preview_errors,
+                                summary.errors.size
                             ),
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                     if (summary.missingFiles.isNotEmpty()) {
                         Text(
                             text = stringResource(
                                 R.string.import_preview_missing,
-                                summary.missingFiles.joinToString(", "),
+                                summary.missingFiles.joinToString(", ")
                             ),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     summary.headerProblems.forEach {
                         Text(
                             text = it,
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                     if (replacing) {
                         Text(
                             text = stringResource(R.string.import_mode_replace_help),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -438,14 +439,14 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = { viewModel.confirmImport(importMode) },
-                    enabled = summary.canProceed,
+                    enabled = summary.canProceed
                 ) { Text(stringResource(R.string.import_run)) }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::cancelImport) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 
@@ -460,24 +461,18 @@ fun SettingsScreen(
                         // Room holds an open handle to the file that was just replaced;
                         // the only safe thing to do is start over.
                         android.os.Process.killProcess(android.os.Process.myPid())
-                    },
+                    }
                 ) { Text(stringResource(R.string.action_continue)) }
-            },
+            }
         )
     }
 }
 
 @Composable
-private fun SwitchRow(
-    label: String,
-    checked: Boolean,
-    onChange: (Boolean) -> Unit,
-    supporting: String? = null,
-    enabled: Boolean = true,
-) {
+private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit, supporting: String? = null, enabled: Boolean = true) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.bodyLarge)
@@ -485,7 +480,7 @@ private fun SwitchRow(
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -494,17 +489,12 @@ private fun SwitchRow(
 }
 
 @Composable
-private fun ActionRow(
-    label: String,
-    supporting: String? = null,
-    destructive: Boolean = false,
-    onClick: (() -> Unit)? = null,
-) {
+private fun ActionRow(label: String, supporting: String? = null, destructive: Boolean = false, onClick: (() -> Unit)? = null) {
     Column(
         Modifier
             .fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Text(
             text = label,
@@ -513,42 +503,37 @@ private fun ActionRow(
                 MaterialTheme.colorScheme.error
             } else {
                 MaterialTheme.colorScheme.onSurface
-            },
+            }
         )
         supporting?.let {
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
+                maxLines = 2
             )
         }
     }
 }
 
 @Composable
-private fun StepperRow(
-    label: String,
-    value: String,
-    onDecrease: () -> Unit,
-    onIncrease: () -> Unit,
-) {
+private fun StepperRow(label: String, value: String, onDecrease: () -> Unit, onIncrease: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         IconButton(onClick = onDecrease) {
             Icon(
                 Icons.Filled.Remove,
-                contentDescription = stringResource(R.string.action_decrease),
+                contentDescription = stringResource(R.string.action_decrease)
             )
         }
         Text(value, style = MaterialTheme.typography.bodyLarge)
         IconButton(onClick = onIncrease) {
             Icon(
                 Icons.Filled.Add,
-                contentDescription = stringResource(R.string.action_increase),
+                contentDescription = stringResource(R.string.action_increase)
             )
         }
     }

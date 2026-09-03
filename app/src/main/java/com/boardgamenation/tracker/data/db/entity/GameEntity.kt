@@ -23,15 +23,15 @@ import com.boardgamenation.tracker.domain.model.ScoringMode
             entity = GameEntity::class,
             parentColumns = ["id"],
             childColumns = ["base_game_id"],
-            onDelete = ForeignKey.SET_NULL,
-        ),
+            onDelete = ForeignKey.SET_NULL
+        )
     ],
     indices = [
         Index(value = ["bgg_id"], unique = true),
         Index(value = ["title"]),
         Index(value = ["status"]),
-        Index(value = ["base_game_id"]),
-    ],
+        Index(value = ["base_game_id"])
+    ]
 )
 data class GameEntity(
     @PrimaryKey(autoGenerate = true)
@@ -87,5 +87,5 @@ data class GameEntity(
 
     @ColumnInfo(name = "notes") val notes: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long,
-    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long
 )

@@ -1,8 +1,8 @@
 package com.boardgamenation.tracker.domain.stats
 
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.time.LocalDate
 
 class StreaksTest {
 
@@ -12,7 +12,7 @@ class StreaksTest {
     fun `consecutive days count as a run`() {
         val result = Streaks.byDay(
             dates("2026-03-01", "2026-03-02", "2026-03-03"),
-            today = LocalDate.parse("2026-03-03"),
+            today = LocalDate.parse("2026-03-03")
         )
         assertEquals(3, result.longest)
         assertEquals(3, result.current)
@@ -22,7 +22,7 @@ class StreaksTest {
     fun `a gap breaks the run`() {
         val result = Streaks.byDay(
             dates("2026-03-01", "2026-03-02", "2026-03-05", "2026-03-06"),
-            today = LocalDate.parse("2026-03-06"),
+            today = LocalDate.parse("2026-03-06")
         )
         assertEquals(2, result.longest)
         assertEquals(2, result.current)
@@ -33,7 +33,7 @@ class StreaksTest {
     fun `a run that ended yesterday is still current`() {
         val result = Streaks.byDay(
             dates("2026-03-01", "2026-03-02"),
-            today = LocalDate.parse("2026-03-03"),
+            today = LocalDate.parse("2026-03-03")
         )
         assertEquals(2, result.current)
     }
@@ -42,7 +42,7 @@ class StreaksTest {
     fun `a lapsed run is no longer current but is still the longest`() {
         val result = Streaks.byDay(
             dates("2026-03-01", "2026-03-02", "2026-03-03"),
-            today = LocalDate.parse("2026-03-20"),
+            today = LocalDate.parse("2026-03-20")
         )
         assertEquals(3, result.longest)
         assertEquals(0, result.current)
@@ -52,7 +52,7 @@ class StreaksTest {
     fun `two plays on one day count once`() {
         val result = Streaks.byDay(
             dates("2026-03-01", "2026-03-01", "2026-03-02"),
-            today = LocalDate.parse("2026-03-02"),
+            today = LocalDate.parse("2026-03-02")
         )
         assertEquals(2, result.longest)
     }
@@ -62,7 +62,7 @@ class StreaksTest {
         // Monday, Wednesday, Saturday of the same week, then the following Tuesday.
         val result = Streaks.byWeek(
             dates("2026-03-02", "2026-03-04", "2026-03-07", "2026-03-10"),
-            today = LocalDate.parse("2026-03-10"),
+            today = LocalDate.parse("2026-03-10")
         )
         assertEquals(2, result.longest)
         assertEquals(2, result.current)
@@ -76,7 +76,7 @@ class StreaksTest {
     fun `a week run survives a year boundary`() {
         val result = Streaks.byWeek(
             dates("2025-12-22", "2025-12-29", "2026-01-05"),
-            today = LocalDate.parse("2026-01-05"),
+            today = LocalDate.parse("2026-01-05")
         )
         assertEquals(3, result.longest)
         assertEquals(3, result.current)
@@ -86,7 +86,7 @@ class StreaksTest {
     fun `consecutive months count as a run`() {
         val result = Streaks.byMonth(
             dates("2025-11-04", "2025-12-20", "2026-01-02"),
-            today = LocalDate.parse("2026-01-02"),
+            today = LocalDate.parse("2026-01-02")
         )
         assertEquals(3, result.longest)
         assertEquals(3, result.current)
@@ -96,7 +96,7 @@ class StreaksTest {
     fun `a skipped month breaks the run`() {
         val result = Streaks.byMonth(
             dates("2025-11-04", "2026-01-02", "2026-02-02"),
-            today = LocalDate.parse("2026-02-02"),
+            today = LocalDate.parse("2026-02-02")
         )
         assertEquals(2, result.longest)
     }

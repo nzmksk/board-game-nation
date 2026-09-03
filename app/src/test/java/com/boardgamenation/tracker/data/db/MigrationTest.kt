@@ -8,6 +8,7 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
 import com.boardgamenation.tracker.domain.model.TagKind
 import com.boardgamenation.tracker.domain.model.TimerMode
+import java.io.File
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
@@ -20,7 +21,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.io.File
 
 /**
  * Runs the migration chain against a real database built at the old schema.
@@ -66,18 +66,18 @@ class MigrationTest {
 
         assertEquals(
             listOf("Antoine Bauza", "Bruno Cathala", "Ludovic Maublanc"),
-            tags.map { it.name }.sorted(),
+            tags.map { it.name }.sorted()
         )
         // Two games by Antoine Bauza converge on one tag row rather than two.
         assertEquals(1, tags.count { it.name == "Antoine Bauza" })
 
         assertEquals(
             listOf("Antoine Bauza"),
-            db.tagDao().observeForGame(1).first().map { it.name },
+            db.tagDao().observeForGame(1).first().map { it.name }
         )
         assertEquals(
             listOf("Bruno Cathala", "Ludovic Maublanc"),
-            db.tagDao().observeForGame(3).first().map { it.name }.sorted(),
+            db.tagDao().observeForGame(3).first().map { it.name }.sorted()
         )
     }
 
@@ -99,7 +99,7 @@ class MigrationTest {
         listOf(1L, 2L, 3L).forEach { gameId ->
             assertTrue(
                 "game $gameId should have no tags",
-                db.tagDao().observeForGame(gameId).first().isEmpty(),
+                db.tagDao().observeForGame(gameId).first().isEmpty()
             )
         }
         assertEquals(2, db.tagDao().observeForGame(4).first().size)
@@ -150,7 +150,7 @@ class MigrationTest {
                 INSERT INTO sessions
                     (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
                 VALUES (1, 1, '2026-01-05', 90, 3, 0, 0)
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -175,7 +175,7 @@ class MigrationTest {
                      turn_seconds, bank_seconds, warning_threshold_seconds,
                      bank_exhausted_behaviour)
                 VALUES (1, 1, 'PAUSED', 0, 'TURN', 60, 600, 10, 'FLAG_AND_OVERTIME')
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -200,7 +200,7 @@ class MigrationTest {
                 INSERT INTO sessions
                     (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
                 VALUES (1, 1, '2026-01-05', 45, 2, 0, 0)
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -219,7 +219,7 @@ class MigrationTest {
                 INSERT INTO sessions
                     (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
                 VALUES (1, 1, '2026-01-05', 30, 4, 0, 0)
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -246,14 +246,14 @@ class MigrationTest {
                 INSERT INTO sessions
                     (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
                 VALUES (1, 1, '2026-01-05', 90, 2, 0, 0)
-                """.trimIndent(),
+                """.trimIndent()
             )
             db.execSQL("INSERT INTO players (id, name) VALUES (1, 'Hafiz'), (2, 'Aina')")
             db.execSQL(
                 """
                 INSERT INTO session_players (id, session_id, player_id, score, placement, is_winner)
                 VALUES (1, 1, 1, 12.0, 1, 1), (2, 1, 2, 9.0, 2, 0)
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -264,7 +264,7 @@ class MigrationTest {
         assertEquals(2, rows.size)
         assertTrue(
             "an old play has no first player until someone says so",
-            rows.all { it.turnOrder == null },
+            rows.all { it.turnOrder == null }
         )
         // The rest of the row is untouched, which is the other half of "additive".
         assertEquals(12.0, rows.first { it.playerId == 1L }.score!!, 0.0)
@@ -281,14 +281,14 @@ class MigrationTest {
                 INSERT INTO sessions
                     (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
                 VALUES (1, 1, '2026-01-05', 45, 7, 0, 0)
-                """.trimIndent(),
+                """.trimIndent()
             )
             db.execSQL("INSERT INTO players (id, name) VALUES (1, 'Aina')")
             db.execSQL(
                 """
                 INSERT INTO session_players (id, session_id, player_id, is_winner, faction)
                 VALUES (1, 1, 1, 1, 'Hitler')
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -313,7 +313,7 @@ class MigrationTest {
                 INSERT INTO sessions
                     (id, game_id, played_on, duration_minutes, player_count, created_at, updated_at)
                 VALUES (1, 1, '2026-01-05', 90, 3, 0, 0)
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -339,14 +339,10 @@ class MigrationTest {
                             version1Ddl().forEach(db::execSQL)
                         }
 
-                        override fun onUpgrade(
-                            db: SupportSQLiteDatabase,
-                            oldVersion: Int,
-                            newVersion: Int,
-                        ) = Unit
-                    },
+                        override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+                    }
                 )
-                .build(),
+                .build()
         )
         block(helper.writableDatabase)
         helper.close()
@@ -357,28 +353,21 @@ class MigrationTest {
      * result against the schema it expects. That verification is the real assertion
      * here: a migration that leaves the schema subtly wrong fails on this line.
      */
-    private fun openMigrated(): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, DB_NAME)
-            .addMigrations(*Migrations.ALL)
-            .allowMainThreadQueries()
-            .build()
-            .also {
-                database = it
-                it.openHelper.writableDatabase
-            }
+    private fun openMigrated(): AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, DB_NAME)
+        .addMigrations(*Migrations.ALL)
+        .allowMainThreadQueries()
+        .build()
+        .also {
+            database = it
+            it.openHelper.writableDatabase
+        }
 
-    private fun insertGame(
-        db: SupportSQLiteDatabase,
-        id: Long,
-        title: String,
-        designers: String,
-        baseGameId: Long? = null,
-    ) = db.execSQL(
+    private fun insertGame(db: SupportSQLiteDatabase, id: Long, title: String, designers: String, baseGameId: Long? = null) = db.execSQL(
         """
         INSERT INTO games (id, title, designers, date_added, status, base_game_id,
                            created_at, updated_at)
         VALUES ($id, '$title', $designers, '2026-01-01', 'OWNED', ${baseGameId ?: "NULL"}, 0, 0)
-        """.trimIndent(),
+        """.trimIndent()
     )
 
     private fun columnsOf(db: AppDatabase, table: String): List<String> =

@@ -21,22 +21,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.data.prefs.SettingsRepository
 import com.boardgamenation.tracker.data.repository.PlayerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val playerRepository: PlayerRepository,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _done = MutableStateFlow(false)
@@ -57,10 +57,7 @@ class OnboardingViewModel @Inject constructor(
 }
 
 @Composable
-fun OnboardingScreen(
-    onDone: () -> Unit,
-    viewModel: OnboardingViewModel = hiltViewModel(),
-) {
+fun OnboardingScreen(onDone: () -> Unit, viewModel: OnboardingViewModel = hiltViewModel()) {
     var name by remember { mutableStateOf("") }
     val done by viewModel.done.collectAsStateWithLifecycle()
 
@@ -71,21 +68,21 @@ fun OnboardingScreen(
             .fillMaxSize()
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = stringResource(R.string.onboarding_title),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium
         )
         Text(
             text = stringResource(R.string.onboarding_body),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(vertical = 16.dp),
+            modifier = Modifier.padding(vertical = 16.dp)
         )
         Text(
             text = stringResource(R.string.onboarding_name_prompt),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium
         )
         OutlinedTextField(
             value = name,
@@ -93,12 +90,12 @@ fun OnboardingScreen(
             label = { Text(stringResource(R.string.onboarding_name_hint)) },
             supportingText = { Text(stringResource(R.string.onboarding_name_help)) },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
         )
         Button(
             onClick = { viewModel.complete(name) },
             enabled = name.isNotBlank(),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         ) { Text(stringResource(R.string.onboarding_start)) }
     }
 }

@@ -1,5 +1,7 @@
 package com.boardgamenation.tracker.data.bgg
 
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -7,8 +9,6 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * The three XML API2 endpoints this app uses.
@@ -20,17 +20,11 @@ import javax.inject.Singleton
 interface BggApi {
 
     @GET("search")
-    suspend fun search(
-        @Query("query") query: String,
-        @Query("type") type: String = "boardgame,boardgameexpansion",
-    ): Response<ResponseBody>
+    suspend fun search(@Query("query") query: String, @Query("type") type: String = "boardgame,boardgameexpansion"): Response<ResponseBody>
 
     /** Up to 20 ids per call, comma separated. */
     @GET("thing")
-    suspend fun things(
-        @Query("id") ids: String,
-        @Query("stats") stats: Int = 1,
-    ): Response<ResponseBody>
+    suspend fun things(@Query("id") ids: String, @Query("stats") stats: Int = 1): Response<ResponseBody>
 
     /**
      * Queues on BGG's side. A 202 means "ask again shortly" rather than an error, and is
@@ -41,14 +35,11 @@ interface BggApi {
         @Query("username") username: String,
         @Query("own") own: Int = 1,
         @Query("stats") stats: Int = 1,
-        @Query("subtype") subtype: String = "boardgame",
+        @Query("subtype") subtype: String = "boardgame"
     ): Response<ResponseBody>
 
     @GET("collection")
-    suspend fun collectionAll(
-        @Query("username") username: String,
-        @Query("stats") stats: Int = 1,
-    ): Response<ResponseBody>
+    suspend fun collectionAll(@Query("username") username: String, @Query("stats") stats: Int = 1): Response<ResponseBody>
 }
 
 /**
