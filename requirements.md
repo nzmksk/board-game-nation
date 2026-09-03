@@ -162,7 +162,7 @@ Indexes: `game_id`, `played_on`.
 | `id` | INTEGER PK | |
 | `session_id` | INTEGER NOT NULL FK, CASCADE | |
 | `player_id` | INTEGER NOT NULL FK | |
-| `score` | REAL NULL | Nullable — many games have no score |
+| `score` | REAL NULL | Nullable — many games have no score, and only ranked scoring keeps one |
 | `placement` | INTEGER NULL | 1 = winner; ties share a placement |
 | `is_winner` | INTEGER NOT NULL DEFAULT 0 | Explicit, since not all games rank by score |
 | `faction` | TEXT NULL | Role, character, colour, faction |

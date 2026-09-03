@@ -235,6 +235,25 @@ from average-score statistics because a count taken mid-game is not comparable t
 Deliberately not `is_incomplete`. That flag means abandoned, and it drops a session out of
 the win-rate and duration statistics — using it here would erase a legitimate win.
 
+### A play does not remember the scoring mode it was logged under
+
+A session records whether it was cooperative and what each player scored, but not its
+scoring mode. `SessionRepository.loadForm` works that out again on every read: a co-op
+play is a co-op, a play with sides on it was a team game whatever the game says now, and
+anything else takes the game's mode as it stands today.
+
+That is the right default — scoring is a property of the game, and one play should not
+pin it — but it means a play's mode moves under it. Changing the scoring on any single
+play writes the new mode back onto the game, and every earlier play of that game then
+reads back under it.
+
+So a field that only makes sense in one mode cannot be settled once, when the play is
+written. Scores are dropped in both directions: on save, so rows stop accumulating
+numbers no screen shows a field for, and on load, because the mode that justified keeping
+them can change afterwards without the row being touched. The same reasoning rules out
+repairing old rows with a migration — it would have had to ask each play what mode it was
+in, and got back whatever its game happened to say the day it ran.
+
 ### Both kinds of backup, because they are for different things
 
 CSV is for portability and spreadsheet interop: RFC 4180, UTF-8 with a BOM so Excel does
@@ -309,7 +328,7 @@ than a spinner that says nothing.
 ./gradlew :app:testDebugUnitTest
 ```
 
-289 tests, run on the JVM. The database tests use a real Room in-memory database through
+296 tests, run on the JVM. The database tests use a real Room in-memory database through
 Robolectric rather than mocks, so a query that compiles but returns the wrong rows still
 fails.
 
