@@ -139,10 +139,6 @@ fun AppNavigation(
 
                 composable<Route.Dashboard> {
                     DashboardScreen(
-                        onQuickLogSaved = ::announceUnlocks,
-                        onOpenFullForm = { gameId ->
-                            navController.navigate(Route.SessionEdit(gameId = gameId))
-                        },
                         onStartTimer = { navController.navigate(Route.TimerSetup()) },
                         onOpenSession = { navController.navigate(Route.SessionEdit(sessionId = it)) },
                         onOpenSessions = { navController.navigate(Route.Sessions()) },
