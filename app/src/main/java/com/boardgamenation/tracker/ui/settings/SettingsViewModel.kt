@@ -123,8 +123,9 @@ class SettingsViewModel @Inject constructor(
     fun exportCsv(treeUri: Uri) = runData {
         val result = csvExporter.exportToDirectory(treeUri)
         DataMessage(
-            context.getString(
-                R.string.export_done,
+            context.resources.getQuantityString(
+                R.plurals.export_done,
+                result.totalRows,
                 result.totalRows,
                 result.location
             )
@@ -134,8 +135,9 @@ class SettingsViewModel @Inject constructor(
     fun exportZip(uri: Uri) = runData {
         val result = csvExporter.exportToZip(uri)
         DataMessage(
-            context.getString(
-                R.string.export_done,
+            context.resources.getQuantityString(
+                R.plurals.export_done,
+                result.totalRows,
                 result.totalRows,
                 result.location
             )
@@ -165,8 +167,9 @@ class SettingsViewModel @Inject constructor(
         runData {
             val result = csvImporter.import(uri, mode)
             DataMessage(
-                context.getString(
-                    R.string.import_done,
+                context.resources.getQuantityString(
+                    R.plurals.import_done,
+                    result.totalRows,
                     result.totalRows
                 )
             )

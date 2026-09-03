@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -137,8 +138,9 @@ private fun CollectionTab(viewModel: StatsViewModel) {
                 } else {
                     Column {
                         Text(
-                            text = stringResource(
-                                R.string.stats_shelf_of_shame_body,
+                            text = pluralStringResource(
+                                R.plurals.stats_shelf_of_shame_body,
+                                stats.unplayed.size,
                                 stats.unplayed.size
                             ),
                             style = MaterialTheme.typography.bodyMedium
@@ -148,8 +150,9 @@ private fun CollectionTab(viewModel: StatsViewModel) {
                         // stings and therefore the part worth showing.
                         stats.unplayed.take(10).forEach { row ->
                             Text(
-                                text = stringResource(
-                                    R.string.stats_unplayed_row,
+                                text = pluralStringResource(
+                                    R.plurals.stats_unplayed_row,
+                                    row.value.roundToInt(),
                                     row.label,
                                     row.value.roundToInt()
                                 ),
@@ -211,8 +214,9 @@ private fun PlaysTab(viewModel: StatsViewModel) {
                 StatTile(
                     label = stringResource(R.string.stats_streak),
                     value = stats.streak.current.toString(),
-                    supporting = stringResource(
-                        R.string.dashboard_streak_longest,
+                    supporting = pluralStringResource(
+                        R.plurals.dashboard_streak_longest,
+                        stats.streak.longest,
                         stats.streak.longest
                     ),
                     modifier = Modifier.weight(1f)
@@ -220,7 +224,7 @@ private fun PlaysTab(viewModel: StatsViewModel) {
                 StatTile(
                     label = stringResource(R.string.stats_h_index),
                     value = stats.hIndex.toString(),
-                    supporting = stringResource(R.string.stats_h_index_body, stats.hIndex),
+                    supporting = pluralStringResource(R.plurals.stats_h_index_body, stats.hIndex, stats.hIndex),
                     modifier = Modifier.weight(1.4f)
                 )
             }
@@ -381,7 +385,11 @@ private fun CostPerPlayList(rows: List<CostPerPlayRow>) {
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = stringResource(R.string.stats_plays_value, row.playCount),
+                    text = pluralStringResource(
+                        R.plurals.stats_plays_value,
+                        row.playCount,
+                        row.playCount
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -489,7 +497,7 @@ private fun PlayersTab(viewModel: StatsViewModel) {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = stringResource(R.string.stats_plays_value, row.plays),
+                    text = pluralStringResource(R.plurals.stats_plays_value, row.plays, row.plays),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

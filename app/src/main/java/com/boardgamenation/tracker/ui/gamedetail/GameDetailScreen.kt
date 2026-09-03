@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -264,24 +265,18 @@ fun GameDetailScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (prompt.sessionCount > 0) {
                         Text(
-                            stringResource(
-                                if (prompt.sessionCount == 1) {
-                                    R.string.game_detail_delete_with_sessions
-                                } else {
-                                    R.string.game_detail_delete_with_sessions_plural
-                                },
+                            pluralStringResource(
+                                R.plurals.game_detail_delete_with_sessions,
+                                prompt.sessionCount,
                                 prompt.sessionCount
                             )
                         )
                     }
                     if (prompt.expansionCount > 0) {
                         Text(
-                            stringResource(
-                                if (prompt.expansionCount == 1) {
-                                    R.string.game_detail_delete_with_expansions
-                                } else {
-                                    R.string.game_detail_delete_with_expansions_plural
-                                },
+                            pluralStringResource(
+                                R.plurals.game_detail_delete_with_expansions,
+                                prompt.expansionCount,
                                 prompt.expansionCount
                             )
                         )
@@ -356,8 +351,9 @@ private fun HeaderCard(game: GameEntity, state: GameDetailUiState) {
             )
             if (game.minPlayers != null && game.maxPlayers != null) {
                 Text(
-                    text = stringResource(
-                        R.string.unit_players_range,
+                    text = pluralStringResource(
+                        R.plurals.unit_players_range,
+                        game.maxPlayers,
                         game.minPlayers,
                         game.maxPlayers
                     ),
@@ -373,7 +369,11 @@ private fun HeaderCard(game: GameEntity, state: GameDetailUiState) {
             }
             if (state.daysOnLoan != null && !game.inPossession) {
                 Text(
-                    text = stringResource(R.string.game_detail_lent_since, state.daysOnLoan.toInt()),
+                    text = pluralStringResource(
+                        R.plurals.game_detail_lent_since,
+                        state.daysOnLoan.toInt(),
+                        state.daysOnLoan.toInt()
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.tertiary
                 )
@@ -603,7 +603,7 @@ private fun LendSection(game: GameEntity, state: GameDetailUiState, onLend: () -
                 )
                 state.daysOnLoan?.let {
                     Text(
-                        text = stringResource(R.string.game_detail_lent_since, it.toInt()),
+                        text = pluralStringResource(R.plurals.game_detail_lent_since, it.toInt(), it.toInt()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

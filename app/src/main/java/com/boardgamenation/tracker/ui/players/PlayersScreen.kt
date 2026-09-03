@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -177,8 +178,12 @@ fun PlayersScreen(onBack: () -> Unit, onOpenPlayer: (Long) -> Unit, viewModel: P
                             Text(
                                 text = stringResource(
                                     R.string.players_stats,
-                                    row.plays,
-                                    row.wins
+                                    pluralStringResource(
+                                        R.plurals.stats_plays_value,
+                                        row.plays,
+                                        row.plays
+                                    ),
+                                    pluralStringResource(R.plurals.players_wins, row.wins, row.wins)
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -234,8 +239,9 @@ fun PlayersScreen(onBack: () -> Unit, onOpenPlayer: (Long) -> Unit, viewModel: P
             title = { Text(stringResource(R.string.action_delete)) },
             text = {
                 Text(
-                    stringResource(
-                        R.string.players_cannot_delete,
+                    pluralStringResource(
+                        R.plurals.players_cannot_delete,
+                        refusal.appearances,
                         refusal.name,
                         refusal.appearances
                     )

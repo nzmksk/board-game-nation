@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -480,7 +481,11 @@ private fun PlayerZone(
                 color = onBackground
             )
             Text(
-                text = stringResource(R.string.timer_turns_taken, seat.turnsTaken),
+                text = pluralStringResource(
+                    R.plurals.timer_turns_taken,
+                    seat.turnsTaken,
+                    seat.turnsTaken
+                ),
                 style = MaterialTheme.typography.labelSmall,
                 color = onBackground
             )

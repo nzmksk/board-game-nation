@@ -55,6 +55,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -190,7 +191,11 @@ fun CollectionScreen(onOpenGame: (Long) -> Unit, onAddGame: () -> Unit, viewMode
             )
 
             Text(
-                text = stringResource(R.string.collection_count, state.games.size),
+                text = pluralStringResource(
+                    R.plurals.collection_count,
+                    state.games.size,
+                    state.games.size
+                ),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -257,7 +262,11 @@ fun CollectionScreen(onOpenGame: (Long) -> Unit, onAddGame: () -> Unit, viewMode
         // Bulk delete cascades every play of every selected game, so it asks first.
         ConfirmDialog(
             title = stringResource(R.string.collection_bulk_delete),
-            body = stringResource(R.string.collection_bulk_delete_body, state.selection.size),
+            body = pluralStringResource(
+                R.plurals.collection_bulk_delete_body,
+                state.selection.size,
+                state.selection.size
+            ),
             confirmLabel = stringResource(R.string.action_delete),
             destructive = true,
             onConfirm = {
@@ -281,7 +290,7 @@ private fun SelectionTopBar(
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     TopAppBar(
-        title = { Text(stringResource(R.string.collection_selected, count)) },
+        title = { Text(pluralStringResource(R.plurals.collection_selected, count, count)) },
         navigationIcon = {
             IconButton(onClick = onClear) {
                 Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close))
@@ -408,7 +417,7 @@ private fun FilterChipRow(
             FilterChip(
                 selected = state.filter.playerCount == count,
                 onClick = { onPlayerCount(count) },
-                label = { Text(stringResource(R.string.collection_filter_players_value, count)) }
+                label = { Text(pluralStringResource(R.plurals.unit_players, count, count)) }
             )
         }
 
@@ -529,7 +538,11 @@ private fun GameRow(game: GameListItem, selected: Boolean, onOpen: () -> Unit, o
             Column(horizontalAlignment = Alignment.End) {
                 if (game.playCount > 0) {
                     Text(
-                        text = stringResource(R.string.stats_plays_value, game.playCount),
+                        text = pluralStringResource(
+                            R.plurals.stats_plays_value,
+                            game.playCount,
+                            game.playCount
+                        ),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
@@ -598,7 +611,7 @@ private fun GameTile(game: GameListItem, selected: Boolean, onOpen: () -> Unit, 
             )
             Text(
                 text = if (game.playCount > 0) {
-                    stringResource(R.string.stats_plays_value, game.playCount)
+                    pluralStringResource(R.plurals.stats_plays_value, game.playCount, game.playCount)
                 } else {
                     stringResource(R.string.game_detail_never_played)
                 },
@@ -615,9 +628,14 @@ private fun GameListItem.subtitle(): String {
         if (minPlayers != null && maxPlayers != null) {
             add(
                 if (minPlayers == maxPlayers) {
-                    stringResource(R.string.unit_players_single, minPlayers)
+                    pluralStringResource(R.plurals.unit_players, minPlayers, minPlayers)
                 } else {
-                    stringResource(R.string.unit_players_range, minPlayers, maxPlayers)
+                    pluralStringResource(
+                        R.plurals.unit_players_range,
+                        maxPlayers,
+                        minPlayers,
+                        maxPlayers
+                    )
                 }
             )
         }

@@ -111,7 +111,7 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
         val figures = listOf(
             DurationFormat.minutes(card.durationMinutes),
             context.resources.getQuantityString(
-                R.plurals.share_card_players,
+                R.plurals.unit_players,
                 card.playerCount,
                 card.playerCount
             )
@@ -227,7 +227,11 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
             val paint = text(size = 38f, color = MUTED)
             val y = start + visible * (height + ROW_GAP)
             canvas.drawText(
-                context.getString(R.string.share_card_more_players, remaining),
+                context.resources.getQuantityString(
+                    R.plurals.share_card_more_players,
+                    remaining,
+                    remaining
+                ),
                 MARGIN + 32f,
                 baselineIn(y, y + OVERFLOW_HEIGHT, paint),
                 paint

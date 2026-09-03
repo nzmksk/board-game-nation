@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -202,7 +203,7 @@ fun BggImportScreen(onBack: () -> Unit, viewModel: BggViewModel = hiltViewModel(
             // rather than shown as an indefinite spinner.
             state.queuedRetrySeconds?.let { seconds ->
                 Text(
-                    text = stringResource(R.string.bgg_queued, seconds),
+                    text = pluralStringResource(R.plurals.bgg_queued, seconds, seconds),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -224,7 +225,7 @@ fun BggImportScreen(onBack: () -> Unit, viewModel: BggViewModel = hiltViewModel(
             state.importedCount?.let { count ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = stringResource(R.string.bgg_import_done, count),
+                        text = pluralStringResource(R.plurals.bgg_import_done, count, count),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )
@@ -250,7 +251,13 @@ fun BggImportScreen(onBack: () -> Unit, viewModel: BggViewModel = hiltViewModel(
                         onClick = viewModel::importSelected,
                         enabled = state.selected.isNotEmpty() && !state.isBusy
                     ) {
-                        Text(stringResource(R.string.bgg_import_selected, state.selected.size))
+                        Text(
+                            pluralStringResource(
+                                R.plurals.bgg_import_selected,
+                                state.selected.size,
+                                state.selected.size
+                            )
+                        )
                     }
                 }
             }

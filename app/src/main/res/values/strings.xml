@@ -38,15 +38,21 @@
     <string name="dashboard_quick_log">Quick log</string>
     <string name="dashboard_start_timer">Start timer</string>
     <string name="dashboard_streak_title">Playing streak</string>
-    <string name="dashboard_streak_longest">Longest: %1$d weeks</string>
+    <plurals name="dashboard_streak_longest">
+        <item quantity="one">Longest: %1$d week</item>
+        <item quantity="other">Longest: %1$d weeks</item>
+    </plurals>
     <string name="dashboard_recent_achievement">Recently unlocked</string>
     <string name="dashboard_view_all">View all</string>
     <string name="dashboard_draft_title">Unfinished session</string>
     <string name="dashboard_draft_body">A timed session for %1$s was left open. What would you like to do with it?</string>
     <string name="dashboard_draft_save">Save it</string>
     <string name="dashboard_draft_discard">Discard</string>
-    <string name="dashboard_overdue_loans">%1$d game lent out for over %2$d days</string>
-    <string name="dashboard_overdue_loans_plural">%1$d games lent out for over %2$d days</string>
+    <!-- %2$d is the lending reminder threshold, which steps in fives and so is never 1. -->
+    <plurals name="dashboard_overdue_loans">
+        <item quantity="one">%1$d game lent out for over %2$d days</item>
+        <item quantity="other">%1$d games lent out for over %2$d days</item>
+    </plurals>
 
     <!-- Collection -->
     <string name="collection_title">Collection</string>
@@ -57,9 +63,14 @@
     <string name="collection_add_game">Add game</string>
     <string name="collection_layout_grid">Grid view</string>
     <string name="collection_layout_list">List view</string>
-    <string name="collection_count">%1$d games</string>
-    <string name="collection_selected">%1$d selected</string>
-    <string name="collection_filter_players_value">%1$d players</string>
+    <plurals name="collection_count">
+        <item quantity="one">%1$d game</item>
+        <item quantity="other">%1$d games</item>
+    </plurals>
+    <plurals name="collection_selected">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
     <string name="collection_filter_mechanic">Mechanic</string>
     <string name="collection_filter_category">Category</string>
     <string name="collection_filter_rated">Rated</string>
@@ -77,7 +88,10 @@
     <string name="collection_sort_weight">Weight</string>
     <string name="collection_bulk_tag">Add tag</string>
     <string name="collection_bulk_delete">Delete selected</string>
-    <string name="collection_bulk_delete_body">This deletes %1$d games and every play recorded against them. This cannot be undone.</string>
+    <plurals name="collection_bulk_delete_body">
+        <item quantity="one">This deletes %1$d game and every play recorded against it. This cannot be undone.</item>
+        <item quantity="other">This deletes %1$d games and every play recorded against them. This cannot be undone.</item>
+    </plurals>
     <string name="collection_playtime_under_30">Under 30 min</string>
     <string name="collection_playtime_30_60">30–60 min</string>
     <string name="collection_playtime_60_120">1–2 hours</string>
@@ -116,17 +130,24 @@
     <string name="game_detail_lend">Lend out</string>
     <string name="game_detail_return">Mark returned</string>
     <string name="game_detail_lent_to">Lent to %1$s</string>
-    <string name="game_detail_lent_since">Out for %1$d days</string>
+    <plurals name="game_detail_lent_since">
+        <item quantity="one">Out for %1$d day</item>
+        <item quantity="other">Out for %1$d days</item>
+    </plurals>
     <string name="game_detail_weight">Weight</string>
     <string name="game_detail_best_at">Best at %1$s</string>
     <string name="game_detail_designers">Designers</string>
     <string name="game_detail_publisher">Publisher</string>
     <string name="game_detail_bgg_rating">BGG rating</string>
     <string name="game_detail_delete_title">Delete this game?</string>
-    <string name="game_detail_delete_with_sessions">This will also delete %1$d recorded play. This cannot be undone.</string>
-    <string name="game_detail_delete_with_sessions_plural">This will also delete %1$d recorded plays. This cannot be undone.</string>
-    <string name="game_detail_delete_with_expansions">%1$d expansion will be unlinked but kept.</string>
-    <string name="game_detail_delete_with_expansions_plural">%1$d expansions will be unlinked but kept.</string>
+    <plurals name="game_detail_delete_with_sessions">
+        <item quantity="one">This will also delete %1$d recorded play. This cannot be undone.</item>
+        <item quantity="other">This will also delete %1$d recorded plays. This cannot be undone.</item>
+    </plurals>
+    <plurals name="game_detail_delete_with_expansions">
+        <item quantity="one">%1$d expansion will be unlinked but kept.</item>
+        <item quantity="other">%1$d expansions will be unlinked but kept.</item>
+    </plurals>
 
     <!-- Add / edit game -->
     <string name="game_edit_new_title">Add game</string>
@@ -169,7 +190,6 @@
     <string name="sessions_title">Sessions</string>
     <string name="sessions_empty">No plays logged yet.</string>
     <string name="sessions_empty_filtered">No plays match these filters.</string>
-    <string name="session_players_count">%1$d players</string>
     <string name="session_winner">Won by %1$s</string>
     <string name="session_first_player">%1$s went first</string>
     <string name="session_coop_win">Table won</string>
@@ -239,11 +259,10 @@
     <string name="session_edit_full_form">More options</string>
 
     <!-- Sharing a result -->
-    <plurals name="share_card_players">
-        <item quantity="one">%1$d player</item>
-        <item quantity="other">%1$d players</item>
+    <plurals name="share_card_more_players">
+        <item quantity="one">+%1$d more</item>
+        <item quantity="other">+%1$d more</item>
     </plurals>
-    <string name="share_card_more_players">+%1$d more</string>
     <!-- Marks a player whose first play of this game it was. Kept short: it is drawn as
          a tag beside the name, on a row that also has to hold a score. -->
     <string name="share_card_first_timer">First play</string>
@@ -290,7 +309,10 @@
     <string name="timer_clock_bank">Bank</string>
     <string name="timer_clock_overtime">Overtime</string>
     <string name="timer_bank_label">Bank %1$s</string>
-    <string name="timer_turns_taken">%1$d turns</string>
+    <plurals name="timer_turns_taken">
+        <item quantity="one">%1$d turn</item>
+        <item quantity="other">%1$d turns</item>
+    </plurals>
     <string name="timer_paused">Paused</string>
     <string name="timer_timed_out">Out of time</string>
     <string name="timer_skipped">Skipped</string>
@@ -323,7 +345,10 @@
     <string name="stats_weight_distribution">Weight spread</string>
     <string name="stats_player_coverage">Player count coverage</string>
     <string name="stats_shelf_of_shame">Shelf of shame</string>
-    <string name="stats_shelf_of_shame_body">%1$d owned games have never been played.</string>
+    <plurals name="stats_shelf_of_shame_body">
+        <item quantity="one">%1$d owned game has never been played.</item>
+        <item quantity="other">%1$d owned games have never been played.</item>
+    </plurals>
     <string name="stats_shelf_of_shame_empty">Every game you own has been played. Impressive.</string>
     <string name="stats_total_plays">Total plays</string>
     <string name="stats_total_hours">Total hours</string>
@@ -337,16 +362,30 @@
     <string name="stats_by_day_of_week">Plays by day</string>
     <string name="stats_streak">Week streak</string>
     <string name="stats_h_index">H-index</string>
-    <string name="stats_h_index_body">%1$d games played at least %1$d times each.</string>
+    <plurals name="stats_h_index_body">
+        <item quantity="one">%1$d game played at least %1$d time.</item>
+        <item quantity="other">%1$d games played at least %1$d times each.</item>
+    </plurals>
     <string name="stats_first_player">First player advantage</string>
     <string name="stats_first_player_body">How often the player who went first won, against what the first seat would have won if going first meant nothing.</string>
     <string name="stats_first_player_actual">Went first</string>
     <string name="stats_first_player_chance">By chance</string>
     <string name="stats_first_player_percent">%1$d%%</string>
     <!-- Points ahead of chance, over the plays it was measured on: +12 points over 24 plays -->
-    <string name="stats_first_player_edge_ahead">+%1$d points over %2$d plays</string>
-    <string name="stats_first_player_edge_behind">%1$d points over %2$d plays</string>
-    <string name="stats_first_player_edge_level">Level with chance over %1$d plays</string>
+    <!-- Percentage points ahead of or behind chance. %2$s is the run of plays the comparison
+         was taken over, which arrives already counted by stats_plays_value. -->
+    <plurals name="stats_first_player_edge_ahead">
+        <item quantity="one">+%1$d point over %2$s</item>
+        <item quantity="other">+%1$d points over %2$s</item>
+    </plurals>
+    <plurals name="stats_first_player_edge_behind">
+        <item quantity="one">-%1$d point over %2$s</item>
+        <item quantity="other">-%1$d points over %2$s</item>
+    </plurals>
+    <plurals name="stats_first_player_edge_level">
+        <item quantity="one">Level with chance over %1$d play</item>
+        <item quantity="other">Level with chance over %1$d plays</item>
+    </plurals>
     <string name="stats_first_player_empty">No play has recorded who went first yet.</string>
     <string name="stats_overall_cost_per_play">Overall cost per play</string>
     <string name="stats_most_economical">Best value</string>
@@ -357,27 +396,40 @@
     <string name="stats_head_to_head_record">%1$d – %2$d</string>
     <string name="stats_shared_plays">(%1$d)</string>
     <string name="stats_unrated_count">Owned but unrated: %1$d</string>
-    <string name="stats_unplayed_row">%1$s · %2$d days</string>
+    <plurals name="stats_unplayed_row">
+        <item quantity="one">%1$s · %2$d day</item>
+        <item quantity="other">%1$s · %2$d days</item>
+    </plurals>
     <string name="stats_nemesis">Nemesis</string>
     <string name="stats_nemesis_body">%1$s beats you %2$d%% of the time.</string>
     <string name="stats_win_rate_by_game">Win rate by game</string>
     <string name="stats_average_score">Average score</string>
     <string name="stats_no_data">Not enough data yet.</string>
-    <string name="stats_plays_value">%1$d plays</string>
+    <plurals name="stats_plays_value">
+        <item quantity="one">%1$d play</item>
+        <item quantity="other">%1$d plays</item>
+    </plurals>
     <string name="stats_win_rate_value">%1$d%% wins</string>
     <!-- A win rate with the number of plays it was taken over: 88% (8) -->
     <string name="stats_win_rate_over_plays">%1$d%% (%2$d)</string>
 
     <!-- Achievements -->
     <string name="achievements_title">Achievements</string>
-    <string name="achievements_progress">%1$d of %2$d unlocked</string>
+    <!-- Counted by the total, %2$d: it is the noun the sentence agrees with. -->
+    <plurals name="achievements_progress">
+        <item quantity="one">%1$d of %2$d unlocked</item>
+        <item quantity="other">%1$d of %2$d unlocked</item>
+    </plurals>
     <string name="achievements_locked">Locked</string>
     <string name="achievements_unlocked_on">Unlocked %1$s</string>
     <string name="achievements_progress_value">%1$s / %2$s</string>
     <string name="achievements_hidden_name">"???"</string>
     <string name="achievements_hidden_description">Keep playing to find out.</string>
     <string name="achievements_unlocked_toast">Achievement unlocked: %1$s</string>
-    <string name="achievements_unlocked_multiple">%1$d achievements unlocked</string>
+    <plurals name="achievements_unlocked_multiple">
+        <item quantity="one">%1$d achievement unlocked</item>
+        <item quantity="other">%1$d achievements unlocked</item>
+    </plurals>
 
     <!-- Players -->
     <string name="players_title">Players</string>
@@ -389,8 +441,17 @@
     <string name="players_name_self">%1$s · you</string>
     <string name="players_archived">Archived</string>
     <string name="players_empty">No players yet.</string>
-    <string name="players_stats">%1$d plays · %2$d wins</string>
-    <string name="players_cannot_delete">%1$s appears in %2$d recorded plays and cannot be deleted. Archive them instead.</string>
+    <!-- Two counts, so both arrive already counted: %1$s from stats_plays_value and
+         %2$s from players_wins. -->
+    <string name="players_stats">%1$s · %2$s</string>
+    <plurals name="players_wins">
+        <item quantity="one">%1$d win</item>
+        <item quantity="other">%1$d wins</item>
+    </plurals>
+    <plurals name="players_cannot_delete">
+        <item quantity="one">%1$s appears in %2$d recorded play and cannot be deleted. Archive them instead.</item>
+        <item quantity="other">%1$s appears in %2$d recorded plays and cannot be deleted. Archive them instead.</item>
+    </plurals>
 
     <!-- Rubrics -->
     <string name="rubrics_title">Rating rubrics</string>
@@ -418,9 +479,18 @@
     <string name="bgg_username">BGG username</string>
     <string name="bgg_fetch">Fetch collection</string>
     <string name="bgg_fetching">Fetching…</string>
-    <string name="bgg_queued">BoardGameGeek is preparing your collection. Retrying in %1$d seconds…</string>
-    <string name="bgg_import_selected">Import %1$d selected</string>
-    <string name="bgg_import_done">Imported %1$d games</string>
+    <plurals name="bgg_queued">
+        <item quantity="one">BoardGameGeek is preparing your collection. Retrying in %1$d second…</item>
+        <item quantity="other">BoardGameGeek is preparing your collection. Retrying in %1$d seconds…</item>
+    </plurals>
+    <plurals name="bgg_import_selected">
+        <item quantity="one">Import %1$d selected</item>
+        <item quantity="other">Import %1$d selected</item>
+    </plurals>
+    <plurals name="bgg_import_done">
+        <item quantity="one">Imported %1$d game</item>
+        <item quantity="other">Imported %1$d games</item>
+    </plurals>
     <string name="bgg_already_owned">Already in your collection</string>
     <string name="bgg_no_results">No matches.</string>
     <string name="bgg_disabled_title">BoardGameGeek is not configured</string>
@@ -440,7 +510,10 @@
     <string name="settings_currency">Default currency</string>
     <string name="settings_self_player">This is me</string>
     <string name="settings_lending_days">Remind me about loans after</string>
-    <string name="settings_lending_days_value">%1$d days</string>
+    <plurals name="settings_lending_days_value">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
     <string name="settings_timer">Timer</string>
     <string name="settings_default_preset">Default preset</string>
     <string name="settings_achievements">Achievements</string>
@@ -476,11 +549,20 @@
     <string name="import_mode_replace">Replace</string>
     <string name="import_mode_replace_help">Erase everything first, then load the file. Restores an export exactly.</string>
     <string name="import_preview_title">Ready to import</string>
-    <string name="import_preview_errors">%1$d rows had problems and will be skipped</string>
+    <plurals name="import_preview_errors">
+        <item quantity="one">%1$d row had problems and will be skipped</item>
+        <item quantity="other">%1$d rows had problems and will be skipped</item>
+    </plurals>
     <string name="import_preview_missing">Missing files: %1$s</string>
     <string name="import_run">Import</string>
-    <string name="import_done">Imported %1$d rows</string>
-    <string name="export_done">Exported %1$d rows to %2$s</string>
+    <plurals name="import_done">
+        <item quantity="one">Imported %1$d row</item>
+        <item quantity="other">Imported %1$d rows</item>
+    </plurals>
+    <plurals name="export_done">
+        <item quantity="one">Exported %1$d row to %2$s</item>
+        <item quantity="other">Exported %1$d rows to %2$s</item>
+    </plurals>
     <string name="backup_done">Backed up %1$s</string>
     <string name="restore_done">Restored. The app will now restart.</string>
     <string name="restore_title">Restore from backup?</string>
@@ -506,8 +588,17 @@
     <string name="cd_achievement_unlocked">Unlocked achievement</string>
 
     <!-- Units -->
-    <string name="unit_players_range">%1$d–%2$d players</string>
-    <string name="unit_players_single">%1$d players</string>
+    <!-- Counted by the upper bound: "1 player" is only ever a solo game. -->
+    <plurals name="unit_players_range">
+        <item quantity="one">%1$d–%2$d player</item>
+        <item quantity="other">%1$d–%2$d players</item>
+    </plurals>
+    <!-- A player count shown on its own: a filter chip, a session row, a share card,
+         a game that seats exactly this many. -->
+    <plurals name="unit_players">
+        <item quantity="one">%1$d player</item>
+        <item quantity="other">%1$d players</item>
+    </plurals>
     <string name="unit_weight">Weight %1$s</string>
     <string name="unit_money">%1$s %2$s</string>
 </resources>

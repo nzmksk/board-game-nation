@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -206,8 +207,9 @@ fun SettingsScreen(
             item {
                 StepperRow(
                     label = stringResource(R.string.settings_lending_days),
-                    value = stringResource(
-                        R.string.settings_lending_days_value,
+                    value = pluralStringResource(
+                        R.plurals.settings_lending_days_value,
+                        state.settings.lendingReminderDays,
                         state.settings.lendingReminderDays
                     ),
                     onDecrease = { viewModel.setLendingDays(state.settings.lendingReminderDays - 5) },
@@ -402,8 +404,9 @@ fun SettingsScreen(
                     Text(summary.describe())
                     if (summary.errors.isNotEmpty()) {
                         Text(
-                            text = stringResource(
-                                R.string.import_preview_errors,
+                            text = pluralStringResource(
+                                R.plurals.import_preview_errors,
+                                summary.errors.size,
                                 summary.errors.size
                             ),
                             color = MaterialTheme.colorScheme.error,
