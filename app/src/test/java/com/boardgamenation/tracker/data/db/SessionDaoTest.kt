@@ -315,6 +315,71 @@ class SessionDaoTest {
     }
 
     @Test
+    fun `the seating survives a save and a load`() = runTest {
+        val id = repository.save(
+            form(listOf(me to 10.0, ben to 8.0)).let { form ->
+                form.copy(
+                    participants = form.participants.map {
+                        it.copy(seat = if (it.playerId == ben) 1 else 2)
+                    }
+                )
+            }
+        )
+
+        val rows = db.sessionDao().getParticipants(id).associateBy { it.playerId }
+        assertEquals(1, rows.getValue(ben).seat)
+        assertEquals(2, rows.getValue(me).seat)
+
+        val loaded = repository.loadForm(id)!!
+        assertEquals(listOf(ben, me), loaded.seating.map { it.playerId })
+        // A closed ring of two: each is on both sides of the other.
+        assertEquals(me, loaded.neighbours.getValue(ben).clockwise.playerId)
+        assertEquals(me, loaded.neighbours.getValue(ben).anticlockwise.playerId)
+    }
+
+    /**
+     * Renumbered on the way in, like the turn order beside it. A chair claimed twice
+     * would leave the ring a player short, and every neighbour read off it wrong.
+     */
+    @Test
+    fun `a play is saved with one player per chair, whatever the caller sent`() = runTest {
+        val id = repository.save(
+            form(listOf(me to 10.0, ben to 8.0)).let { form ->
+                form.copy(participants = form.participants.map { it.copy(seat = 1) })
+            }
+        )
+
+        assertEquals(
+            listOf(1, 2),
+            db.sessionDao().getParticipants(id).mapNotNull { it.seat }.sorted()
+        )
+    }
+
+    @Test
+    fun `a play with no seating recorded keeps none`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+
+        assertTrue(db.sessionDao().getParticipants(id).all { it.seat == null })
+        assertTrue(repository.loadForm(id)!!.neighbours.isEmpty())
+    }
+
+    /** The two are independent columns, and saving one must not fabricate the other. */
+    @Test
+    fun `a recorded turn order leaves the table unseated`() = runTest {
+        val id = repository.save(
+            form(listOf(me to 10.0, ben to 8.0)).let { form ->
+                form.copy(
+                    participants = form.participants.map {
+                        it.copy(turnOrder = if (it.playerId == ben) 1 else 2)
+                    }
+                )
+            }
+        )
+
+        assertTrue(db.sessionDao().getParticipants(id).all { it.seat == null })
+    }
+
+    @Test
     fun `finalising a timer draft does not make a regular look like a first-timer`() = runTest {
         repository.save(form(listOf(me to 10.0)))
 

@@ -14,6 +14,7 @@ import com.boardgamenation.tracker.domain.model.CoopOutcome
 import com.boardgamenation.tracker.domain.model.ParticipantForm
 import com.boardgamenation.tracker.domain.model.PlacementCalculator
 import com.boardgamenation.tracker.domain.model.ScoringMode
+import com.boardgamenation.tracker.domain.model.Seating
 import com.boardgamenation.tracker.domain.model.SessionForm
 import com.boardgamenation.tracker.domain.model.TurnOrder
 import javax.inject.Inject
@@ -189,6 +190,7 @@ class SessionRepository @Inject constructor(
                 isWinner = participant.isWinner,
                 faction = participant.faction?.takeIf { it.isNotBlank() },
                 turnOrder = participant.turnOrder,
+                seat = participant.seat,
                 team = participant.team?.takeIf { it.isNotBlank() },
                 isNewPlayer = participant.isNewPlayer,
                 turnTimeMs = participant.turnTimeMs,
@@ -287,10 +289,11 @@ class SessionRepository @Inject constructor(
             )
         }
 
-        // Renumbered here for the same reason placements are derived here: the quick
-        // sheet, the full form and an import all reach this line, and exactly one of
-        // them may leave a play with two first players.
-        return TurnOrder.normalise(owned)
+        // Both positions are renumbered here for the same reason placements are derived
+        // here: the quick sheet, the full form and an import all reach this line, and
+        // exactly one of them may leave a play with two first players or an empty chair
+        // in a ring that is meant to close.
+        return Seating.normalise(TurnOrder.normalise(owned))
     }
 
     /**
@@ -368,6 +371,7 @@ private fun ParticipantForm.toDraftRow(sessionId: Long) = SessionPlayerEntity(
     sessionId = sessionId,
     playerId = playerId,
     turnOrder = turnOrder,
+    seat = seat,
     turnTimeMs = turnTimeMs,
     bankTimeRemainingMs = bankTimeRemainingMs
 )
@@ -387,6 +391,7 @@ private fun SessionParticipant.toParticipantForm() = ParticipantForm(
     isWinner = isWinner,
     faction = faction,
     turnOrder = turnOrder,
+    seat = seat,
     team = team,
     isNewPlayer = isNewPlayer,
     turnTimeMs = turnTimeMs,
