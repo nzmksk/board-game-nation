@@ -1,0 +1,89 @@
+name: Lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+# A second push to the same branch makes the run in flight redundant.
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+# Uploading SARIF to the code-scanning tab is what turns a finding into an
+# annotation on the line that caused it, and that needs write access.
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  lint:
+    name: ktlint and Android Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Kept in step with tests.yml and apk.yml so a change cannot be linted on one
+      # JDK and built on another.
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # ktlint before Android Lint: it is the faster of the two and the likelier to
+      # fail, so a formatting slip is reported in under a minute. continue-on-error
+      # so that a ktlint failure still lets Android Lint run and report -- one push
+      # then shows every problem rather than the first one only.
+      - name: ktlint
+        id: ktlint
+        continue-on-error: true
+        run: ./gradlew :app:ktlintCheck --stacktrace
+
+      # local.properties is git-ignored, so BGG_API_TOKEN is empty here and the BGG
+      # features lint as unconfigured. Nothing lint checks needs the token.
+      - name: Android Lint
+        id: android-lint
+        continue-on-error: true
+        run: ./gradlew :app:lintDebug --stacktrace
+
+      - name: Upload lint reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: lint-reports
+          path: |
+            app/build/reports/ktlint
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # Annotations on the diff, so a reviewer sees a finding where it happened
+      # instead of in a log. Both linters write SARIF into app/build/reports, and the
+      # action picks up every .sarif under the directory it is given.
+      #
+      # A fork's pull request has no write access to code scanning, hence the guard;
+      # and continue-on-error because this is a convenience on top of the reports the
+      # step above uploads -- a rejected SARIF should not fail a clean lint run.
+      - name: Annotate the diff with the findings
+        if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: app/build/reports
+          category: lint
+
+      # continue-on-error above means both steps report before anything fails, so the
+      # job has to fail here on its own.
+      - name: Fail if either linter found something
+        if: ${{ steps.ktlint.outcome == 'failure' || steps.android-lint.outcome == 'failure' }}
+        run: |
+          echo "ktlint: ${{ steps.ktlint.outcome }}"
+          echo "Android Lint: ${{ steps.android-lint.outcome }}"
+          echo "Reports are attached to this run as the lint-reports artifact."
+          exit 1

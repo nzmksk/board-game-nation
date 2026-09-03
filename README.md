@@ -23,6 +23,7 @@ BoardGameGeek, and only when you explicitly ask it to import something.
 cp local.properties.example local.properties   # then set sdk.dir
 ./gradlew :app:assembleDebug
 ./gradlew :app:testDebugUnitTest
+./gradlew :app:ktlintCheck :app:lintDebug
 ```
 
 `local.properties` is git-ignored and is the only file that ever holds a secret.
@@ -327,6 +328,28 @@ downloaded once into app-private storage and never fetched at scroll time, and t
 than a spinner that says nothing.
 
 ---
+
+## Linting
+
+```bash
+./gradlew :app:ktlintFormat              # fix what can be fixed
+./gradlew :app:ktlintCheck :app:lintDebug
+```
+
+Two linters, and they answer different questions. **ktlint** is about formatting only —
+trailing commas, wrapping, import order — and reads its rules from `.editorconfig`, which
+Android Studio reads too, so a file saved in the IDE is a file ktlint accepts. Almost
+everything it reports, `ktlintFormat` fixes for you.
+
+**Android Lint** is about the code: a permission that may be denied at runtime, a locale
+read in a way that will not recompose. It had never been run here, so it opened with 16
+errors and 111 warnings that predate it. Those live in `app/lint-baseline.xml`, which
+means CI fails on a *new* error rather than on the backlog. Fixing one is a matter of
+deleting its entry from that file; regenerating the whole file (delete it and run
+`lintDebug`) hides the backlog again, so do that only when the errors are genuinely gone.
+
+Warnings never fail the build. The `Lint` workflow runs both on every pull request,
+attaches the HTML reports to the run, and annotates the diff with what it found.
 
 ## Tests
 
