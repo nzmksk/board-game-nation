@@ -189,6 +189,22 @@ class TimerControllerTest {
         assertEquals(me.id, form.firstPlayer?.playerId)
     }
 
+    /**
+     * And as the seating, which the clock is equally entitled to claim: it passes round
+     * that list and wraps back to the top, so what was entered is a ring rather than a
+     * queue. A timed play therefore arrives at the form with its neighbours already
+     * worked out.
+     */
+    @Test
+    fun `the seating survives the handover as the seating`() = runTest(dispatcher) {
+        playFourMinutes()
+        val summary = controller.stopAndSummarise()!!
+
+        val form = sessionRepository.loadForm(summary.sessionId!!)!!
+        assertEquals(listOf(1, 2), form.participants.map { it.seat })
+        assertEquals(ben.id, form.neighbours.getValue(me.id).clockwise.playerId)
+    }
+
     @Test
     fun `a draft knows the turn order before the clock is ever stopped`() = runTest(dispatcher) {
         controller.setUp(gameId, listOf(ben, me), TimerConfig())

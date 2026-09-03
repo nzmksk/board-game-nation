@@ -119,13 +119,17 @@ class TimerController @Inject constructor(
             ?: sessionRepository.createDraft(
                 gameId = current.gameId,
                 // The seat list is the turn order the table sat down in, so the seat
-                // index is the position that belongs on the play.
+                // index is the position that belongs on the play -- as both positions.
+                // The clock is passed round the table and wraps, which is a ring rather
+                // than a queue, so the order it was set up in is the arrangement as
+                // well as the sequence.
                 players = current.seats.mapIndexed { index, seat ->
                     ParticipantForm(
                         playerId = seat.playerId,
                         playerName = seat.name,
                         colorHex = seat.colorHex,
-                        turnOrder = index + 1
+                        turnOrder = index + 1,
+                        seat = index + 1
                     )
                 }
             )
@@ -212,6 +216,7 @@ class TimerController @Inject constructor(
                     // Where the seats sat, not something the clock measured: it holds
                     // for a count-up clock too, which the per-player times below do not.
                     turnOrder = index + 1,
+                    seat = index + 1,
                     // A count-up clock timed the table, so there is no per-player time to
                     // report. Writing zeroes would look like everyone sat there silently.
                     turnTimeMs = seat.totalTurnTimeMs.takeUnless { stopped.isCountUp },

@@ -285,6 +285,7 @@
     <string name="timer_setup_title">Timer setup</string>
     <string name="timer_setup_game">Game</string>
     <string name="timer_setup_players">Turn order</string>
+    <string name="timer_setup_players_help">The clock passes round this list and wraps, so it is recorded on the play as the seating too.</string>
     <string name="timer_seat_position">%1$d.</string>
     <string name="timer_setup_mode">What to time</string>
     <string name="timer_mode_turn_based">Turn clocks</string>
