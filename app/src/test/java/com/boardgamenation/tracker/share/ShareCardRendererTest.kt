@@ -160,6 +160,48 @@ class ShareCardRendererTest {
     }
 
     @Test
+    fun `the seating is drawn on a play that recorded no turn order`() {
+        val players = listOf(standing("Aina", rank = 1, isWinner = true), standing("Hafiz", rank = 2))
+
+        val seated = renderer.render(card(standings = players, seating = listOf("Aina", "Hafiz")))
+        val bare = renderer.render(card(standings = players))
+
+        assertFalse(seated.sameAs(bare))
+    }
+
+    /**
+     * Both were recorded, and the card has one line for where people were. Drawing the
+     * seating underneath would spend it restating the order in a different notation.
+     */
+    @Test
+    fun `a play that recorded both draws the turn order and nothing else`() {
+        val players = listOf(standing("Aina", rank = 1, isWinner = true), standing("Hafiz", rank = 2))
+        val order = listOf("Aina", "Hafiz")
+
+        val both = renderer.render(
+            card(standings = players, turnOrder = order, seating = listOf("Hafiz", "Aina"))
+        )
+        val orderOnly = renderer.render(card(standings = players, turnOrder = order))
+
+        assertTrue(both.sameAs(orderOnly))
+    }
+
+    @Test
+    fun `a ring too long for its line still renders`() {
+        val bitmap = renderer.render(
+            card(
+                standings = (1..12).map { seat ->
+                    standing("Player $seat", rank = seat, score = seat.toDouble())
+                },
+                seating = (1..12).map { "Player $it" }
+            )
+        )
+
+        assertEquals(1920, bitmap.height)
+        assertTrue(distinctColours(bitmap) > 20)
+    }
+
+    @Test
     fun `text longer than the card is not something it chokes on`() {
         val bitmap = renderer.render(
             card(
