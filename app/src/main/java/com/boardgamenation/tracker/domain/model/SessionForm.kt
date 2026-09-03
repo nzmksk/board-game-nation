@@ -15,6 +15,9 @@ data class ParticipantForm(
     /** Seat in the turn order; 1 went first, null means nobody recorded it. */
     val turnOrder: Int? = null,
 
+    /** The chair round the table, numbered from 1. Null means nobody recorded it. */
+    val seat: Int? = null,
+
     /** The side this player was on, when the game is played in teams. */
     val team: String? = null,
 
@@ -90,6 +93,13 @@ data class SessionForm(
 
     /** Who took the first turn, when anyone said. */
     val firstPlayer: ParticipantForm? get() = participants.firstOrNull { it.turnOrder == 1 }
+
+    /** The players who have been given a chair, read round the table from seat 1. */
+    val seating: List<ParticipantForm>
+        get() = participants.filter { it.seat != null }.sortedBy { it.seat }
+
+    /** Who sat either side of whom, once the whole table has been seated. */
+    val neighbours: Map<Long, Neighbours> get() = Seating.neighbours(participants)
 
     /** The form is savable once it names a game and has at least one player. */
     val isValid: Boolean get() = gameId != 0L && participants.isNotEmpty()
@@ -188,16 +198,10 @@ object PlacementCalculator {
 object TurnOrder {
 
     /** Closes gaps and breaks ties, leaving unrecorded players unrecorded. */
-    fun normalise(participants: List<ParticipantForm>): List<ParticipantForm> {
-        val seats = participants
-            .filter { it.turnOrder != null }
-            // sortedBy is stable, so two rows that somehow claim the same seat keep the
-            // order the form holds them in rather than swapping about.
-            .sortedBy { it.turnOrder }
-            .mapIndexed { index, participant -> participant.playerId to index + 1 }
-            .toMap()
-        return participants.map { it.copy(turnOrder = seats[it.playerId]) }
-    }
+    fun normalise(participants: List<ParticipantForm>): List<ParticipantForm> = participants.renumber(
+        position = { it.turnOrder },
+        reseat = { participant, seat -> participant.copy(turnOrder = seat) }
+    )
 
     /**
      * Adds a player to the end of the order, or takes one out of it.
@@ -228,4 +232,105 @@ object TurnOrder {
      */
     fun firstOnly(participants: List<ParticipantForm>, playerId: Long?): List<ParticipantForm> =
         participants.map { it.copy(turnOrder = if (it.playerId == playerId) 1 else null) }
+}
+
+/** The two players a given player sat between, read round the table. */
+data class Neighbours(val anticlockwise: ParticipantForm, val clockwise: ParticipantForm)
+
+/**
+ * Keeps the seating on a form coherent, and works out who ended up next to whom.
+ *
+ * Seats are renumbered into a run starting at 1 by the same rule the turn order uses,
+ * and for the same reason: a table assembled from parts, or edited after the fact, must
+ * not end up with a gap where somebody used to sit or with two people in one chair.
+ *
+ * Where this parts company with [TurnOrder] is what a partial answer is worth. A partial
+ * turn order is real information -- "Aina started" is the common case and stands on its
+ * own. A partial seating is not: the question a seating answers is who was *beside*
+ * whom, and an unseated player may well have been sitting between two seated ones, so
+ * every adjacency in a half-filled ring is a guess. Neighbours are therefore reported
+ * only once the whole table has a chair, and withheld rather than approximated until
+ * then.
+ */
+object Seating {
+
+    /** Closes gaps and breaks ties, leaving unseated players unseated. */
+    fun normalise(participants: List<ParticipantForm>): List<ParticipantForm> = participants.renumber(
+        position = { it.seat },
+        reseat = { participant, seat -> participant.copy(seat = seat) }
+    )
+
+    /**
+     * Seats a player in the next chair round, or takes one out of the ring.
+     *
+     * The same tap-in-sequence interaction the turn order uses: going round the table
+     * naming people builds the arrangement, and naming one again stands them up while
+     * everybody after them shuffles along one chair.
+     */
+    fun toggle(participants: List<ParticipantForm>, playerId: Long): List<ParticipantForm> {
+        val alreadySeated = participants.any { it.playerId == playerId && it.seat != null }
+        val nextSeat = (participants.mapNotNull { it.seat }.maxOrNull() ?: 0) + 1
+        return normalise(
+            participants.map { participant ->
+                when {
+                    participant.playerId != playerId -> participant
+                    alreadySeated -> participant.copy(seat = null)
+                    else -> participant.copy(seat = nextSeat)
+                }
+            }
+        )
+    }
+
+    /** Forgets the arrangement entirely, for when it was recorded wrongly. */
+    fun clear(participants: List<ParticipantForm>): List<ParticipantForm> = participants.map { it.copy(seat = null) }
+
+    /**
+     * Whether the ring closes: everybody at the table has a chair, and there are at
+     * least two of them.
+     *
+     * A solo play is excluded rather than special-cased later. One player in a ring is
+     * their own neighbour on both sides, which is arithmetically true and worth nothing.
+     */
+    fun isComplete(participants: List<ParticipantForm>): Boolean = participants.size >= 2 &&
+        participants.all { it.seat != null }
+
+    /**
+     * Who each player sat between, or nothing at all if the ring does not close.
+     *
+     * The wrap is the point: the player in the last chair is sitting next to the player
+     * in the first, which is exactly the adjacency a turn order does not have. At a
+     * table of two both sides are the same person, which is not a degenerate case but
+     * the truth about a two-player game -- and why 7 Wonders starts at three.
+     */
+    fun neighbours(participants: List<ParticipantForm>): Map<Long, Neighbours> {
+        if (!isComplete(participants)) return emptyMap()
+        val ring = participants.sortedBy { it.seat }
+        return ring.mapIndexed { index, participant ->
+            participant.playerId to Neighbours(
+                anticlockwise = ring[(index - 1 + ring.size) % ring.size],
+                clockwise = ring[(index + 1) % ring.size]
+            )
+        }.toMap()
+    }
+}
+
+/**
+ * Renumbers whichever position column is passed in into a run starting at 1, closing
+ * gaps and breaking ties, and leaves rows holding null holding null.
+ *
+ * Shared by the turn order and the seating because it is one rule, not two that happen
+ * to look alike: both are positions the user builds by tapping and then edits, and both
+ * break in the same way when a player in the middle is removed.
+ */
+private fun List<ParticipantForm>.renumber(
+    position: (ParticipantForm) -> Int?,
+    reseat: (ParticipantForm, Int?) -> ParticipantForm
+): List<ParticipantForm> {
+    val renumbered = filter { position(it) != null }
+        // sortedBy is stable, so two rows that somehow claim the same position keep the
+        // order the form holds them in rather than swapping about.
+        .sortedBy(position)
+        .mapIndexed { index, participant -> participant.playerId to index + 1 }
+        .toMap()
+    return map { reseat(it, renumbered[it.playerId]) }
 }
