@@ -18,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -28,9 +27,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -54,7 +50,6 @@ import com.boardgamenation.tracker.domain.stats.StreakResult
 import com.boardgamenation.tracker.ui.components.EmptyState
 import com.boardgamenation.tracker.ui.components.SectionHeader
 import com.boardgamenation.tracker.ui.components.StatTile
-import com.boardgamenation.tracker.ui.quicklog.QuickLogSheet
 import com.boardgamenation.tracker.ui.sessions.SessionRow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -132,8 +127,6 @@ class DashboardViewModel @Inject constructor(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    onQuickLogSaved: (List<String>) -> Unit,
-    onOpenFullForm: (Long) -> Unit,
     onStartTimer: () -> Unit,
     onOpenSession: (Long) -> Unit,
     onOpenSessions: () -> Unit,
@@ -142,21 +135,13 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var quickLogOpen by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.dashboard_title)) }) },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { quickLogOpen = true },
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.dashboard_quick_log)) }
-            )
-        }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.dashboard_title)) }) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(bottom = 96.dp)
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             // A draft left behind by a killed process is the first thing offered, because
             // an evening's data is the most valuable thing the app could lose.
@@ -317,19 +302,5 @@ fun DashboardScreen(
                 }
             }
         }
-    }
-
-    if (quickLogOpen) {
-        QuickLogSheet(
-            onDismiss = { quickLogOpen = false },
-            onSaved = { unlocked ->
-                quickLogOpen = false
-                onQuickLogSaved(unlocked)
-            },
-            onOpenFullForm = { gameId ->
-                quickLogOpen = false
-                onOpenFullForm(gameId)
-            }
-        )
     }
 }
