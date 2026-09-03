@@ -250,10 +250,21 @@ class SessionRepository @Inject constructor(
             }
         }
 
+        // A score belongs to the mode that has a field for it, in the same way an end
+        // reason is only written for a sudden death and a co-op outcome only for a
+        // co-op. Switching a play to placements, sides or no scoring at all otherwise
+        // leaves the old numbers sitting in rows nothing on screen shows any more --
+        // invisible in the app and still on the shared picture.
+        val scored = if (form.scoringMode.recordsScores) {
+            flagged
+        } else {
+            flagged.map { it.copy(score = null) }
+        }
+
         // Renumbered here for the same reason placements are derived here: the quick
         // sheet, the full form and an import all reach this line, and exactly one of
         // them may leave a play with two first players.
-        return TurnOrder.normalise(flagged)
+        return TurnOrder.normalise(scored)
     }
 
     /**

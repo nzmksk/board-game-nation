@@ -109,6 +109,69 @@ class SessionDaoTest {
         assertTrue(db.sessionDao().getParticipants(id).all { it.isWinner })
     }
 
+    /**
+     * The bug this guards: a play logged with scores and then switched to another mode
+     * kept the numbers in rows the app no longer shows a score field for, so they were
+     * invisible everywhere except the shared picture.
+     */
+    @Test
+    fun `switching a scored play to a mode without scores drops the scores`() = runTest {
+        val id = repository.save(form(listOf(me to 10.0, ben to 8.0)))
+        assertEquals(10.0, db.sessionDao().getParticipants(id).first { it.playerId == me }.score)
+
+        repository.save(form(listOf(me to 10.0, ben to 8.0), mode = ScoringMode.NONE, id = id))
+
+        assertTrue(db.sessionDao().getParticipants(id).all { it.score == null })
+    }
+
+    /** Placements, sides and a co-op result all stand on their own without a score. */
+    @Test
+    fun `no mode but ranked scoring keeps a score`() = runTest {
+        val withoutScores = listOf(
+            ScoringMode.MANUAL_PLACEMENT,
+            ScoringMode.COOPERATIVE,
+            ScoringMode.TEAM_BASED,
+            ScoringMode.NONE,
+        )
+
+        withoutScores.forEach { mode ->
+            val id = repository.save(form(listOf(me to 10.0, ben to 8.0), mode = mode))
+            assertTrue(
+                "$mode should not keep a score",
+                db.sessionDao().getParticipants(id).all { it.score == null },
+            )
+        }
+
+        val ranked = repository.save(form(listOf(me to 10.0), mode = ScoringMode.RANKED_SCORES))
+        assertEquals(10.0, db.sessionDao().getParticipants(ranked).single().score)
+    }
+
+    /**
+     * Dropping the score must not take the result with it: a play ranked by placement
+     * still knows who won, and that is what the switch was made to record.
+     */
+    @Test
+    fun `dropping the scores leaves the placements alone`() = runTest {
+        val ordered = SessionForm(
+            gameId = gameId,
+            playedOn = LocalDate.parse("2026-02-01"),
+            durationMinutes = 75,
+            scoringMode = ScoringMode.MANUAL_PLACEMENT,
+            participants = listOf(
+                ParticipantForm(playerId = ben, playerName = "Ben", score = 8.0),
+                ParticipantForm(playerId = me, playerName = "Me", score = 10.0),
+            ),
+        )
+
+        val id = repository.save(ordered)
+        val participants = db.sessionDao().getParticipants(id).associateBy { it.playerId }
+
+        assertEquals(1, participants.getValue(ben).placement)
+        assertEquals(2, participants.getValue(me).placement)
+        assertTrue(participants.getValue(ben).isWinner)
+        assertTrue(participants.values.all { it.score == null })
+    }
+
     /** Re-saving replaces the participant set rather than accumulating duplicates. */
     @Test
     fun `editing a session does not leave stale participants behind`() = runTest {

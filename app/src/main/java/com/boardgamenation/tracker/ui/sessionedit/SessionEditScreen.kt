@@ -394,7 +394,7 @@ fun SessionEditScreen(
                     // players in, but any partial score they enter is still kept.
                     showOrdering = state.form.scoringMode == ScoringMode.MANUAL_PLACEMENT ||
                         state.form.isSuddenDeath,
-                    showScore = state.form.scoringMode == ScoringMode.RANKED_SCORES,
+                    showScore = state.form.scoringMode.recordsScores,
                     showTeam = state.form.isTeamBased,
                     previousTeams = state.previousTeams,
                     onScore = { score ->

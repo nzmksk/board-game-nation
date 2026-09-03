@@ -80,6 +80,17 @@ enum class ScoringMode {
     /** Neither scores nor order matter; just record who played. */
     NONE;
 
+    /**
+     * Whether a play in this mode has a number against each player's name.
+     *
+     * Only ranked scoring does, and the logging form shows the score field for that
+     * mode alone. That makes this the line between a score somebody meant to record and
+     * one left behind by a mode the play used to be in: a game switched to placements,
+     * sides or nothing at all keeps no scores, because there is nowhere left in the app
+     * to see or correct them.
+     */
+    val recordsScores: Boolean get() = this == RANKED_SCORES
+
     companion object {
         fun fromStorage(value: String?): ScoringMode =
             entries.firstOrNull { it.name == value } ?: RANKED_SCORES
