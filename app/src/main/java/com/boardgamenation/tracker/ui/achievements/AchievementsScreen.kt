@@ -156,6 +156,9 @@ private fun AchievementTile(achievement: AchievementUi) {
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(Modifier.size(8.dp))
+                // Name and description hold their line count whether or not they need it.
+                // A grid row is as tall as its tallest tile, so a one-line name beside a
+                // two-line one left the row ragged.
                 Text(
                     text = if (achievement.isSecret) {
                         stringResource(R.string.achievements_hidden_name)
@@ -163,7 +166,8 @@ private fun AchievementTile(achievement: AchievementUi) {
                         achievement.name
                     },
                     style = MaterialTheme.typography.titleSmall,
-                    maxLines = 2,
+                    minLines = NAME_LINES,
+                    maxLines = NAME_LINES,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -176,46 +180,58 @@ private fun AchievementTile(achievement: AchievementUi) {
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 3,
+                minLines = DESCRIPTION_LINES,
+                maxLines = DESCRIPTION_LINES,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(8.dp))
 
-            if (achievement.isUnlocked) {
-                Text(
-                    text = stringResource(
+            // Every tile ends on a bar and a single status line, so the footer is the same
+            // height whatever state the achievement is in. A hidden one still shows the
+            // bar: the secret is what it is for, not how close you are.
+            LinearProgressIndicator(
+                progress = { if (achievement.isUnlocked) 1f else achievement.progress.fraction },
+                color = if (achievement.isUnlocked) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = when {
+                    achievement.isUnlocked -> stringResource(
                         R.string.achievements_unlocked_on,
                         achievement.unlockedAt?.let { DateUtils.epochMillisToIso(it) }.orEmpty()
-                    ),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            } else if (achievement.progress.target > 0) {
-                // Locked tiles show how far along they are. A hidden one still shows the
-                // bar: the secret is what it is for, not how close you are.
-                LinearProgressIndicator(
-                    progress = { achievement.progress.fraction },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = stringResource(
+                    )
+
+                    achievement.progress.target > 0 -> stringResource(
                         R.string.achievements_progress_value,
                         formatValue(achievement.progress.current),
                         formatValue(achievement.progress.target)
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                Text(
-                    text = stringResource(R.string.achievements_locked),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                    )
+
+                    else -> stringResource(R.string.achievements_locked)
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = if (achievement.isUnlocked) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
+
+/** Lines a tile reserves for the name, so every tile in a row is the same height. */
+private const val NAME_LINES = 2
+
+/** Lines a tile reserves for the description, for the same reason. */
+private const val DESCRIPTION_LINES = 3
 
 /** Whole numbers stay whole; hours and rates keep one decimal. */
 private fun formatValue(value: Double): String = if (value % 1.0 == 0.0) {

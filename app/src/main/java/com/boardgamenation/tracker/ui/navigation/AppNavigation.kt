@@ -1,6 +1,7 @@
 package com.boardgamenation.tracker.ui.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -122,7 +123,12 @@ fun AppNavigation(
         snackbarHost = { SnackbarHost(snackbarHost) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
+        // Every destination hangs its own Scaffold under this one. Padding on its own does
+        // not consume the system bar insets, so the inner Scaffold still sees them whole and
+        // applies them a second time: a top bar a status bar taller than it should be, and a
+        // dead strip of navigation bar between the content and the tab row. Consuming them
+        // here leaves the inner Scaffolds nothing to double up on.
+        Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
             NavHost(
                 navController = navController,
                 startDestination = if (onboardingComplete) Route.Collection else Route.Onboarding

@@ -593,7 +593,9 @@ private fun GameTile(game: GameListItem, selected: Boolean, onOpen: () -> Unit, 
                 MaterialTheme.colorScheme.surfaceContainerLow
             }
         ),
-        modifier = Modifier.combinedClickable(onClick = onOpen, onLongClick = onToggleSelect)
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onOpen, onLongClick = onToggleSelect)
     ) {
         Column(Modifier.padding(8.dp)) {
             GameThumbnail(
@@ -603,10 +605,14 @@ private fun GameTile(game: GameListItem, selected: Boolean, onOpen: () -> Unit, 
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Spacer(Modifier.height(6.dp))
+            // Two lines whether the title needs them or not. A grid row is only as tall as
+            // its tallest tile, so letting a one-line title shrink its own card left the
+            // row ragged -- one short card sitting beside a tall one.
             Text(
                 text = game.title,
                 style = MaterialTheme.typography.labelLarge,
-                maxLines = 2,
+                minLines = TITLE_LINES,
+                maxLines = TITLE_LINES,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
@@ -673,3 +679,6 @@ internal fun PlaytimeBucket.labelRes(): Int = when (this) {
 
 /** Per-kind cap on the filter row, so no one kind can crowd out the others. */
 private const val TAG_CHIPS_PER_KIND = 8
+
+/** Lines a grid tile reserves for the title, so every tile in a row is the same height. */
+private const val TITLE_LINES = 2
