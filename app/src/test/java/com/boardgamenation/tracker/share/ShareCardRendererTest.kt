@@ -31,6 +31,9 @@ class ShareCardRendererTest {
 
     private val renderer = ShareCardRenderer(ApplicationProvider.getApplicationContext())
 
+    /** The renderer's own margin, which is private to it. */
+    private val margin = 84
+
     private fun standing(
         name: String,
         rank: Int? = null,
@@ -57,6 +60,7 @@ class ShareCardRendererTest {
         mode: String? = null,
         endReason: String? = null,
         turnOrder: List<String> = emptyList(),
+        seating: List<String> = emptyList(),
         isIncomplete: Boolean = false,
         isTeachingGame: Boolean = false
     ) = ShareCard(
@@ -69,6 +73,7 @@ class ShareCardRendererTest {
         mode = mode,
         endReason = endReason,
         turnOrder = turnOrder,
+        seating = seating,
         isIncomplete = isIncomplete,
         isTeachingGame = isTeachingGame
     )
@@ -87,6 +92,23 @@ class ShareCardRendererTest {
             }
         }
         return count
+    }
+
+    /**
+     * The first row on which two cards differ, which on a pair that differ by one badge
+     * is where that badge was drawn.
+     *
+     * Everything below it differs too -- a badge lengthens the header, and the standings
+     * shift down to make room -- so only the first row means anything, and it is exactly
+     * the question here: which side of the headline did the badge land on.
+     */
+    private fun firstChangedRow(one: Bitmap, other: Bitmap): Int {
+        for (y in 0 until one.height) {
+            for (x in 0 until one.width step 4) {
+                if (one.getPixel(x, y) != other.getPixel(x, y)) return y
+            }
+        }
+        return -1
     }
 
     private fun distinctColours(bitmap: Bitmap): Int {
@@ -142,6 +164,60 @@ class ShareCardRendererTest {
         assertTrue(goldPixels(won) > goldPixels(unresolved))
     }
 
+    /**
+     * The ending qualifies the result, so it reads under the headline. The mode and the
+     * teaching flag were both true before the game started and stay above it.
+     */
+    @Test
+    fun `the end condition is drawn below the headline and the setup badges above it`() {
+        val players = listOf(standing("Aina", rank = 1, isWinner = true), standing("Hafiz", rank = 2))
+        val plain = renderer.render(card(standings = players))
+
+        val reason = firstChangedRow(
+            renderer.render(card(standings = players, endReason = "Military supremacy")),
+            plain
+        )
+        val mode = firstChangedRow(
+            renderer.render(card(standings = players, mode = "Military supremacy")),
+            plain
+        )
+        val abandoned = firstChangedRow(
+            renderer.render(card(standings = players, isIncomplete = true)),
+            plain
+        )
+        val teaching = firstChangedRow(
+            renderer.render(card(standings = players, isTeachingGame = true)),
+            plain
+        )
+
+        assertTrue(reason > mode)
+        assertTrue(abandoned > teaching)
+    }
+
+    /**
+     * The watermark is centred and drawn straight, with nothing to ellipsise it, so a
+     * longer wording of it -- or a translation -- would simply run off the card. The
+     * margins either side of the footer are where that shows up first.
+     */
+    @Test
+    fun `the watermark stays inside the margins`() {
+        val bitmap = renderer.render(
+            card(standings = listOf(standing("Aina", rank = 1, isWinner = true)))
+        )
+
+        for (y in bitmap.height - 180 until bitmap.height) {
+            // The background is a vertical gradient, so it is constant across a row and
+            // the far edge of that row is what the margin should still be showing.
+            val background = bitmap.getPixel(0, y)
+            for (x in 0 until margin) {
+                assertEquals(background, bitmap.getPixel(x, y))
+            }
+            for (x in bitmap.width - margin until bitmap.width) {
+                assertEquals(background, bitmap.getPixel(x, y))
+            }
+        }
+    }
+
     @Test
     fun `a table too big for the card still renders`() {
         val bitmap = renderer.render(
@@ -150,6 +226,48 @@ class ShareCardRendererTest {
                     standing("Player $seat", rank = seat, score = seat.toDouble())
                 },
                 turnOrder = (1..12).map { "Player $it" }
+            )
+        )
+
+        assertEquals(1920, bitmap.height)
+        assertTrue(distinctColours(bitmap) > 20)
+    }
+
+    @Test
+    fun `the seating is drawn on a play that recorded no turn order`() {
+        val players = listOf(standing("Aina", rank = 1, isWinner = true), standing("Hafiz", rank = 2))
+
+        val seated = renderer.render(card(standings = players, seating = listOf("Aina", "Hafiz")))
+        val bare = renderer.render(card(standings = players))
+
+        assertFalse(seated.sameAs(bare))
+    }
+
+    /**
+     * Both were recorded, and the card has one line for where people were. Drawing the
+     * seating underneath would spend it restating the order in a different notation.
+     */
+    @Test
+    fun `a play that recorded both draws the turn order and nothing else`() {
+        val players = listOf(standing("Aina", rank = 1, isWinner = true), standing("Hafiz", rank = 2))
+        val order = listOf("Aina", "Hafiz")
+
+        val both = renderer.render(
+            card(standings = players, turnOrder = order, seating = listOf("Hafiz", "Aina"))
+        )
+        val orderOnly = renderer.render(card(standings = players, turnOrder = order))
+
+        assertTrue(both.sameAs(orderOnly))
+    }
+
+    @Test
+    fun `a ring too long for its line still renders`() {
+        val bitmap = renderer.render(
+            card(
+                standings = (1..12).map { seat ->
+                    standing("Player $seat", rank = seat, score = seat.toDouble())
+                },
+                seating = (1..12).map { "Player $it" }
             )
         )
 

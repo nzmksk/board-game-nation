@@ -16,6 +16,7 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withTranslation
 import com.boardgamenation.tracker.R
 import com.boardgamenation.tracker.core.time.DurationFormat
+import com.boardgamenation.tracker.domain.share.ShareArrangement
 import com.boardgamenation.tracker.domain.share.ShareCard
 import com.boardgamenation.tracker.domain.share.ShareResult
 import com.boardgamenation.tracker.domain.share.ShareStanding
@@ -60,8 +61,8 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
         drawBackground(canvas)
         val headerBottom = drawHeader(canvas, card)
         val footerTop = drawFooter(canvas)
-        val seatingTop = drawSeating(canvas, card, footerTop)
-        drawStandings(canvas, card, top = headerBottom, bottom = seatingTop)
+        val arrangementTop = drawArrangement(canvas, card, footerTop)
+        drawStandings(canvas, card, top = headerBottom, bottom = arrangementTop)
 
         return bitmap
     }
@@ -86,7 +87,7 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
 
     // -- Header -------------------------------------------------------------------
 
-    /** Draws the date, title, figures and badges. Returns the y the standings start at. */
+    /** Draws the date, title, figures, badges and headline. Returns the y the standings start at. */
     private fun drawHeader(canvas: Canvas, card: ShareCard): Float {
         var y = 152f
 
@@ -120,13 +121,14 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
         canvas.drawText(figures, MARGIN, y + figuresPaint.textSize, figuresPaint)
         y += figuresPaint.textSize + 24f
 
-        val badges = listOfNotNull(
+        // What the table sat down to: the configuration played and whether somebody was
+        // being taught. Both are true before a die is rolled, so they belong with the
+        // title and the figures rather than with the result.
+        val setup = listOfNotNull(
             card.mode,
-            card.endReason,
-            context.getString(R.string.session_incomplete).takeIf { card.isIncomplete },
             context.getString(R.string.session_teaching).takeIf { card.isTeachingGame }
         )
-        if (badges.isNotEmpty()) y += drawBadges(canvas, badges, y) + 20f
+        if (setup.isNotEmpty()) y += drawBadges(canvas, setup, y) + 20f
 
         headline(card)?.let { headline ->
             y += 20f
@@ -138,6 +140,19 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
                 top = y,
                 maxLines = 2
             )
+        }
+
+        // How the play ended is a qualification of the result -- won, by military
+        // supremacy; gave up, so nobody won -- and reads as one only underneath it.
+        // Above, sat among the setup badges, it looked like another thing the table
+        // chose at the start.
+        val ending = listOfNotNull(
+            card.endReason,
+            context.getString(R.string.session_incomplete).takeIf { card.isIncomplete }
+        )
+        if (ending.isNotEmpty()) {
+            y += 20f
+            y += drawBadges(canvas, ending, y)
         }
 
         return y + 56f
@@ -368,50 +383,93 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
         return trimmed.substring(0, length).uppercase()
     }
 
-    // -- Seating and footer -------------------------------------------------------
+    // -- Arrangement and footer ---------------------------------------------------
 
     /**
-     * The order the table played in, drawn upward from the footer. Returns its own top
-     * so the standings know where to stop.
+     * Where the players were, drawn upward from the footer. Returns its own top so the
+     * standings know where to stop.
+     *
+     * One line, and the card decides which arrangement gets it. A play that recorded
+     * neither leaves the space to the standings rather than printing an empty heading.
+     */
+    private fun drawArrangement(canvas: Canvas, card: ShareCard, footerTop: Float): Float = when (card.arrangement) {
+        null -> footerTop - 40f
+        ShareArrangement.TURN_ORDER -> drawTurnOrder(canvas, card.turnOrder, footerTop)
+        ShareArrangement.SEATING -> drawSeating(canvas, card.seating, footerTop)
+    }
+
+    /**
+     * The order the table played in.
      *
      * A partial order is the ordinary case -- very often only the starting player was
      * written down -- and it gets the sentence the rest of the app uses for it rather
      * than a one-name list.
      */
-    private fun drawSeating(canvas: Canvas, card: ShareCard, footerTop: Float): Float {
-        if (card.turnOrder.isEmpty()) return footerTop - 40f
-
+    private fun drawTurnOrder(canvas: Canvas, order: List<String>, footerTop: Float): Float {
         // "Aina went first" is already a sentence and says what the heading would have.
-        val onlyTheStarter = card.turnOrder.size == 1
-        val seats = if (onlyTheStarter) {
-            context.getString(R.string.session_first_player, card.turnOrder.first())
-        } else {
-            card.turnOrder.mapIndexed { index, name ->
-                context.getString(R.string.session_edit_turn_order_seat, index + 1, name)
-            }.joinToString(SEPARATOR)
+        if (order.size == 1) {
+            return drawTableLine(
+                canvas = canvas,
+                label = null,
+                body = context.getString(R.string.session_first_player, order.first()),
+                footerTop = footerTop
+            )
         }
 
+        return drawTableLine(
+            canvas = canvas,
+            label = context.getString(R.string.session_edit_turn_order),
+            body = order.mapIndexed { index, name ->
+                context.getString(R.string.session_edit_turn_order_seat, index + 1, name)
+            }.joinToString(SEPARATOR),
+            footerTop = footerTop
+        )
+    }
+
+    /**
+     * Who sat beside whom, written the way the session screen writes it: arrows round
+     * the table, with the first name repeated at the end.
+     *
+     * That repeat is the whole difference between this line and a turn order. A turn
+     * order stops at the last player; a seating carries on back to the first, and the
+     * adjacency it closes is the one a game like 7 Wonders is actually played on.
+     */
+    private fun drawSeating(canvas: Canvas, seating: List<String>, footerTop: Float): Float = drawTableLine(
+        canvas = canvas,
+        label = context.getString(R.string.session_edit_seating),
+        body = (seating + seating.first())
+            .joinToString(context.getString(R.string.session_edit_seating_ring_separator)),
+        footerTop = footerTop
+    )
+
+    /**
+     * One heading and one wrapping line, sat on top of the footer. A [label] of null is
+     * for a body that already reads as a sentence and would only be repeating it.
+     */
+    private fun drawTableLine(canvas: Canvas, label: String?, body: String, footerTop: Float): Float {
         val labelPaint = text(size = 32f, color = MUTED, bold = true).apply { letterSpacing = 0.16f }
-        val labelHeight = if (onlyTheStarter) 0f else labelPaint.textSize + 16f
-        val layout = layout(seats, text(size = 38f, color = INK), maxLines = 2)
+        val labelHeight = if (label == null) 0f else labelPaint.textSize + 16f
+        val layout = layout(body, text(size = 38f, color = INK), maxLines = 2)
 
         val top = footerTop - 48f - layout.height - labelHeight
-        if (!onlyTheStarter) {
-            canvas.drawText(
-                context.getString(R.string.session_edit_turn_order).uppercase(),
-                MARGIN,
-                top + labelPaint.textSize,
-                labelPaint
-            )
+        if (label != null) {
+            canvas.drawText(label.uppercase(), MARGIN, top + labelPaint.textSize, labelPaint)
         }
         canvas.withTranslation(MARGIN, top + labelHeight) { layout.draw(this) }
 
         return top - 40f
     }
 
-    /** The watermark. Returns its top, which is the floor for everything above it. */
+    /**
+     * The watermark. Returns its top, which is the floor for everything above it.
+     *
+     * Set small on purpose. The card is somebody else's result, not an advertisement,
+     * and a signature that competes with the names above it is the sender's picture
+     * carrying the app's branding rather than their game. It is the quietest text on
+     * the card, which is what a signature is for.
+     */
     private fun drawFooter(canvas: Canvas): Float {
-        val paint = text(size = 44f, color = INK, bold = true).apply {
+        val paint = text(size = 30f, color = INK, bold = true).apply {
             textAlign = Paint.Align.CENTER
             letterSpacing = 0.08f
         }
@@ -424,7 +482,15 @@ class ShareCardRenderer @Inject constructor(@param:ApplicationContext private va
             4f,
             fill(GOLD)
         )
-        canvas.drawText(context.getString(R.string.app_name), WIDTH / 2f, baseline, paint)
+        canvas.drawText(
+            context.getString(
+                R.string.share_card_watermark,
+                context.getString(R.string.app_name)
+            ),
+            WIDTH / 2f,
+            baseline,
+            paint
+        )
 
         return ruleY - 56f
     }

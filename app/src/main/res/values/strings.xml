@@ -263,6 +263,9 @@
     <!-- Marks a player whose first play of this game it was. Kept short: it is drawn as
          a tag beside the name, on a row that also has to hold a score. -->
     <string name="share_card_first_timer">First play</string>
+    <!-- The watermark along the bottom of a shared card. %1$s is the app name, which is
+         a proper noun and is not translated. -->
+    <string name="share_card_watermark">Powered by %1$s</string>
     <string name="share_chooser_title">Share this result</string>
     <string name="share_failed">Could not create the image</string>
 
